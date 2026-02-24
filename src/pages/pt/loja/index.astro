@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProductCard from '../../../components/Cards/ProductCard.astro';
+import { useTranslations, routes, withBase } from '../../../i18n/ui';
+import { getCollection } from 'astro:content';
+
+const lang = 'pt';
+const t = useTranslations(lang);
+const langRoutes = routes[lang];
+
+const allProducts = await getCollection('products');
+const products = allProducts.filter((product) => product.data.lang === lang);
+const allCategories = await getCollection('categories');
+const categoryCards = allCategories
+  .filter((category) => category.data.lang === lang)
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((category) => category.data);
+const categoryImage = (image: string) => (image.startsWith('/') ? withBase(image) : image);
+---
+
+<BaseLayout title={t('shop.title')} lang={lang}>
+
+  <!-- Header with pt-16 for navbar offset -->
+  <section class="pt-24 pb-8 px-6 max-w-7xl mx-auto">
+    <!-- Banner -->
+    <div class="bg-forest/5 border border-stone/40 rounded-sm p-6 md:p-8 text-center mb-12">
+      <p class="font-serif text-lg md:text-xl italic text-forest">
+        {t('shop.banner')}
+      </p>
+    </div>
+
+    <h1 class="font-serif text-4xl md:text-5xl italic text-center mb-4">{t('shop.title')}</h1>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <h2 class="font-serif text-2xl italic text-center mb-8">{t('shop.categories')}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      {categoryCards.map((category) => (
+        <a
+          href={`${langRoutes.shop}${encodeURIComponent(category.key)}/`}
+          class="group block border border-stone/40 rounded-sm overflow-hidden hover:border-forest/70 transition-colors"
+        >
+          <div class="aspect-[4/3] overflow-hidden">
+            <img
+              src={categoryImage(category.image)}
+              alt={category.name}
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+          <div class="p-4 bg-paper">
+            <p class="font-serif text-xl italic text-forest">{category.name}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <h2 class="font-serif text-2xl italic text-center mb-8">{t('shop.allProducts')}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {products.map((product) => (
+        <ProductCard
+          title={product.data.title}
+          category={product.data.category}
+          image={product.data.image}
+          priceDisplay={product.data.priceDisplay}
+          locations={product.data.locations}
+          slug={product.id}
+          lang={lang}
+        />
+      ))}
+    </div>
+  </section>
+
+</BaseLayout>

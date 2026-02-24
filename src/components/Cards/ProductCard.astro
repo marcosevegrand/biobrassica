@@ -1,0 +1,45 @@
+---
+interface Props {
+  title: string;
+  category: string;
+  image: string;
+  priceDisplay: string;
+  locations: string[];
+  slug: string;
+  lang: string;
+}
+
+const { title, category, image, priceDisplay, locations, slug, lang } = Astro.props;
+const reserveLabel = lang === 'pt' ? 'Reservar' : lang === 'fr' ? 'Réserver' : 'Reserve';
+---
+
+<article class="group border border-stone/40 rounded-sm overflow-hidden bg-paper">
+  <div class="overflow-hidden">
+    <img
+      src={image}
+      alt={title}
+      class="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+      loading="lazy"
+    />
+  </div>
+  <div class="p-4">
+    <p class="text-[10px] uppercase tracking-widest text-forest mb-2">{category}</p>
+    <h3 class="font-serif text-lg mb-1">{title}</h3>
+    <p class="text-terracotta font-medium text-sm mb-2">{priceDisplay}</p>
+    <div class="flex flex-wrap gap-1 mb-3">
+      {locations.map((loc) => (
+        <span class="text-[10px] uppercase tracking-widest text-muted border border-stone/40 px-2 py-0.5 rounded-sm">
+          📍 {loc}
+        </span>
+      ))}
+    </div>
+    <a
+      href={`https://wa.me/351900000000?text=Olá, gostaria de reservar: ${title}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="block text-center text-xs uppercase tracking-widest bg-forest text-paper py-2.5 rounded-sm hover:bg-terracotta transition-colors"
+    >
+      {reserveLabel}
+    </a>
+  </div>
+</article>

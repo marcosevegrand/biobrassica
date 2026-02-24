@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, withBase } from '../../i18n/ui';
+
+const lang = 'pt';
+const t = useTranslations(lang);
+
+// Seasonal calendar data for Northern Portugal
+const months = [
+  { name: 'Janeiro', items: ['Couve', 'Nabo', 'Cenoura', 'Alho-francês'] },
+  { name: 'Fevereiro', items: ['Brócolos', 'Espinafre', 'Couve-flor', 'Agrião'] },
+  { name: 'Março', items: ['Alface', 'Ervilha', 'Espargo', 'Rabanete'] },
+  { name: 'Abril', items: ['Fava', 'Alface', 'Cenoura', 'Ervilha'] },
+  { name: 'Maio', items: ['Morango', 'Alface', 'Cebola', 'Ervilha'] },
+  { name: 'Junho', items: ['Tomate', 'Pepino', 'Pimento', 'Courgette'] },
+  { name: 'Julho', items: ['Tomate', 'Feijão-verde', 'Beringela', 'Melão'] },
+  { name: 'Agosto', items: ['Tomate', 'Pimento', 'Milho', 'Figo'] },
+  { name: 'Setembro', items: ['Abóbora', 'Uva', 'Maçã', 'Couve'] },
+  { name: 'Outubro', items: ['Abóbora', 'Castanha', 'Nabo', 'Couve'] },
+  { name: 'Novembro', items: ['Couve', 'Brócolos', 'Cenoura', 'Castanha'] },
+  { name: 'Dezembro', items: ['Couve', 'Nabo', 'Alho-francês', 'Laranja'] },
+];
+
+const certifications = [
+  {
+    name: 'Euro Leaf',
+    description: 'O logótipo europeu de agricultura biológica garante que pelo menos 95% dos ingredientes agrícolas são de produção biológica certificada, seguindo regulamentos rigorosos da UE.',
+    image: withBase('cert-bio.jpeg'),
+  },
+  {
+    name: 'Certiplanet',
+    description: 'Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet verifica e atesta que os nossos métodos de produção cumprem todas as normas de agricultura biológica.',
+    image: withBase('certiplanet.png'),
+  },
+];
+---
+
+<BaseLayout title={t('agri.title')} lang={lang}>
+
+  <!-- Hero -->
+  <section class="relative h-[60vh] min-h-[400px] flex items-center justify-center overflow-hidden mt-16">
+    <img
+      src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&h=800&fit=crop"
+      alt="Campo de agricultura biológica"
+      class="absolute inset-0 w-full h-full object-cover"
+    />
+    <div class="relative z-10 text-center text-paper px-6 max-w-3xl">
+      <h1 class="font-serif text-4xl md:text-6xl italic mb-4">{t('agri.title')}</h1>
+      <p class="text-sm md:text-base uppercase tracking-widest text-paper/80">
+        {t('agri.subtitle')}
+      </p>
+    </div>
+  </section>
+
+  <!-- Introduction -->
+  <section class="max-w-3xl mx-auto px-6 py-24">
+    <p class="text-lg leading-relaxed text-muted text-center">
+      {t('agri.intro')}
+    </p>
+  </section>
+
+  <!-- Certifications -->
+  <section class="bg-forest/5 py-24">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="font-serif text-3xl md:text-4xl text-center italic mb-16">{t('agri.cert.title')}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {certifications.map((cert) => (
+          <div class="bg-paper border border-stone/40 rounded-sm p-8 text-center">
+            <img src={cert.image} alt={cert.name} class="h-20 w-auto mx-auto mb-6" loading="lazy" />
+            <h3 class="font-serif text-xl italic mb-4">{cert.name}</h3>
+            <p class="text-muted text-sm leading-relaxed">{cert.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Seasonal Calendar -->
+  <section class="max-w-7xl mx-auto px-6 py-24">
+    <h2 class="font-serif text-3xl md:text-4xl text-center italic mb-16">{t('agri.calendar.title')}</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {months.map((month) => (
+        <div class="border border-stone/40 rounded-sm p-4 bg-paper">
+          <h3 class="font-serif text-sm font-medium mb-3 text-center text-terracotta">{month.name}</h3>
+          <ul class="space-y-1">
+            {month.items.map((item) => (
+              <li class="text-xs text-muted text-center">{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Educational section -->
+  <section class="bg-forest/5 py-24">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="font-serif text-3xl italic mb-6">Porquê biológico?</h2>
+          <div class="space-y-4 text-muted text-sm leading-relaxed">
+            <p>
+              A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita
+              o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a
+              biodiversidade, a qualidade da água e a saúde do solo.
+            </p>
+            <p>
+              Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada
+              mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta.
+            </p>
+            <p>
+              Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura
+              biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano.
+            </p>
+          </div>
+        </div>
+        <div class="overflow-hidden rounded-sm">
+          <img
+            src="https://images.unsplash.com/photo-1592419044706-39796d40f98c?w=600&h=800&fit=crop"
+            alt="Solo saudável e plantas biológicas"
+            class="w-full aspect-[3/4] object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color Palette - Eco Minimalism */
+  --color-paper: #FBF9F6;
+  --color-forest: #2C3F2D;
+  --color-terracotta: #3E5F46;
+  --color-stone: #D1D1CC;
+  --color-muted: #6B6B6B;
+
+  /* Font Families */
+  --font-serif: "Lora", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+/* Base Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  color: var(--color-forest);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+}

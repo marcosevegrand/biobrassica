@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ProductCard from '../../../../components/Cards/ProductCard.astro';
+import { useTranslations, routes } from '../../../../i18n/ui';
+import { getCollection } from 'astro:content';
+
+const lang = 'pt';
+const t = useTranslations(lang);
+const langRoutes = routes[lang];
+
+const allCategories = await getCollection('categories');
+const allProducts = await getCollection('products');
+
+export async function getStaticPaths() {
+  const allCategories = await getCollection('categories');
+  const categories = allCategories
+    .filter((category) => category.data.lang === 'pt')
+    .map((category) => category.data);
+
+  return categories.map((category) => ({
+    params: { categoria: category.key },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const filteredProducts = allProducts.filter(
+  (product) => product.data.lang === lang && product.data.category === category.name
+);
+---
+
+<BaseLayout title={`${t('shop.title')} - ${category.name}`} lang={lang}>
+  <section class="pt-24 pb-8 px-6 max-w-7xl mx-auto">
+    <div class="bg-forest/5 border border-stone/40 rounded-sm p-6 md:p-8 text-center mb-12">
+      <p class="font-serif text-lg md:text-xl italic text-forest">
+        {t('shop.banner')}
+      </p>
+    </div>
+
+    <h1 class="font-serif text-4xl md:text-5xl italic text-center mb-4">{t('shop.title')}</h1>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <div class="flex justify-center mb-4">
+      <a
+        href={langRoutes.shop}
+        class="text-xs uppercase tracking-widest border border-stone/40 px-4 py-2 rounded-sm hover:border-forest/70 text-forest"
+      >
+        Ver categorias
+      </a>
+    </div>
+
+    <h2 class="font-serif text-2xl italic text-center mb-8">{category.name}</h2>
+
+    {
+      filteredProducts.length > 0 ? (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              title={product.data.title}
+              category={product.data.category}
+              image={product.data.image}
+              priceDisplay={product.data.priceDisplay}
+              locations={product.data.locations}
+              slug={product.id}
+              lang={lang}
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="text-center text-muted">Sem produtos nesta categoria.</p>
+      )
+    }
+  </section>
+
+</BaseLayout>

@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations, withBase } from '../../i18n/ui';
+
+const lang = 'pt';
+const t = useTranslations(lang);
+
+const timeline = [
+  { year: '2015', title: 'A Semente', text: 'Começámos com um pequeno terreno em Braga, movidos pela paixão pela terra e pela alimentação saudável.' },
+  { year: '2017', title: 'Certificação Biológica', text: 'Recebemos a certificação biológica da Certiplanet, validando o nosso compromisso com práticas agrícolas sustentáveis.' },
+  { year: '2019', title: 'Abertura em Braga', text: 'Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os frescos da horta diretamente ao consumidor.' },
+  { year: '2022', title: 'Expansão para Guimarães', text: 'Com a crescente procura, abrimos a segunda loja em Guimarães, fortalecendo a nossa presença no Minho.' },
+  { year: '2025', title: 'O Futuro é Bio', text: 'Continuamos a crescer, diversificando a oferta e fortalecendo parcerias com produtores locais da região.' },
+];
+
+const storyBlocks = [
+  {
+    title: 'O que significa "Biobrassica"',
+    text: 'O nome "Biobrassica" junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região.',
+    image: withBase('photos/couves.jpg'),
+    alt: 'Couves biológicas',
+  },
+  {
+    title: 'Como escolhemos os produtos',
+    text: 'Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em frescura, origem e consistência, trabalhando com fornecedores e produtores de confiança alinhados com os nossos valores. A qualidade é acompanhada diariamente em loja, desde a receção ao acondicionamento e à exposição, para garantir produtos frescos, seguros e com origem clara para os nossos clientes.',
+    image: withBase('photos/nabos.jpg'),
+    alt: 'Nabos biológicos',
+  },
+  {
+    title: 'A nossa quinta biológica',
+    text: 'A nossa quinta biológica é um projeto complementar, em pequena escala, que apoia a atividade da loja. Serve para reforçar alguns produtos e manter ligação direta à terra, sem substituir a nossa atividade principal: selecionar e disponibilizar, em loja, produtos de qualidade para a comunidade.',
+    image: withBase('photos/quinta-joaquim.jpg'),
+    alt: 'Quinta biológica da Biobrassica',
+  },
+];
+---
+
+<BaseLayout title={t('about.hero.title')} lang={lang}>
+
+  <!-- Hero -->
+  <section class="relative h-[75vh] min-h-[520px] flex items-center justify-center overflow-hidden mt-16">
+    <video
+      class="absolute inset-0 w-full h-full object-cover"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      aria-label="Vídeo da Biobrassica"
+    >
+      <source src={withBase('videos/video_brassica.mp4')} type="video/mp4" />
+    </video>
+  </section>
+
+  <!-- Biobrassica Meaning & Method -->
+  <section class="max-w-7xl mx-auto px-6 pt-24 pb-12">
+    <div class="space-y-16">
+      {storyBlocks.map((block, i) => (
+        <article class:list={[
+          'grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center',
+          { 'bg-forest/5 rounded-sm p-6 md:p-8': block.title === 'O que significa "Biobrassica"' || block.title === 'Como escolhemos os produtos' || block.title === 'A nossa quinta biológica' },
+        ]}>
+          <div class:list={['space-y-4', { 'md:order-2': i % 2 !== 0 }]}>
+            <h2 class="font-serif text-3xl md:text-4xl italic">{block.title}</h2>
+            <p class="text-muted leading-relaxed">{block.text}</p>
+          </div>
+          <div class:list={['border border-stone/40 rounded-sm overflow-hidden', { 'md:order-1': i % 2 !== 0 }]}>
+            <img
+              src={block.image}
+              alt={block.alt}
+              class:list={[
+                'w-full aspect-[4/3] bg-paper',
+                { 'object-contain': block.fit === 'contain', 'object-cover': block.fit !== 'contain' },
+              ]}
+              loading="lazy"
+            />
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-10 pt-12 pb-24">
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <h2 class="font-serif text-3xl md:text-4xl italic">{t('about.timeline.title')}</h2>
+      <div class="flex items-center gap-2">
+        <button
+          id="timeline-prev"
+          type="button"
+          aria-label="Evento anterior"
+          class="w-10 h-10 rounded-full border border-stone/50 text-forest hover:bg-forest hover:text-paper transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 mx-auto">
+            <path d="M14.7 5.3a1 1 0 010 1.4L10.41 11H20a1 1 0 110 2h-9.59l4.3 4.3a1 1 0 01-1.42 1.4l-6-6a1 1 0 010-1.4l6-6a1 1 0 011.41 0z"/>
+          </svg>
+        </button>
+        <button
+          id="timeline-next"
+          type="button"
+          aria-label="Próximo evento"
+          class="w-10 h-10 rounded-full border border-stone/50 text-forest hover:bg-forest hover:text-paper transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 mx-auto">
+            <path d="M9.3 18.7a1 1 0 010-1.4L13.59 13H4a1 1 0 110-2h9.59l-4.3-4.3a1 1 0 111.42-1.4l6 6a1 1 0 010 1.4l-6 6a1 1 0 01-1.41 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="timeline-carousel" class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth">
+      <div class="grid grid-flow-col auto-cols-[calc((100%-3rem)/3)] gap-6">
+        {timeline.map((item) => (
+          <article class="snap-start bg-paper border border-stone/40 rounded-sm p-6 md:p-8 shadow-sm">
+            <span class="text-terracotta text-sm font-medium tracking-wide">{item.year}</span>
+            <h3 class="font-serif text-2xl italic mt-2 mb-3">{item.title}</h3>
+            <p class="text-muted text-sm leading-relaxed">{item.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const timelineCarousel = document.getElementById('timeline-carousel');
+    const timelinePrev = document.getElementById('timeline-prev');
+    const timelineNext = document.getElementById('timeline-next');
+
+    if (timelineCarousel && timelinePrev && timelineNext) {
+      const getScrollStep = () => {
+        const firstCard = timelineCarousel.querySelector('article');
+        if (!firstCard) return 0;
+        const cardWidth = firstCard.getBoundingClientRect().width;
+        const grid = timelineCarousel.querySelector('div');
+        const gap = grid ? parseFloat(getComputedStyle(grid).columnGap || '0') : 0;
+        return cardWidth + gap;
+      };
+
+      timelinePrev.addEventListener('click', () => {
+        timelineCarousel.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
+      });
+
+      timelineNext.addEventListener('click', () => {
+        timelineCarousel.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
+      });
+    }
+  </script>
+
+</BaseLayout>

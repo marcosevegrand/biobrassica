@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProductCard from '../../../components/Cards/ProductCard.astro';
+import { useTranslations, routes } from '../../../i18n/ui';
+import { getCollection } from 'astro:content';
+
+const lang = 'en';
+const t = useTranslations(lang);
+const langRoutes = routes[lang];
+
+const allProducts = await getCollection('products');
+const products = allProducts.filter((p) => p.data.lang === lang);
+const allCategories = await getCollection('categories');
+
+const selectedCategoryKey = Astro.url.searchParams.get('categoria')?.trim() ?? '';
+const categoryCards = allCategories
+  .filter((category) => category.data.lang === lang)
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((category) => category.data);
+const selectedCategory = categoryCards.find((category) => category.key === selectedCategoryKey);
+const selectedCategoryExists = Boolean(selectedCategory);
+const filteredProducts = selectedCategoryExists
+  ? products.filter((product) => product.data.category === selectedCategory?.name)
+  : [];
+---
+
+<BaseLayout title={t('shop.title')} lang={lang}>
+  <section class="pt-24 pb-8 px-6 max-w-7xl mx-auto">
+    <div class="bg-forest/5 border border-stone/40 rounded-sm p-6 md:p-8 text-center mb-12"><p class="font-serif text-lg md:text-xl italic text-forest">{t('shop.banner')}</p></div>
+    <h1 class="font-serif text-4xl md:text-5xl italic text-center mb-4">{t('shop.title')}</h1>
+  </section>
+
+  {
+    !selectedCategory ? (
+      <section class="max-w-7xl mx-auto px-6 pb-24">
+        <h2 class="font-serif text-2xl italic text-center mb-8">{t('shop.categories')}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          {categoryCards.map((category) => (
+            <a
+              href={`${langRoutes.shop}?categoria=${encodeURIComponent(category.key)}`}
+              class="group block border border-stone/40 rounded-sm overflow-hidden hover:border-forest/70 transition-colors"
+            >
+              <div class="aspect-[4/3] overflow-hidden">
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div class="p-4 bg-paper">
+                <p class="font-serif text-xl italic text-forest">{category.name}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    ) : selectedCategoryExists ? (
+      <section class="max-w-7xl mx-auto px-6 pb-24">
+        <div class="flex justify-center mb-4">
+          <a
+            href={langRoutes.shop}
+            class="text-xs uppercase tracking-widest border border-stone/40 px-4 py-2 rounded-sm hover:border-forest/70 text-forest"
+          >
+            View categories
+          </a>
+        </div>
+
+        <h2 class="font-serif text-2xl italic text-center mb-8">{selectedCategory?.name}</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              title={product.data.title}
+              category={product.data.category}
+              image={product.data.image}
+              priceDisplay={product.data.priceDisplay}
+              locations={product.data.locations}
+              slug={product.id}
+              lang={lang}
+            />
+          ))}
+        </div>
+      </section>
+    ) : (
+      <section class="max-w-7xl mx-auto px-6 pb-24 text-center">
+        <p class="text-muted mb-6">Category not found.</p>
+        <a
+          href={langRoutes.shop}
+          class="text-xs uppercase tracking-widest border border-stone/40 px-4 py-2 rounded-sm hover:border-forest/70 text-forest"
+        >
+          Back to categories
+        </a>
+      </section>
+    )
+  }
+</BaseLayout>

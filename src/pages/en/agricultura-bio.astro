@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations } from '../../i18n/ui';
+
+const lang = 'en';
+const t = useTranslations(lang);
+
+const months = [
+  { name: 'January', items: ['Kale', 'Turnip', 'Carrot', 'Leek'] },
+  { name: 'February', items: ['Broccoli', 'Spinach', 'Cauliflower', 'Watercress'] },
+  { name: 'March', items: ['Lettuce', 'Peas', 'Asparagus', 'Radish'] },
+  { name: 'April', items: ['Broad beans', 'Lettuce', 'Carrot', 'Peas'] },
+  { name: 'May', items: ['Strawberry', 'Lettuce', 'Onion', 'Peas'] },
+  { name: 'June', items: ['Tomato', 'Cucumber', 'Pepper', 'Zucchini'] },
+  { name: 'July', items: ['Tomato', 'Green beans', 'Eggplant', 'Melon'] },
+  { name: 'August', items: ['Tomato', 'Pepper', 'Corn', 'Fig'] },
+  { name: 'September', items: ['Pumpkin', 'Grape', 'Apple', 'Kale'] },
+  { name: 'October', items: ['Pumpkin', 'Chestnut', 'Turnip', 'Kale'] },
+  { name: 'November', items: ['Kale', 'Broccoli', 'Carrot', 'Chestnut'] },
+  { name: 'December', items: ['Kale', 'Turnip', 'Leek', 'Orange'] },
+];
+
+const certifications = [
+  { name: 'Euro Leaf', description: 'The EU organic logo guarantees that at least 95% of agricultural ingredients are certified organic under strict EU standards.', icon: '🌿' },
+  { name: 'Certiplanet', description: 'Recognized certification body in Portugal that verifies our farming methods comply with all organic regulations.', icon: '🌍' },
+  { name: 'Organic Farming PT', description: 'National certification ensuring full product traceability from seed to shelf, without synthetic chemicals.', icon: '🇵🇹' },
+];
+---
+
+<BaseLayout title={t('agri.title')} lang={lang}>
+  <section class="relative h-[60vh] min-h-[400px] flex items-center justify-center overflow-hidden mt-16">
+    <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1920&h=800&fit=crop" alt="Organic field" class="absolute inset-0 w-full h-full object-cover" />
+    <div class="absolute inset-0 bg-forest/50"></div>
+    <div class="relative z-10 text-center text-paper px-6 max-w-3xl">
+      <h1 class="font-serif text-4xl md:text-6xl italic mb-4">{t('agri.title')}</h1>
+      <p class="text-sm md:text-base uppercase tracking-widest text-paper/80">{t('agri.subtitle')}</p>
+    </div>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 py-24"><p class="text-lg leading-relaxed text-muted text-center">{t('agri.intro')}</p></section>
+
+  <section class="bg-forest/5 py-24">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="font-serif text-3xl md:text-4xl text-center italic mb-16">{t('agri.cert.title')}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {certifications.map((cert) => (
+          <div class="bg-paper border border-stone/40 rounded-sm p-8 text-center">
+            <div class="text-5xl mb-6">{cert.icon}</div>
+            <h3 class="font-serif text-xl italic mb-4">{cert.name}</h3>
+            <p class="text-muted text-sm leading-relaxed">{cert.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 py-24">
+    <h2 class="font-serif text-3xl md:text-4xl text-center italic mb-16">{t('agri.calendar.title')}</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {months.map((month) => (
+        <div class="border border-stone/40 rounded-sm p-4 bg-paper">
+          <h3 class="font-serif text-sm font-medium mb-3 text-center text-terracotta">{month.name}</h3>
+          <ul class="space-y-1">{month.items.map((item) => (<li class="text-xs text-muted text-center">{item}</li>))}</ul>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
