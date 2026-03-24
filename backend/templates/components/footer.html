@@ -1,0 +1,47 @@
+{% load i18n static %}
+<footer class="bg-forest text-paper">
+  <div class="max-w-7xl mx-auto px-6 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <!-- Brand -->
+      <div>
+        <img src="{% static 'images/brand/logo-white-no-bg.png' %}" alt="Biobrassica" class="h-12 w-auto mb-4" />
+        <p class="text-paper/70 text-sm leading-relaxed">
+          {% trans "Produtos biológicos selecionados com cuidado no coração do Minho." %}
+        </p>
+      </div>
+
+      <!-- Lojas -->
+      <div>
+        <h4 class="text-xs uppercase tracking-widest mb-4 font-medium">{% trans "Lojas" %}</h4>
+        <div class="space-y-4 text-sm text-paper/70">
+          <div>
+            <p class="font-medium text-paper">Braga</p>
+            <p>Rua do Raio, 4700-291 Braga</p>
+          </div>
+          <div>
+            <p class="font-medium text-paper">Guimarães</p>
+            <p>Largo do Toural, 4800-156 Guimarães</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div>
+        <h4 class="text-xs uppercase tracking-widest mb-4 font-medium">{% trans "Links" %}</h4>
+        <ul class="space-y-2 text-sm text-paper/70">
+          <li><a href="https://biobrassica.pt" class="hover:text-paper transition-colors" target="_blank">biobrassica.pt</a></li>
+          <li><a href="{% url 'catalog:product_list' %}" class="hover:text-paper transition-colors">{% trans "Produtos" %}</a></li>
+          <li><a href="{% url 'accounts:login' %}" class="hover:text-paper transition-colors">{% trans "A minha conta" %}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-paper/20 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      <p class="text-xs text-paper/50">{% trans "© 2026 Biobrassica. Todos os direitos reservados." %}</p>
+      <div class="flex items-center gap-4 text-xs text-paper/50">
+        <span>{% trans "Métodos de pagamento:" %}</span>
+        <span class="text-paper/70">MB WAY</span>
+      </div>
+    </div>
+  </div>
+</footer>

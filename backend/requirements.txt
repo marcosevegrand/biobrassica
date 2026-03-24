@@ -1,0 +1,9 @@
+django>=5.1,<7
+django-unfold>=0.80
+django-htmx>=1.17
+django-redis>=5.4
+psycopg2-binary>=2.9
+Pillow>=10.0
+requests>=2.31
+bleach>=6.2
+gunicorn>=22.0

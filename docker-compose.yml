@@ -1,22 +1,99 @@
 services:
-  dev:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    ports:
-      - "4321:4321"
-    command: sh -c "npm install && npm run dev -- --host"
-    environment:
-      - NODE_ENV=development
-
-  prod:
+  # --- Django backend (serves all 3 subdomains) ---
+  django:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
+      target: production
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
+      - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
+      - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-biobrassica.pt,www.biobrassica.pt,loja.biobrassica.pt,admin.biobrassica.pt}
+      - DB_NAME=${DB_NAME:-biobrassica}
+      - DB_USER=${DB_USER:-biobrassica}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - IFTHENPAY_BACKOFFICE_KEY=${IFTHENPAY_BACKOFFICE_KEY:-}
+      - IFTHENPAY_MBWAY_KEY=${IFTHENPAY_MBWAY_KEY:-}
+      - IFTHENPAY_MB_ENTITY=${IFTHENPAY_MB_ENTITY:-}
+      - IFTHENPAY_MB_SUBENTITY=${IFTHENPAY_MB_SUBENTITY:-}
+      - IFTHENPAY_CCARD_KEY=${IFTHENPAY_CCARD_KEY:-}
+      - IFTHENPAY_ANTI_PHISHING_KEY=${IFTHENPAY_ANTI_PHISHING_KEY:-}
+      - EMAIL_HOST=${EMAIL_HOST:-}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
+    volumes:
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "X-Forwarded-Proto: https", "http://localhost:8000/_health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # --- PostgreSQL ---
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-biobrassica}
+      POSTGRES_USER: ${DB_USER:-biobrassica}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # --- Redis (cache + sessions) ---
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # --- Nginx reverse proxy ---
+  nginx:
+    image: nginx:alpine
     ports:
-      - "8080:80"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - static_files:/var/www/static:ro
+      - media_files:/var/www/media:ro
+    depends_on:
+      django:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
-  node_modules:
+  pg_data:
+  redis_data:
+  media_files:
+  static_files:

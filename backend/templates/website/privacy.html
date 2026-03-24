@@ -1,0 +1,68 @@
+{% extends base_template %}
+{% load i18n %}
+
+{% block title %}{% trans "Política de Privacidade" %} | Biobrassica{% endblock %}
+{% block meta_description %}{% trans "Política de privacidade e proteção de dados da Biobrassica." %}{% endblock %}
+
+{% block content %}
+<section class="bg-forest text-paper">
+  <div class="max-w-4xl mx-auto px-6 sm:px-8 pt-44 pb-24 text-center">
+    <h1 class="text-4xl sm:text-5xl font-serif italic">{% trans "Política de Privacidade" %}</h1>
+  </div>
+</section>
+
+<section class="bg-paper py-24">
+  <div class="max-w-3xl mx-auto px-6 sm:px-8 prose prose-sm prose-forest">
+    <p class="text-muted text-sm">{% trans "Última atualização" %}: {% now "j F Y" %}</p>
+
+    <h2>{% trans "1. Responsável pelo Tratamento" %}</h2>
+    <p>{% trans "A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a entidade responsável pelo tratamento dos seus dados pessoais." %}</p>
+
+    <h2>{% trans "2. Dados Recolhidos" %}</h2>
+    <p>{% trans "Recolhemos apenas os dados necessários para:" %}</p>
+    <ul>
+      <li>{% trans "Processar as suas encomendas na loja online (nome, email, morada, telefone)" %}</li>
+      <li>{% trans "Gerir a sua conta de cliente" %}</li>
+      <li>{% trans "Enviar comunicações relacionadas com as suas encomendas" %}</li>
+    </ul>
+
+    <h2>{% trans "3. Finalidade do Tratamento" %}</h2>
+    <p>{% trans "Os seus dados são utilizados exclusivamente para:" %}</p>
+    <ul>
+      <li>{% trans "Cumprimento de contratos de compra e venda" %}</li>
+      <li>{% trans "Cumprimento de obrigações legais e fiscais" %}</li>
+      <li>{% trans "Comunicação relativa ao estado das encomendas" %}</li>
+    </ul>
+
+    <h2>{% trans "4. Partilha de Dados" %}</h2>
+    <p>{% trans "Os seus dados podem ser partilhados com:" %}</p>
+    <ul>
+      <li>{% trans "Processadores de pagamento (ifthenpay) — para efetuar o pagamento" %}</li>
+      <li>{% trans "Transportadoras (CTT) — para entrega de encomendas" %}</li>
+    </ul>
+
+    <h2>{% trans "5. Conservação dos Dados" %}</h2>
+    <p>{% trans "Os seus dados pessoais são conservados pelo período necessário ao cumprimento das finalidades e obrigações legais aplicáveis." %}</p>
+    <p>{% trans "Os registos técnicos de callbacks de pagamento são minimizados, com IP anonimizado e retenção interna limitada ao período operacional estritamente necessário." %}</p>
+
+    <h2>{% trans "6. Os Seus Direitos" %}</h2>
+    <p>{% trans "Nos termos do RGPD, tem direito a:" %}</p>
+    <ul>
+      <li>{% trans "Aceder aos seus dados pessoais" %}</li>
+      <li>{% trans "Retificar dados incorretos" %}</li>
+      <li>{% trans "Solicitar a eliminação dos seus dados" %}</li>
+      <li>{% trans "Solicitar a portabilidade dos seus dados" %}</li>
+      <li>{% trans "Opor-se ao tratamento dos seus dados" %}</li>
+    </ul>
+    <p>{% trans "Para exercer os seus direitos, contacte-nos em" %} <a href="mailto:geral@biobrassica.pt">geral@biobrassica.pt</a>.</p>
+
+    <h2>{% trans "7. Cookies" %}</h2>
+    <p>{% trans "Este website utiliza cookies essenciais para o funcionamento da sessão e do carrinho de compras. Não utilizamos cookies de rastreamento de terceiros." %}</p>
+
+    <h2>{% trans "8. Contacto" %}</h2>
+    <p>{% trans "Para questões relacionadas com a proteção de dados:" %}<br>
+    Email: <a href="mailto:geral@biobrassica.pt">geral@biobrassica.pt</a><br>
+    {% trans "Morada" %}: R. dos Capelistas 121, 4700-215 Braga</p>
+  </div>
+</section>
+{% endblock %}

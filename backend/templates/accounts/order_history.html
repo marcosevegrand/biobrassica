@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "As minhas encomendas" %} | Biobrassica{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 py-12">
+  <h1 class="font-serif text-4xl italic mb-12">{% trans "As minhas encomendas" %}</h1>
+
+  <div class="flex gap-4 mb-8">
+    <a href="{% url 'accounts:profile' %}"
+       class="text-xs uppercase tracking-widest px-4 py-2 border border-forest/30 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+      {% trans "Perfil" %}
+    </a>
+    <a href="{% url 'accounts:order_history' %}"
+       class="text-xs uppercase tracking-widest px-4 py-2 bg-forest text-paper rounded-sm">
+      {% trans "Encomendas" %}
+    </a>
+  </div>
+
+  {% if orders %}
+  <div class="space-y-4">
+    {% for order in orders %}
+    <div class="border border-stone/30 rounded-sm p-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h3 class="font-medium">{% trans "Encomenda" %} #{{ order.pk }}</h3>
+          <p class="text-xs text-muted">{{ order.created_at|date:"d M Y, H:i" }}</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.status_display_class }}">
+            {{ order.get_status_display }}
+          </span>
+          <span class="font-serif text-lg italic">{{ order.total|floatformat:2 }}€</span>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-stone/20">
+        <div class="space-y-1">
+          {% for item in order.items.all %}
+          <p class="text-sm text-muted">{{ item.quantity }}× {{ item.product_name }} — {{ item.subtotal|floatformat:2 }}€</p>
+          {% endfor %}
+        </div>
+        <p class="text-xs text-muted mt-2">
+          {% if order.is_shipping %}
+          {% trans "Envio:" %} {{ order.shipping_address_display }}
+          {% else %}
+          {% trans "Levantamento:" %} {{ order.get_pickup_location_display }}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-24">
+    <p class="text-muted text-lg mb-6">{% trans "Ainda não fez nenhuma encomenda." %}</p>
+    <a href="{% url 'catalog:product_list' %}"
+       class="inline-block text-xs uppercase tracking-widest border border-forest px-6 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+      {% trans "Ver produtos" %}
+    </a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

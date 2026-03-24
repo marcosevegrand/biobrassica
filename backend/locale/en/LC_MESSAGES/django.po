@@ -1,0 +1,1460 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-20 18:12+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Conta criada com sucesso!"
+msgstr "Account created successfully!"
+
+msgid "Perfil atualizado com sucesso."
+msgstr "Profile updated successfully."
+
+msgid "Indique uma quantidade válida."
+msgstr "Please enter a valid quantity."
+
+#| msgid "Nenhum produto nesta categoria."
+msgid "Este produto está esgotado."
+msgstr "This product is out of stock."
+
+msgid "A quantidade foi ajustada ao stock disponível."
+msgstr "The quantity has been adjusted to the available stock."
+
+msgid ""
+"Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+msgstr "This cart contains products available for in-store pickup only."
+
+msgid "Preencha a morada de envio completa."
+msgstr "Please fill in the full shipping address."
+
+msgid "Use o formato 1234-123."
+msgstr "Use the format 1234-123."
+
+#| msgid "Local de levantamento"
+msgid "Selecione um local de levantamento."
+msgstr "Select a pickup location."
+
+msgid "Selecione um método de pagamento válido."
+msgstr "Please select a valid payment method."
+
+#| msgid "Número de telemóvel"
+msgid "Indique o número de telemóvel para MB WAY."
+msgstr "Enter your mobile phone number for MB WAY."
+
+msgid "O seu carrinho está vazio."
+msgstr "Your cart is empty."
+
+msgid "Nenhum produto do seu carrinho tem stock disponível."
+msgstr "None of the products in your cart have available stock."
+
+msgid ""
+"Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos "
+"abaixo e tente novamente."
+msgstr ""
+"We have adjusted your cart due to stock limitations. Please review the"
+" items below and try again."
+
+#, python-format
+msgid "%(product)s: reduzido de %(requested)d para %(available)d unidades."
+msgstr "%(product)s: reduced from %(requested)d to %(available)d units."
+
+#, python-format
+msgid "%(product)s: removido (sem stock disponível)."
+msgstr "%(product)s: removed (no stock available)."
+
+msgid "Por favor preencha todos os campos obrigatórios."
+msgstr "Please fill in all required fields."
+
+msgid "Não foi possível validar os dados da encomenda."
+msgstr "Unable to validate the order details."
+
+msgid ""
+"Alguns produtos já não têm stock suficiente. Revise o carrinho e tente "
+"novamente."
+msgstr ""
+"Some products no longer have sufficient stock. Please review your cart"
+" and try again."
+
+msgid ""
+"Não foi possível criar a encomenda. Verifique os dados e tente novamente."
+msgstr "Unable to create the order. Please check the details and try again."
+
+msgid "Não foi possível iniciar o pagamento. Tente novamente."
+msgstr "Unable to initiate payment. Please try again."
+
+msgid "Não foi possível preparar o pagamento. Tente novamente."
+msgstr "Unable to prepare payment. Please try again."
+
+msgid "Ainda não existe um pagamento associado a esta encomenda."
+msgstr "No payment has been associated with this order yet."
+
+msgid "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
+msgstr "The payment request has expired. You can initiate a new MB WAY request."
+
+msgid "Não foi possível atualizar o estado do pagamento. Tente novamente."
+msgstr "Unable to update the payment status. Please try again."
+
+#| msgid "Conta criada com sucesso!"
+msgid "Pagamento confirmado com sucesso."
+msgstr "Payment confirmed successfully."
+
+msgid "O pagamento MB WAY não foi confirmado. Pode tentar novamente."
+msgstr "has been confirmed."
+
+msgid "Entrar"
+msgstr "Sign In"
+
+msgid "Email ou password incorretos."
+msgstr "Incorrect email or password."
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Esqueceu a password?"
+msgstr "Forgot your password?"
+
+msgid "Ainda não tem conta?"
+msgstr "Don't have an account?"
+
+msgid "Registar"
+msgstr "Register"
+
+msgid "As minhas encomendas"
+msgstr "My Orders"
+
+msgid "Perfil"
+msgstr "Profile"
+
+msgid "Encomendas"
+msgstr "Orders"
+
+msgid "Encomenda"
+msgstr "Order"
+
+msgid "Envio:"
+msgstr "Shipping:"
+
+msgid "Levantamento:"
+msgstr "Pickup:"
+
+msgid "Ainda não fez nenhuma encomenda."
+msgstr "You haven't placed any orders yet."
+
+msgid "Ver produtos"
+msgstr "View products"
+
+msgid "Recuperar password"
+msgstr "Recover Password"
+
+msgid "Enviar link de recuperação"
+msgstr "Send recovery link"
+
+msgid "Password alterada"
+msgstr "Password Changed"
+
+msgid "A sua password foi redefinida com sucesso."
+msgstr "Your password has been reset successfully."
+
+msgid "Nova password"
+msgstr "New Password"
+
+msgid "Confirmar password"
+msgstr "Confirm Password"
+
+msgid "Redefinir password"
+msgstr "Reset Password"
+
+msgid "Email enviado"
+msgstr "Email Sent"
+
+msgid ""
+"Se o email que indicou estiver registado, receberá um link para redefinir a "
+"sua password."
+msgstr ""
+"If the email you provided is registered, you will receive a link to reset "
+"your password."
+
+msgid "O meu perfil"
+msgstr "My Profile"
+
+msgid "Nome"
+msgstr "First Name"
+
+msgid "Apelido"
+msgstr "Last Name"
+
+msgid "Telefone"
+msgstr "Phone"
+
+msgid "Idioma preferido"
+msgstr "Preferred Language"
+
+msgid "NIF"
+msgstr "Tax ID"
+
+msgid "Guardar"
+msgstr "Save"
+
+msgid "Sair"
+msgstr "Sign Out"
+
+msgid "Criar conta"
+msgstr "Create Account"
+
+msgid "Já tem conta?"
+msgstr "Already have an account?"
+
+msgid "Django site admin"
+msgstr ""
+
+msgid "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
+msgstr "Biobrassica Online Shop — organic products from Braga and Guimarães."
+
+msgid ""
+"Biobrassica — produtos biológicos selecionados com cuidado no coração do "
+"Minho."
+msgstr "Biobrassica — organic products carefully selected in the heart of Minho."
+
+msgid "Carrinho"
+msgstr "Cart"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Ver carrinho"
+msgstr "View cart"
+
+msgid "Total:"
+msgstr "Total:"
+
+msgid "Finalizar encomenda"
+msgstr "Proceed to checkout"
+
+msgid "Produtos"
+msgstr "Products"
+
+msgid "Imagem em breve"
+msgstr "Image coming soon"
+
+msgid "Nenhum produto nesta categoria."
+msgstr "No products in this category."
+
+msgid "Sem imagem"
+msgstr "No image"
+
+#| msgid "3. Preços"
+msgid "Preço"
+msgstr "Price"
+
+msgid "Envio disponível"
+msgstr "Delivery available"
+
+#| msgid "Levantamento"
+msgid "Apenas levantamento"
+msgstr "In-store pickup only"
+
+msgid "Adicionar ao carrinho"
+msgstr "Add to cart"
+
+msgid "Esgotado"
+msgstr "Sold out"
+
+msgid "Em stock"
+msgstr "In stock"
+
+msgid "De momento esgotado"
+msgstr "Currently out of stock"
+
+msgid "Descrição"
+msgstr "Description"
+
+msgid "Marca"
+msgstr "Brand"
+
+msgid "Alergénicos"
+msgstr "Allergens"
+
+#| msgid "Entidade"
+msgid "Quantidade"
+msgstr "Quantity"
+
+msgid "Ingredientes"
+msgstr "Ingredients"
+
+msgid "Código Bio"
+msgstr "Organic Code"
+
+msgid "Produtos relacionados"
+msgstr "Related products"
+
+msgid "A nossa montra digital. Encomende online, levante na loja."
+msgstr "Our digital showcase. Order online, pick up in store."
+
+msgid "Pesquisar produtos..."
+msgstr "Search products..."
+
+msgid "Nenhum produto encontrado."
+msgstr "No products found."
+
+msgid "Loja Online Biobrassica"
+msgstr "Biobrassica Online Shop"
+
+msgid "Produtos biológicos, entregues com cuidado"
+msgstr "Organic products, delivered with care"
+
+msgid ""
+"Do campo para a sua porta. Encomende online e receba em casa ou levante nas "
+"nossas lojas em Braga e Guimarães."
+msgstr ""
+"From the field to your door. Order online and receive at home or pick up at "
+"our stores in Braga and Guimarães."
+
+msgid "Ver Produtos"
+msgstr "View Products"
+
+msgid "Equipa Biobrassica"
+msgstr "Biobrassica Team"
+
+#, python-format
+msgid "100%% Biológico"
+msgstr "100%% Organic"
+
+msgid "Certificado Certiplanet"
+msgstr "Certiplanet Certified"
+
+msgid "Levantamento na loja"
+msgstr "In-Store Pickup"
+
+msgid "Braga ou Guimarães"
+msgstr "Braga or Guimarães"
+
+msgid "Pagamento seguro"
+msgstr "Secure Payment"
+
+msgid "Seleção especial"
+msgstr "Special Selection"
+
+msgid "Produtos em destaque"
+msgstr "Featured Products"
+
+msgid "Ver todos os produtos"
+msgstr "View all products"
+
+msgid "Explore"
+msgstr "Explore"
+
+msgid "As nossas categorias"
+msgstr "Our Categories"
+
+#| msgid "Receita em Destaque"
+msgid "Categoria em Destaque"
+msgstr "Featured Category"
+
+#| msgid "Explore"
+msgid "Explorar"
+msgstr "Browse"
+
+msgid "Novidades"
+msgstr "New Arrivals"
+
+msgid "Adicionados recentemente"
+msgstr "Recently Added"
+
+msgid "Visite-nos"
+msgstr "Visit Us"
+
+msgid ""
+"Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e "
+"Guimarães. Teremos todo o gosto em recebê-lo."
+msgstr ""
+"Prefer to see and choose in person? Visit our stores in Braga and Guimarães. "
+"We'd love to welcome you."
+
+msgid "Ver Localizações"
+msgstr "View Locations"
+
+msgid "Produtos biológicos selecionados com cuidado no coração do Minho."
+msgstr "Organic products carefully selected in the heart of Minho."
+
+msgid "Lojas"
+msgstr "Stores"
+
+msgid "Links"
+msgstr "Links"
+
+msgid "A minha conta"
+msgstr "My Account"
+
+msgid "© 2026 Biobrassica. Todos os direitos reservados."
+msgstr "© 2026 Biobrassica. All rights reserved."
+
+msgid "Métodos de pagamento:"
+msgstr "Payment methods:"
+
+msgid "Certificações"
+msgstr "Certifications"
+
+msgid "Política de Privacidade"
+msgstr "Privacy Policy"
+
+msgid "Termos e Condições"
+msgstr "Terms & Conditions"
+
+msgid "Todos os direitos reservados."
+msgstr "All rights reserved."
+
+msgid ""
+"Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
+msgstr "Fresh organic products, carefully selected in the heart of Minho."
+
+msgid "As Nossas Lojas"
+msgstr "Our Stores"
+
+msgid "Navegação"
+msgstr "Navigation"
+
+msgid "Quem Somos"
+msgstr "About Us"
+
+msgid "Agricultura Bio"
+msgstr "Organic Farming"
+
+msgid "Blog"
+msgstr "Blog"
+
+msgid "Receitas"
+msgstr "Recipes"
+
+msgid "Loja Online"
+msgstr "Online Shop"
+
+msgid "Contactos"
+msgstr "Contacts"
+
+msgid "Início"
+msgstr "Home"
+
+msgid "Menu de conta e idioma"
+msgstr "Account and language menu"
+
+msgid "Idioma"
+msgstr "Language"
+
+msgid "Conta"
+msgstr "Account"
+
+msgid "Anterior"
+msgstr "Previous"
+
+msgid "Página"
+msgstr "Page"
+
+msgid "de"
+msgstr "of"
+
+msgid "Seguinte"
+msgstr "Next"
+
+msgid "Voltar ao Blog"
+msgstr "Back to Blog"
+
+msgid "Artigos sobre alimentação biológica, sustentabilidade e vida saudável."
+msgstr "Articles about organic food, sustainability, and healthy living."
+
+msgid "Notícias & Artigos"
+msgstr "News & Articles"
+
+msgid "Ainda não há artigos publicados. Volte em breve!"
+msgstr "No articles published yet. Check back soon!"
+
+msgid "Prep"
+msgstr "Prep"
+
+msgid "Cozedura"
+msgstr "Cooking"
+
+msgid "doses"
+msgstr "Servings"
+
+msgid "Ingredientes não disponíveis."
+msgstr "Ingredients not available."
+
+msgid "Preparação"
+msgstr "Prep"
+
+#| msgid "Ingredientes não disponíveis."
+msgid "Instruções não disponíveis."
+msgstr "Instructions not available."
+
+#| msgid "Ingredientes"
+msgid "Comprar Ingredientes"
+msgstr "Buy Ingredients"
+
+msgid "Encontre estes produtos na nossa loja online."
+msgstr "Find these products in our online shop."
+
+msgid "sem imagem"
+msgstr "No image"
+
+msgid "Voltar às Receitas"
+msgstr "Back to Recipes"
+
+msgid ""
+"Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha "
+"com produtos Biobrassica."
+msgstr ""
+"Healthy organic recipes for the whole family. Get inspired in the kitchen "
+"with Biobrassica products."
+
+msgid "Inspiração"
+msgstr "Inspiration"
+
+msgid "Receitas saudáveis e biológicas para toda a família."
+msgstr "Healthy organic recipes for the whole family."
+
+msgid "prep"
+msgstr "prep"
+
+msgid "cozedura"
+msgstr "cooking"
+
+msgid "Ainda não há receitas publicadas. Volte em breve!"
+msgstr "No recipes published yet. Check back soon!"
+
+msgid "A nossa loja online"
+msgstr "Our online shop"
+
+msgid ""
+"Produtos biológicos selecionados no Minho. Encomende online e levante na "
+"nossa loja de Braga ou Guimarães."
+msgstr ""
+"Organic products selected in Minho. Order online and pick up at our store in "
+"Braga or Guimarães."
+
+msgid "Destaques"
+msgstr "Highlights"
+
+msgid "Certificado pela Certiplanet"
+msgstr "Certiplanet Certified"
+
+msgid "Checkout"
+msgstr "Checkout"
+
+msgid "Finalizar Encomenda"
+msgstr "Place Order"
+
+#| msgid "Métodos de pagamento:"
+msgid "Método de entrega"
+msgstr "Delivery Method"
+
+msgid "Levantamento"
+msgstr "Pickup"
+
+msgid "Recolha numa das lojas disponíveis."
+msgstr "Pick up at one of the available stores."
+
+msgid "Envio"
+msgstr "Delivery"
+
+msgid "Entrega ao domicílio em Portugal continental."
+msgstr "Home delivery to mainland Portugal."
+
+msgid "Local de levantamento"
+msgstr "Pickup location"
+
+msgid "Selecione..."
+msgstr "Select..."
+
+msgid "Morada"
+msgstr "Address"
+
+#| msgid "Morada"
+msgid "Morada (cont.)"
+msgstr "Address (cont.)"
+
+msgid "Código Postal"
+msgstr "Postal Code"
+
+#| msgid "Comunidade"
+msgid "Cidade"
+msgstr "City"
+
+msgid "Notas"
+msgstr "Notes"
+
+msgid "Alguma observação sobre a sua encomenda..."
+msgstr "Any notes about your order..."
+
+msgid "Continuar para pagamento"
+msgstr "Continue to payment"
+
+msgid "Resumo"
+msgstr "Summary"
+
+msgid "Encomenda Confirmada"
+msgstr "Order Confirmed"
+
+msgid "Obrigado!"
+msgstr "Thank you!"
+
+#| msgid "A sua encomenda"
+msgid "O pagamento da sua encomenda"
+msgstr "The payment for your order"
+
+msgid "foi confirmado."
+msgstr "has been confirmed."
+
+msgid "Dados para pagamento Multibanco"
+msgstr "Multibanco payment details"
+
+msgid "Entidade"
+msgstr "Entity"
+
+msgid "Referência"
+msgstr "Reference"
+
+msgid "Valor"
+msgstr "Amount"
+
+msgid "Detalhes da encomenda"
+msgstr "Order details"
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "Enviámos um email de confirmação para"
+msgstr "We sent a confirmation email to"
+
+msgid "Continuar a comprar"
+msgstr "Continue shopping"
+
+msgid "Pagamento"
+msgstr "Payment"
+
+msgid "De momento, o pagamento está disponível apenas por MB WAY."
+msgstr "At the moment, payment is only available via MB WAY."
+
+msgid "Pagamento instantâneo via telemóvel"
+msgstr "Instant payment via mobile"
+
+msgid "Número de telemóvel"
+msgstr "Phone number"
+
+msgid "Pagar com MB WAY"
+msgstr "Pay with MB WAY"
+
+#| msgid "Voltar ao Blog"
+msgid "Voltar ao checkout"
+msgstr "Back to checkout"
+
+#| msgid "Métodos de pagamento:"
+msgid "Estado do Pagamento"
+msgstr "Payment Status"
+
+#| msgid "Referência"
+msgid "Referência Multibanco"
+msgstr "Multibanco Reference"
+
+msgid ""
+"Utilize os dados abaixo para concluir o pagamento. A encomenda só fica "
+"confirmada após validação automática."
+msgstr ""
+"Use the details below to complete the payment. The order is only"
+" confirmed after automatic validation."
+
+msgid ""
+"O pedido de pagamento foi enviado para o telemóvel indicado. Depois de "
+"autorizar no MB WAY, atualize esta página."
+msgstr ""
+"The payment request has been sent to the indicated mobile phone. After"
+" authorising in MB WAY, refresh this page."
+
+msgid "Telemóvel"
+msgstr "Mobile"
+
+msgid "Cartão de Crédito"
+msgstr "Credit Card"
+
+msgid ""
+"Se o pagamento ainda não estiver concluído, reabra a página segura do "
+"operador para finalizar a transação."
+msgstr ""
+"If the payment is not yet complete, reopen the secure operator page to"
+" finalise the transaction."
+
+#| msgid "Continuar para pagamento"
+msgid "Continuar pagamento"
+msgstr "Continue payment"
+
+msgid "Atualizar estado"
+msgstr "Refresh status"
+
+msgid "Escolher outro método"
+msgstr "Choose another method"
+
+#, python-format
+msgid "Adicionar %(name)s"
+msgstr "Add %(name)s"
+
+msgid ""
+"Conheça a história da Biobrassica, uma empresa familiar dedicada à "
+"agricultura biológica no Minho."
+msgstr ""
+"Learn about the story of Biobrassica, a family business dedicated to organic "
+"farming in Minho."
+
+msgid "A equipa Biobrassica"
+msgstr "The Biobrassica Team"
+
+msgid "Do campo à sua mesa, com quem conhece a terra"
+msgstr "From the field to your table, from those who know the land"
+
+msgid "Pessoas reais, produtos de confiança"
+msgstr "Real people, trusted products"
+
+msgid "O que significa \"Biobrassica\""
+msgstr "What does \"Biobrassica\" mean"
+
+msgid ""
+"O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: "
+"Bio, pela agricultura biológica e por um modo de produção responsável, e "
+"brassica, em homenagem à família de hortícolas que simboliza a origem "
+"agrícola da nossa região."
+msgstr ""
+"The name \"Biobrassica\" brings together two ideas that guide everything we "
+"do: Bio, for organic farming and responsible production, and brassica, "
+"honouring the family of vegetables that symbolises the agricultural heritage "
+"of our region."
+
+msgid "Produtos biológicos Biobrassica"
+msgstr "Biobrassica organic products"
+
+msgid "Como escolhemos os produtos"
+msgstr "How we choose our products"
+
+msgid ""
+"Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em "
+"frescura, origem e consistência, trabalhando com fornecedores e produtores "
+"de confiança alinhados com os nossos valores. A qualidade é acompanhada "
+"diariamente em loja, desde a receção ao acondicionamento e à exposição, para "
+"garantir produtos frescos, seguros e com origem clara para os nossos "
+"clientes."
+msgstr ""
+"We are, above all, a store. We choose seasonal products with a focus on "
+"freshness, origin, and consistency, working with trusted suppliers and "
+"producers aligned with our values. Quality is monitored daily in-store, from "
+"receiving through to packaging and display, to guarantee fresh, safe "
+"products with clear provenance for our customers."
+
+msgid "Produção biológica"
+msgstr "Organic production"
+
+msgid "A nossa quinta biológica"
+msgstr "Our organic farm"
+
+msgid ""
+"A nossa quinta biológica é um projeto complementar, em pequena escala, que "
+"apoia a atividade da loja. Serve para reforçar alguns produtos e manter "
+"ligação direta à terra, sem substituir a nossa atividade principal: "
+"selecionar e disponibilizar, em loja, produtos de qualidade para a "
+"comunidade."
+msgstr ""
+"Our organic farm is a small-scale complementary project that supports the "
+"store. It serves to reinforce some products and maintain a direct connection "
+"to the land, without replacing our main activity: selecting and offering "
+"quality products to the community in-store."
+
+msgid "Quinta biológica da Biobrassica"
+msgstr "Biobrassica's organic farm"
+
+msgid ""
+"Conheça a equipa que acompanha diariamente o atendimento, o aprovisionamento "
+"e a curadoria da loja."
+msgstr ""
+"Meet the team that looks after customer service, purchasing, and store"
+"curation every day."
+
+msgid "As nossas lojas"
+msgstr "Our stores"
+
+msgid "Conheça os nossos espaços"
+msgstr "Discover our spaces"
+
+msgid "O seu navegador não suporta vídeo."
+msgstr "Your browser does not support video."
+
+msgid ""
+"Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos "
+"e a nossa equipa."
+msgstr ""
+"Visit our stores in Braga and Guimarães to discover our products and meet "
+"our team."
+
+msgid "Agricultura Biológica"
+msgstr "Organic Farming"
+
+msgid ""
+"Saiba como praticamos agricultura biológica certificada no Minho, com "
+"respeito pela biodiversidade e pelos ciclos naturais."
+msgstr ""
+"Learn how we practise certified organic farming in Minho, with respect for "
+"biodiversity and natural cycles."
+
+msgid "Campo de agricultura biológica"
+msgstr "Organic farming field"
+
+msgid ""
+"A agricultura biológica é um sistema de produção que respeita os ciclos "
+"naturais, promove a biodiversidade e proíbe o uso de pesticidas e "
+"fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o "
+"coração de tudo o que fazemos."
+msgstr ""
+"Organic farming is a production system that respects natural cycles, "
+"promotes biodiversity, and prohibits synthetic pesticides and chemical "
+"fertilisers. At Biobrassica, these practices are at the heart of everything "
+"we do."
+
+msgid "Os Princípios da Agricultura Bio"
+msgstr "The Principles of Organic Farming"
+
+msgid "Sem pesticidas sintéticos"
+msgstr "No synthetic pesticides"
+
+msgid ""
+"Utilizamos apenas métodos naturais de controlo de pragas: insetos "
+"auxiliares, rotação de culturas e preparados biológicos."
+msgstr ""
+"We use only natural pest control methods: beneficial insects, crop rotation, "
+"and organic preparations."
+
+msgid "Solo vivo"
+msgstr "Living soil"
+
+msgid ""
+"Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e "
+"coberturas vegetais mantêm a vida microbiana do solo."
+msgstr ""
+"We feed the soil, not just the plant. Composting, green manure, and cover "
+"crops maintain the soil's microbial life."
+
+msgid "Sem OGM"
+msgstr "No GMOs"
+
+msgid ""
+"Não utilizamos organismos geneticamente modificados em nenhuma fase da "
+"produção."
+msgstr ""
+"We do not use genetically modified organisms at any stage of production."
+
+msgid "Biodiversidade"
+msgstr "Biodiversity"
+
+msgid ""
+"Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas "
+"resilientes e equilibrados."
+msgstr ""
+"We promote species diversity in our gardens, creating resilient and balanced "
+"ecosystems."
+
+msgid "As Nossas Certificações"
+msgstr "Our Certifications"
+
+#, python-format
+msgid ""
+"O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos "
+"ingredientes agrícolas são de produção biológica certificada, seguindo "
+"regulamentos rigorosos da UE."
+msgstr ""
+"The European organic farming logo guarantees that at least 95%% of "
+"agricultural ingredients come from certified organic production, following "
+"strict EU regulations."
+
+msgid ""
+"Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet "
+"verifica e atesta que os nossos métodos de produção cumprem todas as normas "
+"de agricultura biológica."
+msgstr ""
+"A recognised certification body in Portugal, Certiplanet verifies and "
+"certifies that our production methods comply with all organic farming "
+"standards."
+
+msgid "Da Terra"
+msgstr "From the Earth"
+
+msgid "Calendário Sazonal"
+msgstr "Seasonal Calendar"
+
+msgid "Respeitamos as estações do ano. Cada época traz os seus sabores únicos."
+msgstr "We follow the seasons. Each one brings its own unique flavours."
+
+msgid "Primavera"
+msgstr "Spring"
+
+msgid "Ervilhas, favas, alfaces, morangos, ervas aromáticas"
+msgstr "Peas, broad beans, lettuces, strawberries, herbs"
+
+msgid "Verão"
+msgstr "Summer"
+
+msgid "Tomates, pepinos, pimentos, beringelas, melancia"
+msgstr "Tomatoes, cucumbers, peppers, aubergines, watermelon"
+
+msgid "Outono"
+msgstr "Autumn"
+
+msgid "Abóboras, couves, brócolos, castanhas, cogumelos"
+msgstr "Pumpkins, cabbages, broccoli, chestnuts, mushrooms"
+
+msgid "Inverno"
+msgstr "Winter"
+
+msgid "Nabiças, grelos, couves, laranjas, tangerinas"
+msgstr "Turnip greens, broccoli rabe, cabbages, oranges, tangerines"
+
+msgid "Porquê biológico?"
+msgstr "Why organic?"
+
+msgid ""
+"A agricultura biológica não é apenas uma forma de produzir alimentos — é uma "
+"filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao "
+"evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a "
+"qualidade da água e a saúde do solo.\n"
+"\n"
+"Para o consumidor, os alimentos biológicos significam mais sabor, mais "
+"nutrientes e a garantia de que cada mordida está livre de resíduos químicos. "
+"É uma escolha consciente para a saúde da família e do planeta.\n"
+"\n"
+"Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
+"ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
+"variedade de produtos ao longo do ano."
+msgstr ""
+"Organic farming is not just a way of producing food — it is a life"
+" philosophy that respects the natural balance of ecosystems. By avoiding"
+" pesticides and chemical fertilisers, we protect biodiversity, water"
+" quality, and soil health.\n"
+"\n"
+"For the consumer, organic food means more flavour, more nutrients, and"
+" the assurance that every bite is free from chemical residues. It is a"
+" conscious choice for the health of the family and the planet.\n"
+"\n"
+"In the Minho region, the richness of the soil and the Atlantic climate"
+" create ideal conditions for organic farming, allowing us to grow an"
+" enormous variety of products throughout the year."
+
+msgid "Solo saudável e plantas biológicas"
+msgstr "Healthy soil and organic plants"
+
+msgid "Prove a diferença do biológico"
+msgstr "Taste the organic difference"
+
+msgid "Visite a nossa loja online ou passe por uma das nossas lojas físicas."
+msgstr "Visit our online shop or stop by one of our physical stores."
+
+msgid "Visitar Loja"
+msgstr "Visit Shop"
+
+msgid ""
+"Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-"
+"nos por telefone e email."
+msgstr ""
+"Get in touch with Biobrassica. Stores in Braga and Guimarães, or contact us "
+"by phone and email."
+
+msgid "Biobrassica"
+msgstr "Biobrassica"
+
+msgid "Encontre-nos"
+msgstr "Find Us"
+
+msgid "Visite-nos nas nossas lojas ou entre em contacto por telefone e email."
+msgstr "Visit us at our stores or get in touch by phone and email."
+
+msgid ""
+"As localizações serão apresentadas aqui assim que forem configuradas no "
+"backoffice."
+msgstr "Locations will be displayed here once they have been set up in the backoffice."
+
+msgid "Prefere enviar mensagem?"
+msgstr "Prefer to send a message?"
+
+msgid "Fale connosco pelo WhatsApp para encomendas, dúvidas ou informações."
+msgstr "Reach us via WhatsApp for orders, questions, or information."
+
+msgid "Enviar Mensagem"
+msgstr "Send Message"
+
+msgid "Tudo que precisa para uma"
+msgstr "Everything you need for a"
+
+msgid "alimentação saudável"
+msgstr "healthy diet"
+
+msgid "Produtos biológicos, saudáveis para si, bons para o ambiente."
+msgstr "Organic products, healthy for you, good for the environment."
+
+msgid "Engª Ângela Pereira"
+msgstr "Engª Ângela Pereira"
+
+msgid ""
+"Temos conseguido ao longo destes anos oferecer cada vez mais produtos "
+"frescos, colhidos no próprio dia, vindos das mãos de produtores que se "
+"levantam às 5h da manhã num esforço último de transmitir a vitalidade e "
+"qualidade das suas terras aos consumidores que já se haviam esquecido do "
+"sabor e do cheiro dos legumes acabados de colher!"
+msgstr ""
+"Over these years, we have managed to offer increasingly fresh products, "
+"harvested the same day, from the hands of producers who wake up at 5 AM in a "
+"final effort to transmit the vitality and quality of their lands to "
+"consumers who had forgotten the taste and smell of freshly picked vegetables!"
+
+msgid "Fundadora"
+msgstr "Founder"
+
+msgid "Descubra os nossos produtos"
+msgstr "Discover our products"
+
+msgid ""
+"Entrega em todo o Portugal continental ou levantamento nas nossas lojas em "
+"Braga e Guimarães."
+msgstr ""
+"Delivery throughout mainland Portugal or pickup at our stores in Braga and "
+"Guimarães."
+
+msgid "Ir para a Loja"
+msgstr "Go to Shop"
+
+msgid "Política de privacidade e proteção de dados da Biobrassica."
+msgstr "Biobrassica's privacy and data protection policy."
+
+msgid "Última atualização"
+msgstr "Last updated"
+
+msgid "1. Responsável pelo Tratamento"
+msgstr "1. Data Controller"
+
+msgid ""
+"A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a "
+"entidade responsável pelo tratamento dos seus dados pessoais."
+msgstr ""
+"Biobrassica, Lda., headquartered at R. dos Capelistas 121, 4700-215 Braga, "
+"is the entity responsible for processing your personal data."
+
+msgid "2. Dados Recolhidos"
+msgstr "2. Data Collected"
+
+msgid "Recolhemos apenas os dados necessários para:"
+msgstr "We only collect the data necessary for:"
+
+msgid ""
+"Processar as suas encomendas na loja online (nome, email, morada, telefone)"
+msgstr ""
+"Processing your orders in the online shop (name, email, address, phone)"
+
+msgid "Gerir a sua conta de cliente"
+msgstr "Managing your customer account"
+
+msgid "Enviar comunicações relacionadas com as suas encomendas"
+msgstr "Sending communications related to your orders"
+
+msgid "3. Finalidade do Tratamento"
+msgstr "3. Purpose of Processing"
+
+msgid "Os seus dados são utilizados exclusivamente para:"
+msgstr "Your data is used exclusively for:"
+
+msgid "Cumprimento de contratos de compra e venda"
+msgstr "Fulfilment of sales contracts"
+
+msgid "Cumprimento de obrigações legais e fiscais"
+msgstr "Compliance with legal and tax obligations"
+
+msgid "Comunicação relativa ao estado das encomendas"
+msgstr "Communication regarding order status"
+
+msgid "4. Partilha de Dados"
+msgstr "4. Data Sharing"
+
+msgid "Os seus dados podem ser partilhados com:"
+msgstr "Your data may be shared with:"
+
+msgid "Processadores de pagamento (ifthenpay) — para efetuar o pagamento"
+msgstr "Payment processors (ifthenpay) — to process payments"
+
+msgid "Transportadoras (CTT) — para entrega de encomendas"
+msgstr "Carriers (CTT) — for order delivery"
+
+msgid "5. Conservação dos Dados"
+msgstr "5. Data Retention"
+
+msgid ""
+"Os seus dados pessoais são conservados pelo período necessário ao "
+"cumprimento das finalidades e obrigações legais aplicáveis."
+msgstr ""
+"Your personal data is retained for the period necessary to fulfil the "
+"purposes and applicable legal obligations."
+
+msgid ""
+"Os registos técnicos de callbacks de pagamento são minimizados, com IP "
+"anonimizado e retenção interna limitada ao período operacional estritamente "
+"necessário."
+msgstr ""
+"Technical payment callback records are minimised, with anonymised IP and"
+" internal retention limited to the strictly necessary operational period."
+
+msgid "6. Os Seus Direitos"
+msgstr "6. Your Rights"
+
+msgid "Nos termos do RGPD, tem direito a:"
+msgstr "Under the GDPR, you have the right to:"
+
+msgid "Aceder aos seus dados pessoais"
+msgstr "Access your personal data"
+
+msgid "Retificar dados incorretos"
+msgstr "Rectify incorrect data"
+
+msgid "Solicitar a eliminação dos seus dados"
+msgstr "Request the deletion of your data"
+
+msgid "Solicitar a portabilidade dos seus dados"
+msgstr "Request the portability of your data"
+
+msgid "Opor-se ao tratamento dos seus dados"
+msgstr "Object to the processing of your data"
+
+msgid "Para exercer os seus direitos, contacte-nos em"
+msgstr "To exercise your rights, contact us at"
+
+msgid "7. Cookies"
+msgstr "7. Cookies"
+
+msgid ""
+"Este website utiliza cookies essenciais para o funcionamento da sessão e do "
+"carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
+msgstr ""
+"This website uses essential cookies for session and cart functionality. We "
+"do not use third-party tracking cookies."
+
+msgid "8. Contacto"
+msgstr "8. Contact"
+
+msgid "Para questões relacionadas com a proteção de dados:"
+msgstr "For data protection enquiries:"
+
+msgid "Termos e condições de utilização da loja online Biobrassica."
+msgstr "Terms and conditions of use for the Biobrassica online shop."
+
+msgid "1. Identificação"
+msgstr "1. Identification"
+
+msgid ""
+"O presente website e loja online são propriedade da Biobrassica, Lda., com "
+"sede na R. dos Capelistas 121, 4700-215 Braga."
+msgstr ""
+"This website and online shop are owned by Biobrassica, Lda., headquartered "
+"at R. dos Capelistas 121, 4700-215 Braga."
+
+msgid "2. Produtos"
+msgstr "2. Products"
+
+msgid ""
+"Os produtos apresentados na loja online estão sujeitos a disponibilidade. "
+"Todas as descrições e imagens são tão fiéis quanto possível, podendo existir "
+"ligeiras variações."
+msgstr ""
+"Products displayed in the online shop are subject to availability. All "
+"descriptions and images are as accurate as possible, though slight "
+"variations may occur."
+
+msgid "3. Preços"
+msgstr "Price"
+
+msgid ""
+"Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser "
+"alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da "
+"encomenda."
+msgstr ""
+"All prices include VAT at the current legal rate. Prices may be changed "
+"without prior notice; the price in effect at the time of the order will be "
+"applied."
+
+msgid "4. Encomendas"
+msgstr "4. Orders"
+
+msgid ""
+"Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou "
+"autorização do representante legal. A encomenda constitui uma proposta de "
+"compra, que será confirmada por email."
+msgstr ""
+"By placing an order, the customer declares they are over 18 or have "
+"authorisation from a legal representative. The order constitutes a purchase "
+"proposal, which will be confirmed by email."
+
+msgid "5. Pagamento"
+msgstr "5. Payment"
+
+msgid "Os métodos de pagamento disponíveis são:"
+msgstr "Available payment methods are:"
+
+msgid "MB WAY"
+msgstr "MB WAY"
+
+msgid "6. Entregas"
+msgstr "6. Deliveries"
+
+msgid "Disponibilizamos as seguintes opções de entrega:"
+msgstr "We offer the following delivery options:"
+
+msgid "Levantamento em loja (Braga ou Guimarães) — gratuito"
+msgstr "In-store pickup (Braga or Guimarães) — free"
+
+msgid "Entrega ao domicílio via CTT — custos de envio aplicáveis"
+msgstr "Home delivery via CTT — shipping costs apply"
+
+msgid ""
+"O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
+msgstr "Estimated delivery time is 2 to 5 business days for mainland Portugal."
+
+msgid "7. Devoluções"
+msgstr "7. Returns"
+
+msgid ""
+"O cliente tem direito a devolver o produto no prazo de 14 dias após a "
+"receção, desde que o produto esteja nas condições originais. Produtos "
+"alimentares perecíveis não são elegíveis para devolução."
+msgstr ""
+"The customer has the right to return the product within 14 days of receipt, "
+"provided the product is in its original condition. Perishable food products "
+"are not eligible for return."
+
+msgid "8. Garantias"
+msgstr "8. Warranties"
+
+msgid ""
+"Todos os produtos biológicos comercializados pela Biobrassica são "
+"certificados e cumprem a legislação europeia e nacional em vigor."
+msgstr ""
+"All organic products sold by Biobrassica are certified and comply with "
+"current European and national legislation."
+
+msgid "9. Resolução de Litígios"
+msgstr "9. Dispute Resolution"
+
+msgid ""
+"Em caso de litígio, o consumidor pode recorrer às entidades de resolução "
+"alternativa de litígios. Mais informações em"
+msgstr ""
+"In case of a dispute, the consumer may refer to alternative dispute "
+"resolution entities. More information at"
+
+msgid "10. Lei Aplicável"
+msgstr "10. Applicable Law"
+
+msgid "Os presentes termos regem-se pela legislação portuguesa."
+msgstr "These terms are governed by Portuguese law."
+
+#~ msgid ""
+#~ "A agricultura biológica não é apenas uma forma de produzir alimentos — é "
+#~ "uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. "
+#~ "Ao evitar pesticidas e fertilizantes químicos, protegemos a "
+#~ "biodiversidade, a qualidade da água e a saúde do solo."
+#~ msgstr ""
+#~ "Organic farming is not just a way of producing food — it is a philosophy "
+#~ "of life that respects the natural balance of ecosystems. By avoiding "
+#~ "chemical pesticides and fertilisers, we protect biodiversity, water "
+#~ "quality, and soil health."
+
+#~ msgid ""
+#~ "Para o consumidor, os alimentos biológicos significam mais sabor, mais "
+#~ "nutrientes e a garantia de que cada mordida está livre de resíduos "
+#~ "químicos. É uma escolha consciente para a saúde da família e do planeta."
+#~ msgstr ""
+#~ "For consumers, organic food means more flavour, more nutrients, and the "
+#~ "guarantee that every bite is free from chemical residues. It is a "
+#~ "conscious choice for the health of your family and the planet."
+
+#~ msgid ""
+#~ "Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
+#~ "ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
+#~ "variedade de produtos ao longo do ano."
+#~ msgstr ""
+#~ "In the Minho region, the rich soil and Atlantic climate create ideal "
+#~ "conditions for organic farming, allowing us to grow a wide variety of "
+#~ "products throughout the year."
+
+#~ msgid "Segunda a Sábado"
+#~ msgstr "Monday to Saturday"
+
+#~ msgid "Mapa da loja Biobrassica em Braga"
+#~ msgstr "Map of Biobrassica store in Braga"
+
+#~ msgid "Guimarães"
+#~ msgstr "Guimarães"
+
+#~ msgid "Mapa da loja Biobrassica em Guimarães"
+#~ msgstr "Map of Biobrassica store in Guimarães"
+
+#~ msgid "Receita"
+#~ msgstr "Recipe"
+
+#~ msgid "Produtos Utilizados"
+#~ msgstr "Products Used"
+
+#~ msgid "foi recebida."
+#~ msgstr "has been received."
+
+#~ msgid "Referência para pagamento em ATM ou homebanking"
+#~ msgstr "Reference for ATM or online banking payment"
+
+#~ msgid "Uma Família, Uma Causa"
+#~ msgstr "One Family, One Cause"
+
+#~ msgid "Equipa Biobrassica em loja"
+#~ msgstr "Biobrassica team in store"
+
+#~ msgid "Membros da equipa Biobrassica"
+#~ msgstr "Biobrassica team members"
+
+#~ msgid "Venha conhecer-nos"
+#~ msgstr "Come meet us"
+
+#~ msgid "A Nossa História"
+#~ msgstr "Our Story"
+
+#~ msgid "Evento anterior"
+#~ msgstr "Previous event"
+
+#~ msgid "Próximo evento"
+#~ msgstr "Next event"
+
+#~ msgid "A Semente"
+#~ msgstr "The Seed"
+
+#~ msgid ""
+#~ "Nascemos em Braga com a vontade de trazer produtos biológicos de "
+#~ "qualidade à comunidade, movidos pela paixão pela alimentação saudável."
+#~ msgstr ""
+#~ "We were born in Braga with the desire to bring quality organic products "
+#~ "to the community, driven by a passion for healthy food."
+
+#~ msgid "Certificação Biológica"
+#~ msgstr "Organic Certification"
+
+#~ msgid ""
+#~ "Recebemos a certificação biológica da Certiplanet, validando o nosso "
+#~ "compromisso com práticas agrícolas sustentáveis."
+#~ msgstr ""
+#~ "We received organic certification from Certiplanet, validating our "
+#~ "commitment to sustainable farming practices."
+
+#~ msgid "Abertura em Braga"
+#~ msgstr "Opening in Braga"
+
+#~ msgid ""
+#~ "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os "
+#~ "frescos de produtores locais diretamente ao consumidor."
+#~ msgstr ""
+#~ "We opened our first physical store in the heart of Braga, bringing fresh "
+#~ "produce from local farmers directly to consumers."
+
+#~ msgid "Expansão para Guimarães"
+#~ msgstr "Expansion to Guimarães"
+
+#~ msgid ""
+#~ "Com a crescente procura, abrimos a segunda loja em Guimarães, "
+#~ "fortalecendo a nossa presença no Minho."
+#~ msgstr ""
+#~ "With growing demand, we opened a second store in Guimarães, strengthening "
+#~ "our presence in the Minho region."
+
+#~ msgid "O Futuro é Bio"
+#~ msgstr "The Future is Organic"
+
+#~ msgid ""
+#~ "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias "
+#~ "com produtores locais da região."
+#~ msgstr ""
+#~ "We continue to grow, diversifying our range and strengthening "
+#~ "partnerships with local producers."
+
+#~ msgid "Conhecer para valorizar."
+#~ msgstr "Know to appreciate."
+
+#~ msgid "Da nossa terra, para a sua mesa."
+#~ msgstr "From our land, to your table."
+
+#~ msgid "Os Nossos Valores"
+#~ msgstr "Our Values"
+
+#~ msgid "Terra"
+#~ msgstr "Earth"
+
+#~ msgid ""
+#~ "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que "
+#~ "utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada "
+#~ "estação."
+#~ msgstr ""
+#~ "We value the natural cycles of the earth and work with producers who use "
+#~ "regenerative farming techniques, strengthening the soil each season."
+
+#~ msgid ""
+#~ "Acreditamos no comércio local e na criação de laços fortes com as "
+#~ "famílias de Braga e Guimarães."
+#~ msgstr ""
+#~ "We believe in local trade and in building strong bonds with the families "
+#~ "of Braga and Guimarães."
+
+#~ msgid "Saúde"
+#~ msgstr "Health"
+
+#~ msgid ""
+#~ "Cada produto que selecionamos é livre de químicos, pensado para nutrir o "
+#~ "corpo e a alma de quem o consome."
+#~ msgstr ""
+#~ "Every product we select is chemical-free, designed to nourish the body "
+#~ "and soul of those who eat it."
+
+#~ msgid "Saber mais"
+#~ msgstr "Learn more"
+
+#~ msgid "Ver receita"
+#~ msgstr "View recipe"
+
+#~ msgid "Brevemente — siga-nos no Instagram @biobrassica"
+#~ msgstr "Coming soon — follow us on Instagram @biobrassica"
+
+#~ msgid "Multibanco (referência válida por 48 horas)"
+#~ msgstr "Multibanco (reference valid for 48 hours)"
+
+#~ msgid "Cartão de crédito/débito"
+#~ msgstr "Credit/debit card"
+
+#~ msgid ""
+#~ "Produtos biológicos frescos, cultivados de forma sustentável no coração "
+#~ "do Minho."
+#~ msgstr "Fresh organic products, sustainably grown in the heart of Minho."
+
+#~ msgid "Couves biológicas"
+#~ msgstr "Organic cabbages"
+
+#~ msgid "Nabos biológicos"
+#~ msgstr "Organic turnips"
+
+#~ msgid "Mulher com legumes biológicos"
+#~ msgstr "Woman with organic vegetables"

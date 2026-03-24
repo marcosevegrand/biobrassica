@@ -1,0 +1,16 @@
+{
+  "include": ["backend"],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "backend/staticfiles",
+    "backend/media", ".venv"
+  ],
+  "typeCheckingMode": "standard",
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": "none",
+  "extraPaths": ["backend"],
+  "venvPath": ".",
+  "venv": ".venv"
+}

@@ -1,0 +1,129 @@
+{% load admin_urls i18n admin_extras unfold %}
+
+{% with has_tab=inline_admin_formset.opts|safe_attr:'tab' %}
+<div class="js-inline-admin-formset inline-group" id="{{ inline_admin_formset.formset.prefix }}-group" data-inline-type="stacked" {% if has_tab %}x-show="activeTab == '{{ inline_admin_formset.formset.prefix|slugify }}'"{% else %}x-show="activeTab == 'general'"{% endif %}>
+    <fieldset class="module relative {{ inline_admin_formset.classes }}" aria-labelledby="{{ inline_admin_formset.formset.prefix }}-heading">
+        {% if inline_admin_formset.is_collapsible %}<details><summary>{% endif %}
+
+        {% include "unfold/helpers/inline_heading.html" %}
+
+        {% if inline_admin_formset.is_collapsible %}</summary>{% endif %}
+
+        {{ inline_admin_formset.formset.management_form }}
+        {% include "unfold/helpers/messages/error.html" with errors=inline_admin_formset.formset.non_form_errors %}
+
+        {% if inline_admin_formset.opts|safe_attr:'section_empty_title' %}
+        <section class="inline-empty-state {% if inline_admin_formset.formset.total_form_count > 0 %}hidden{% endif %} mb-4 rounded-default border border-dashed border-base-300 bg-base-50/80 px-5 py-5 dark:border-base-700 dark:bg-white/3" data-inline-empty-state="{{ inline_admin_formset.formset.prefix }}">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="space-y-1">
+                    <h3 class="text-sm font-semibold text-important">{{ inline_admin_formset.opts|safe_attr:'section_empty_title' }}</h3>
+                    <p class="max-w-2xl text-sm text-base-600 dark:text-base-400">{{ inline_admin_formset.opts|safe_attr:'section_empty_body' }}</p>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <div class="formset-wrapper">
+            <div class="formset border border-base-200 overflow-hidden rounded-default shadow-xs w-full dark:border-base-800" data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
+                 {% if inline_admin_formset.opts.ordering_field %}
+                     data-ordering-field="{{ inline_admin_formset.opts.ordering_field }}" x-on:end="sortRecords" x-sort.ghost
+                 {% endif %}>
+
+            {% for inline_admin_form in inline_admin_formset %}
+                <div x-sort:item class="form-group inline-related group inline-stacked {% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last and inline_admin_formset.has_add_permission %} empty-form last-related hidden{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-{% if not forloop.last %}{{ forloop.counter0 }}{% else %}__prefix__{% endif %}" {% if inline_admin_formset.opts.collapsible and inline_admin_form.original %}x-data="{ open: {% if inline_admin_form.errors %}true{% else %}false{% endif %} }"{% endif %}>
+                    {% if not inline_admin_formset.opts.hide_title or inline_admin_formset.formset.can_delete and inline_admin_formset.has_delete_permission %}
+                        <h3 class="border-b border-base-200 flex font-medium items-center gap-2 px-3 py-2 text-sm dark:border-base-800 {% if inline_admin_formset.opts.collapsible and inline_admin_form.original %}cursor-pointer{% endif %}" {% if inline_admin_formset.opts.collapsible and inline_admin_form.original %}x-on:click="open = !open"{% endif %}>
+                            {% if inline_admin_formset.opts.collapsible and inline_admin_form.original %}
+                                <span class="material-symbols-outlined select-none block! -rotate-90 transition-all" x-bind:class="open && 'rotate-0'">
+                                    expand_more
+                                </span>
+                            {% endif %}
+
+                            {% if inline_admin_formset.opts.ordering_field %}
+                                {% if inline_admin_form.original %}
+                                    <span class="material-symbols-outlined cursor-move" x-sort:handle>drag_indicator</span>
+                                {% else %}
+                                    <span class="-mr-2" x-sort:handle></span>
+                                {% endif %}
+                            {% endif %}
+
+                            {{ inline_admin_formset.opts.verbose_name|capfirst }}:
+
+                            <span class="inline_label font-semibold text-font-important-light dark:text-font-important-dark">
+                                {% if inline_admin_form.original and inline_admin_form.model_admin.show_change_link and inline_admin_form.model_admin.has_registered_model %}
+                                    <a href="{% url inline_admin_form.model_admin.opts|admin_urlname:'change' inline_admin_form.original.pk|admin_urlquote %}" class="{% if inline_admin_formset.has_change_permission %}inlinechangelink{% else %}inlineviewlink{% endif %} font-medium text-primary-600 dark:text-primary-500">
+                                        {{ inline_admin_form.original }}
+                                    </a>
+                                {% else %}
+                                    {% if inline_admin_form.original %}
+                                        {% with inline_title=inline_admin_form.original.get_inline_title %}
+                                            {% if inline_title %}
+                                                {{ inline_title }}
+                                            {% else %}
+                                                {{ inline_admin_form.original }}
+                                            {% endif %}
+                                        {% endwith %}
+
+                                        {% if inline_admin_form.model_admin.show_change_link and inline_admin_form.model_admin.has_registered_model %}
+                                            <a href="{% url inline_admin_form.model_admin.opts|admin_urlname:'change' inline_admin_form.original.pk|admin_urlquote %}" class="{{ inline_admin_formset.has_change_permission|yesno:'inlinechangelink,inlineviewlink' }} font-medium ml-2 text-primary-600 dark:text-primary-500">
+                                                {% if inline_admin_formset.has_change_permission %}
+                                                    Alterar
+                                                {% else %}
+                                                    Ver
+                                                {% endif %}
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        #{{ forloop.counter }}
+                                    {% endif %}
+                                {% endif %}
+                            </span>
+
+                            {% if inline_admin_form.show_url %}
+                                <a href="{{ inline_admin_form.absolute_url }}" class="font-medium ml-2 text-primary-600 dark:text-primary-500">
+                                    Ver no site
+                                </a>
+                            {% endif %}
+
+                            {% if inline_admin_formset.formset.can_delete and inline_admin_formset.has_delete_permission and inline_admin_form.original %}
+                                <span class="delete flex gap-2 items-center ml-auto">
+                                    {{ inline_admin_form.deletion_field.field|add_css_class:form_classes.checkbox }} {{ inline_admin_form.deletion_field.label_tag }}
+                                </span>
+                            {% endif %}
+                        </h3>
+                    {% endif %}
+
+                    {% include "unfold/helpers/messages/error.html" with errors=inline_admin_form.form.non_field_errors %}
+
+                    <div class="form-row border-b border-base-200 dark:border-base-800" {% if inline_admin_formset.opts.collapsible and inline_admin_form.original %}x-show="open"{% endif %}>
+                        {% for fieldset in inline_admin_form %}
+                            <div class="{% if inline_admin_formset.opts.hide_title %}{% if not inline_admin_formset.formset.can_delete or not inline_admin_formset.has_delete_permission  %}pt-3{% endif %}{% endif %}">
+                                {% include 'admin/includes/fieldset.html' with stacked=1 %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if inline_admin_form.needs_explicit_pk_field %}
+                        {{ inline_admin_form.pk_field.field }}
+                    {% endif %}
+
+                    {% if inline_admin_form.fk_field %}{{ inline_admin_form.fk_field.field }}{% endif %}
+                </div>
+            {% endfor %}
+
+            {% if inline_admin_formset.has_add_permission %}
+                <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
+                    <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
+                        {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+
+        {% include "unfold/helpers/pagination_inline.html" %}
+
+        {% if inline_admin_formset.is_collapsible %}</details>{% endif %}
+    </fieldset>
+</div>
+{% endwith %}

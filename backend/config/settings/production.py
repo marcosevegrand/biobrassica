@@ -1,0 +1,96 @@
+import os
+
+from django.core.exceptions import ImproperlyConfigured
+
+from .base import *  # noqa: F401, F403
+from .base import env_list
+
+
+def required_env(name):
+    value = os.environ.get(name)
+    if value:
+        return value
+    raise ImproperlyConfigured(f'Missing required production environment variable: {name}')
+
+DEBUG = False
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    'biobrassica.pt,www.biobrassica.pt,loja.biobrassica.pt,admin.biobrassica.pt',
+)
+
+DB_PASSWORD = required_env('DB_PASSWORD')
+EMAIL_HOST = required_env('EMAIL_HOST')
+EMAIL_HOST_USER = required_env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = required_env('EMAIL_HOST_PASSWORD')
+IFTHENPAY_BACKOFFICE_KEY = required_env('IFTHENPAY_BACKOFFICE_KEY')
+IFTHENPAY_MBWAY_KEY = required_env('IFTHENPAY_MBWAY_KEY')
+IFTHENPAY_MB_ENTITY = required_env('IFTHENPAY_MB_ENTITY')
+IFTHENPAY_MB_SUBENTITY = required_env('IFTHENPAY_MB_SUBENTITY')
+IFTHENPAY_CCARD_KEY = required_env('IFTHENPAY_CCARD_KEY')
+IFTHENPAY_ANTI_PHISHING_KEY = required_env('IFTHENPAY_ANTI_PHISHING_KEY')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://biobrassica.pt',
+    'https://www.biobrassica.pt',
+    'https://loja.biobrassica.pt',
+    'https://admin.biobrassica.pt',
+]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'biobrassica'),
+        'USER': os.environ.get('DB_USER', 'biobrassica'),
+        'PASSWORD': DB_PASSWORD,
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 300,
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL', 'redis://redis:6379/0'),
+    }
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# Email (Brevo SMTP or similar)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = True
+
+DJANGO_HTTPS_MODE = os.environ.get('DJANGO_HTTPS_MODE', 'proxy')
+if DJANGO_HTTPS_MODE not in {'proxy', 'direct'}:
+    raise ImproperlyConfigured(
+        'DJANGO_HTTPS_MODE must be either "proxy" or "direct" in production.'
+    )
+
+# Static files — content-addressed so Cache-Control: immutable is safe.
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+    },
+}
+
+# Security
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SECURE_SSL_REDIRECT = True
+if DJANGO_HTTPS_MODE == 'proxy':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+

@@ -1,0 +1,57 @@
+{% extends base_template %}
+{% load i18n %}
+
+{% block title %}{% trans "Termos e Condições" %} | Biobrassica{% endblock %}
+{% block meta_description %}{% trans "Termos e condições de utilização da loja online Biobrassica." %}{% endblock %}
+
+{% block content %}
+<section class="bg-forest text-paper">
+  <div class="max-w-4xl mx-auto px-6 sm:px-8 pt-44 pb-24 text-center">
+    <h1 class="text-4xl sm:text-5xl font-serif italic">{% trans "Termos e Condições" %}</h1>
+  </div>
+</section>
+
+<section class="bg-paper py-24">
+  <div class="max-w-3xl mx-auto px-6 sm:px-8 prose prose-sm prose-forest">
+    <p class="text-muted text-sm">{% trans "Última atualização" %}: {% now "j F Y" %}</p>
+
+    <h2>{% trans "1. Identificação" %}</h2>
+    <p>{% trans "O presente website e loja online são propriedade da Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga." %}</p>
+
+    <h2>{% trans "2. Produtos" %}</h2>
+    <p>{% trans "Os produtos apresentados na loja online estão sujeitos a disponibilidade. Todas as descrições e imagens são tão fiéis quanto possível, podendo existir ligeiras variações." %}</p>
+
+    <h2>{% trans "3. Preços" %}</h2>
+    <p>{% trans "Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da encomenda." %}</p>
+
+    <h2>{% trans "4. Encomendas" %}</h2>
+    <p>{% trans "Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou autorização do representante legal. A encomenda constitui uma proposta de compra, que será confirmada por email." %}</p>
+
+    <h2>{% trans "5. Pagamento" %}</h2>
+    <p>{% trans "Os métodos de pagamento disponíveis são:" %}</p>
+    <ul>
+      <li>{% trans "MB WAY" %}</li>
+    </ul>
+
+    <h2>{% trans "6. Entregas" %}</h2>
+    <p>{% trans "Disponibilizamos as seguintes opções de entrega:" %}</p>
+    <ul>
+      <li>{% trans "Levantamento em loja (Braga ou Guimarães) — gratuito" %}</li>
+      <li>{% trans "Entrega ao domicílio via CTT — custos de envio aplicáveis" %}</li>
+    </ul>
+    <p>{% trans "O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental." %}</p>
+
+    <h2>{% trans "7. Devoluções" %}</h2>
+    <p>{% trans "O cliente tem direito a devolver o produto no prazo de 14 dias após a receção, desde que o produto esteja nas condições originais. Produtos alimentares perecíveis não são elegíveis para devolução." %}</p>
+
+    <h2>{% trans "8. Garantias" %}</h2>
+    <p>{% trans "Todos os produtos biológicos comercializados pela Biobrassica são certificados e cumprem a legislação europeia e nacional em vigor." %}</p>
+
+    <h2>{% trans "9. Resolução de Litígios" %}</h2>
+    <p>{% trans "Em caso de litígio, o consumidor pode recorrer às entidades de resolução alternativa de litígios. Mais informações em" %} <a href="https://www.consumidor.gov.pt" target="_blank" rel="noopener">www.consumidor.gov.pt</a>.</p>
+
+    <h2>{% trans "10. Lei Aplicável" %}</h2>
+    <p>{% trans "Os presentes termos regem-se pela legislação portuguesa." %}</p>
+  </div>
+</section>
+{% endblock %}

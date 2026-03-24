@@ -1,0 +1,34 @@
+{% load admin_extras %}
+{% context_get 'href' '' as button_href %}
+{% context_get 'attrs' '' as button_attrs %}
+{% context_get 'size' '' as button_size %}
+{% context_get 'variant' '' as button_variant %}
+{% context_get 'class' '' as button_class %}
+{% context_get 'value' '' as button_value %}
+{% context_get 'title' '' as button_title %}
+{% context_get 'extra_attrs' '' as button_extra_attrs %}
+{% context_get 'submit' '' as button_submit %}
+{% context_get 'form' '' as button_form %}
+{% context_get 'name' '' as button_name %}
+<{% if button_href %}a href="{{ button_href }}"{% else %}button{% endif %} {% if button_submit %}type="submit"{% endif %} {% if button_form %}form="{{ button_form }}"{% endif %} {% if button_name %}name="{{ button_name }}"{% endif %}{% if button_value %} value="{{ button_value }}"{% endif %}{% if button_title %} title="{{ button_title }}"{% endif %}{% if button_attrs %} {% include "unfold/helpers/attrs.html" with attrs=button_attrs %}{% endif %}
+class="font-medium inline-flex group items-center gap-2 relative rounded-default justify-center whitespace-nowrap {% if button_attrs and button_attrs.disabled %}cursor-not-allowed opacity-50{% else %}cursor-pointer{% endif %}
+{% if button_size == "md" %}
+    px-5 py-2.5 text-[14px]
+{% elif button_size == "sm" %}
+    px-2.5 py-1.5
+{% else %}
+    px-3 py-2
+{% endif %}
+{% if button_variant == "default" %}
+    border border-base-200 bg-white shadow-xs text-important dark:border-base-700 dark:bg-transparent {% if not button_attrs or not button_attrs.disabled %}hover:bg-base-100/80 dark:hover:bg-base-800/80{% endif %}
+{% elif button_variant == "ghost" %}
+    border border-transparent bg-transparent text-important {% if not button_attrs or not button_attrs.disabled %}hover:bg-base-100/80 dark:hover:bg-base-800/80{% endif %}
+{% elif button_variant == "secondary" %}
+    bg-base-100 border border-transparent text-important dark:bg-base-800 {% if not button_attrs or not button_attrs.disabled %}hover:bg-base-100/80 dark:hover:bg-base-800/80{% endif %}
+{% elif button_variant == "danger" %}
+    border border-red-600 bg-red-600 text-white {% if not button_attrs or not button_attrs.disabled %}hover:bg-red-600/80{% endif %}
+{% else %}
+    border border-primary-600 bg-primary-600 text-white {% if not button_attrs or not button_attrs.disabled %}hover:bg-primary-600/80{% endif %}
+{% endif %}{% if button_class %} {{ button_class }}{% endif %}"{% if button_extra_attrs %} {{ button_extra_attrs }}{% endif %}>
+{{ children }}
+</{% if button_href %}a{% else %}button{% endif %}>

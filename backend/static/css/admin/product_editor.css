@@ -1,0 +1,30 @@
+.inline-empty-state.hidden {
+    display: none;
+}
+
+.inline-empty-state {
+    position: relative;
+}
+
+.inline-empty-state::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(245, 158, 11, 0.06));
+    pointer-events: none;
+}
+
+.inline-empty-state > * {
+    position: relative;
+}
+
+.inline-section-cta,
+.inline-empty-cta {
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+#submit-row button,
+#submit-row a {
+    padding: 0.85rem 1.25rem;
+}

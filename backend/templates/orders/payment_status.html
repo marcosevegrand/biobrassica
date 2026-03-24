@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Estado do Pagamento" %} | Biobrassica{% endblock %}
+
+{% block content %}
+<section class="max-w-3xl mx-auto px-6 py-12">
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+    <div>
+      <h1 class="font-serif text-4xl italic mb-2">{% trans "Estado do Pagamento" %}</h1>
+      <p class="text-muted">{% trans "Encomenda" %} #{{ order.pk }} — {{ order.total|floatformat:2 }}€</p>
+    </div>
+    <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.status_display_class }}">
+      {{ order.get_status_display }}
+    </span>
+  </div>
+
+  <div class="border border-stone/30 rounded-sm p-8 mb-8 bg-white/70">
+    {% if payment.method == 'multibanco' %}
+    <h2 class="font-serif text-2xl italic mb-4">{% trans "Referência Multibanco" %}</h2>
+    <p class="text-muted mb-6">{% trans "Utilize os dados abaixo para concluir o pagamento. A encomenda só fica confirmada após validação automática." %}</p>
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Entidade" %}</span>
+        <span class="font-mono font-medium">{{ payment.mb_entity }}</span>
+      </div>
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Referência" %}</span>
+        <span class="font-mono font-medium">{{ payment.mb_reference }}</span>
+      </div>
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Valor" %}</span>
+        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
+      </div>
+    </div>
+    {% elif payment.method == 'mbway' %}
+    <h2 class="font-serif text-2xl italic mb-4">MB WAY</h2>
+    <p class="text-muted mb-6">{% trans "O pedido de pagamento foi enviado para o telemóvel indicado. Depois de autorizar no MB WAY, atualize esta página." %}</p>
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Telemóvel" %}</span>
+        <span class="font-medium">{{ payment.mbway_phone }}</span>
+      </div>
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Valor" %}</span>
+        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
+      </div>
+    </div>
+    {% else %}
+    <h2 class="font-serif text-2xl italic mb-4">{% trans "Cartão de Crédito" %}</h2>
+    <p class="text-muted mb-6">{% trans "Se o pagamento ainda não estiver concluído, reabra a página segura do operador para finalizar a transação." %}</p>
+    <a href="{{ payment.checkout_url }}"
+       class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors">
+      {% trans "Continuar pagamento" %}
+    </a>
+    {% endif %}
+  </div>
+
+  {% if payment.last_error %}
+  <div class="border border-rose-200 bg-rose-50 text-rose-800 rounded-sm p-4 mb-8 text-sm">
+    {{ payment.last_error }}
+  </div>
+  {% endif %}
+
+  <div class="flex flex-col sm:flex-row gap-4">
+    <a href="{% url 'orders:payment_status' order_id=order.pk %}"
+       class="inline-block text-center text-xs uppercase tracking-widest border border-forest px-6 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+      {% trans "Atualizar estado" %}
+    </a>
+    <a href="{% url 'orders:payment_select' order_id=order.pk %}"
+       class="inline-block text-center text-xs uppercase tracking-widest border border-stone/30 px-6 py-3 rounded-sm hover:border-forest hover:text-forest transition-colors">
+      {% trans "Escolher outro método" %}
+    </a>
+  </div>
+</section>
+{% endblock %}

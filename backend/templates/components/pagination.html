@@ -1,0 +1,20 @@
+{% load i18n %}
+{% if is_paginated %}
+<nav class="mt-16 flex items-center justify-center gap-2" aria-label="Pagination">
+  {% if page_obj.has_previous %}
+  <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}"
+     class="px-4 py-2 border border-forest/20 text-forest text-sm rounded-sm hover:bg-forest hover:text-paper transition-colors">
+    &larr; {% trans "Anterior" %}
+  </a>
+  {% endif %}
+  <span class="px-4 py-2 text-sm text-muted">
+    {% trans "Página" %} {{ page_obj.number }} {% trans "de" %} {{ page_obj.paginator.num_pages }}
+  </span>
+  {% if page_obj.has_next %}
+  <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}"
+     class="px-4 py-2 border border-forest/20 text-forest text-sm rounded-sm hover:bg-forest hover:text-paper transition-colors">
+    {% trans "Seguinte" %} &rarr;
+  </a>
+  {% endif %}
+</nav>
+{% endif %}

@@ -1,58 +1,58 @@
-# Astro Starter Kit: Minimal
+# Biobrassica
+
+Django-based website, shop, and admin for Biobrassica.
+
+## Local development
+
+Development now uses an explicit compose file pair:
 
 ```sh
-npm create astro@latest -- --template minimal
+make up
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The development Makefile bootstraps `.env.dev` from `.env.dev.example` automatically on first use.
 
-## 🚀 Project Structure
+That expands to:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Useful commands:
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```sh
+make build
+make migrate
+make test
+make coverage
+make check
+make prod-config
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+Development URLs:
 
-## 🧞 Commands
+- Website: http://lvh.me
+- Shop: http://loja.lvh.me
+- Admin: http://admin.lvh.me
+- Mailpit: http://localhost:8025
 
-All commands are run from the root of the project, from a terminal:
+## Production deployment
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Production assumes TLS terminates upstream of the bundled nginx container.
+The checked-in nginx configuration is HTTP-only by design and expects the upstream proxy or load balancer to forward the original scheme via `X-Forwarded-Proto`.
 
-## 👀 Want to learn more?
+Production must use only the base compose file:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```sh
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml up -d --remove-orphans
+```
 
-## Instagram posts (real feed)
+Do not use `docker compose up` without `-f docker-compose.yml` on the server.
 
-This project can render real Instagram posts in static build mode.
+Detailed operational guidance lives in [docs/deployment.md](docs/deployment.md).
 
-1. Copy `.env.example` to `.env`
-2. Set:
-	- `INSTAGRAM_GRAPH_ACCESS_TOKEN`
-	- `INSTAGRAM_IG_USER_ID`
-3. Run `npm run build`
+## Documentation
 
-How it works:
-- At build-time, the homepage tries the Instagram Graph API first.
-- If credentials are missing/invalid or rate-limited, it falls back to a public endpoint.
-- If both fail, it falls back to static placeholder images so the build never breaks.
+- [Deployment guide](docs/deployment.md)
+- [Architecture note](docs/architecture.md)

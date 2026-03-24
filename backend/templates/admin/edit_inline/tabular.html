@@ -1,0 +1,56 @@
+{% load admin_modify admin_urls i18n static admin_extras unfold %}
+
+{% with has_tab=inline_admin_formset.opts|safe_attr:'tab' %}
+<div class="js-inline-admin-formset inline-group" id="{{ inline_admin_formset.formset.prefix }}-group" data-inline-type="tabular" {% if has_tab %}x-show="activeTab == '{{ inline_admin_formset.formset.prefix|slugify }}'"{% else %}x-show="activeTab == 'general'"{% endif %}>
+    <div class="tabular inline-related formset-wrapper {% if forloop.last %}last-related{% endif %}">
+        {{ inline_admin_formset.formset.management_form }}
+
+        <fieldset class="module relative {{ inline_admin_formset.classes }} min-w-0" aria-labelledby="{{ inline_admin_formset.formset.prefix }}-heading">
+            {% if inline_admin_formset.is_collapsible %}<details><summary>{% endif %}
+
+            {% include "unfold/helpers/inline_heading.html" %}
+
+            {% if inline_admin_formset.is_collapsible %}</summary>{% endif %}
+
+            {{ inline_admin_formset.formset.non_form_errors }}
+            {% if inline_admin_formset.opts|safe_attr:'section_empty_title' %}
+            <section class="inline-empty-state {% if inline_admin_formset.formset.total_form_count > 0 %}hidden{% endif %} mb-4 rounded-default border border-dashed border-base-300 bg-base-50/80 px-5 py-5 dark:border-base-700 dark:bg-white/3" data-inline-empty-state="{{ inline_admin_formset.formset.prefix }}">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-important">{{ inline_admin_formset.opts|safe_attr:'section_empty_title' }}</h3>
+                        <p class="max-w-2xl text-sm text-base-600 dark:text-base-400">{{ inline_admin_formset.opts|safe_attr:'section_empty_body' }}</p>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+            <div class="formset border border-base-200 overflow-x-auto rounded-default shadow-xs dark:border-base-800" data-inline-formset="{{ inline_admin_formset.inline_formset_data }}" data-simplebar data-simplebar-auto-hide="false">
+                <table class="tabular-table w-full [&>tbody:nth-child(odd)]:bg-base-50 dark:[&>tbody:nth-child(odd)]:bg-white/2" {% if inline_admin_formset.opts.ordering_field %}data-ordering-field="{{ inline_admin_formset.opts.ordering_field }}" x-on:end="sortRecords" x-sort.ghost x-sort:config="{preventOnFilter: false}"{% endif %}>
+                    {% include "unfold/helpers/edit_inline/tabular_heading.html" %}
+
+                    {% for inline_admin_form in inline_admin_formset %}
+                        <tbody class="form-group {% if inline_admin_form.original or inline_admin_form.show_url %}has_original{% else %}template empty-form hidden{% endif %}" x-sort:item>
+                            {% include "unfold/helpers/edit_inline/tabular_error.html" %}
+
+                            {% include "unfold/helpers/edit_inline/tabular_title.html" %}
+
+                            {% include "unfold/helpers/edit_inline/tabular_row.html" %}
+                        </tbody>
+                    {% endfor %}
+                </table>
+
+                {% if inline_admin_formset.has_add_permission %}
+                <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
+                    <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
+                        {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% include "unfold/helpers/pagination_inline.html" %}
+
+            {% if inline_admin_formset.is_collapsible %}</details>{% endif %}
+        </fieldset>
+    </div>
+</div>
+{% endwith %}

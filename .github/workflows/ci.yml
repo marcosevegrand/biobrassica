@@ -1,0 +1,83 @@
+name: CI
+
+"on":
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: biobrassica
+          POSTGRES_USER: biobrassica
+          POSTGRES_PASSWORD: biobrassica
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biobrassica -d biobrassica"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SECRET_KEY: this-is-a-ci-only-secret-key-with-enough-entropy-for-deploy-checks-123456
+      ALLOWED_HOSTS: localhost,127.0.0.1,lvh.me,loja.lvh.me,admin.lvh.me
+      DB_NAME: biobrassica
+      DB_USER: biobrassica
+      DB_PASSWORD: biobrassica
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      REDIS_URL: redis://127.0.0.1:6379/0
+      EMAIL_HOST: localhost
+      EMAIL_PORT: 1025
+      IFTHENPAY_ANTI_PHISHING_KEY: ci-callback-key
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate production compose
+        run: docker compose -f docker-compose.yml config
+
+      - name: Validate development compose
+        run: docker compose -f docker-compose.yml -f docker-compose.dev.yml config
+
+      - name: Run migrations
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.development
+        run: python manage.py migrate --noinput
+
+      - name: Run focused tests
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.development
+        run: python manage.py test apps.core.tests apps.orders.tests apps.payments.tests
+
+      - name: Run deploy checks
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.production
+        run: python manage.py check --deploy

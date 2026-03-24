@@ -1,0 +1,59 @@
+{% extends "base_website.html" %}
+{% load i18n static %}
+
+{% block title %}{{ post.safe_translation.title }} | Biobrassica{% endblock %}
+{% block meta_description %}{{ post.safe_translation.meta_description|default:post.safe_translation.excerpt }}{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="bg-forest text-paper">
+  <div class="max-w-3xl mx-auto px-6 sm:px-8 pt-44 pb-20 text-center">
+    <div class="mb-4">
+      <time class="text-xs uppercase tracking-widest text-paper/50" datetime="{{ post.published_at|date:'Y-m-d' }}">
+        {{ post.published_at|date:"j F Y" }}
+      </time>
+      {% if post.author %}
+      <span class="text-xs text-paper/50 ml-2">· {{ post.author.get_full_name|default:post.author.username }}</span>
+      {% endif %}
+    </div>
+    <h1 class="text-3xl md:text-5xl font-serif italic leading-tight">
+      {{ post.safe_translation.title }}
+    </h1>
+    {% if post.tags %}
+    <div class="mt-4 flex items-center justify-center gap-2 flex-wrap">
+      {% for tag in post.tags_list %}
+      <span class="px-3 py-1 text-xs uppercase tracking-widest text-paper/70 border border-paper/20 rounded-full">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Cover Image -->
+{% if post.cover_image %}
+<div class="max-w-4xl mx-auto px-6 -mt-8 mb-8">
+  <img src="{{ post.cover_image.url }}" alt="{{ post.safe_translation.title }}"
+       class="w-full aspect-2/1 object-cover rounded-lg shadow-md" />
+</div>
+{% endif %}
+
+<!-- Content -->
+<section class="bg-paper py-12">
+  <div class="max-w-3xl mx-auto px-6">
+    <div class="prose">
+      {{ post.safe_translation.rendered_content }}
+    </div>
+
+    <!-- Back to Blog -->
+    <div class="mt-16 pt-8 border-t border-stone/30">
+      <a href="{% url 'content:blog_list' %}"
+         class="inline-flex items-center gap-2 text-sm text-forest hover:text-forest/80 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        {% trans "Voltar ao Blog" %}
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

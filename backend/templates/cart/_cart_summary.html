@@ -1,0 +1,18 @@
+{% load i18n %}
+
+<div id="cart-summary" {% if oob|default:False %}hx-swap-oob="outerHTML"{% endif %}>
+  {% if cart_summary.cart_item_count %}
+  <div class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="text-lg">
+      <span class="text-muted">{% trans "Total:" %}</span>
+      <span class="font-serif text-2xl italic ml-2">{{ cart_summary.cart_total|floatformat:2 }}€</span>
+    </p>
+    <a href="{% url 'orders:checkout' %}"
+       hx-get="{% url 'orders:checkout' %}"
+       hx-swap="none"
+       class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors">
+      {% trans "Finalizar encomenda" %}
+    </a>
+  </div>
+  {% endif %}
+</div>

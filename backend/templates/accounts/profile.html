@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Perfil" %} | Biobrassica{% endblock %}
+
+{% block content %}
+<section class="max-w-2xl mx-auto px-6 py-12">
+  <h1 class="font-serif text-4xl italic mb-12">{% trans "O meu perfil" %}</h1>
+
+  <div class="flex gap-4 mb-8">
+    <a href="{% url 'accounts:profile' %}"
+       class="text-xs uppercase tracking-widest px-4 py-2 bg-forest text-paper rounded-sm">
+      {% trans "Perfil" %}
+    </a>
+    <a href="{% url 'accounts:order_history' %}"
+       class="text-xs uppercase tracking-widest px-4 py-2 border border-forest/30 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+      {% trans "Encomendas" %}
+    </a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="space-y-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Nome" %}</label>
+          {{ form.first_name }}
+        </div>
+        <div>
+          <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Apelido" %}</label>
+          {{ form.last_name }}
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Telefone" %}</label>
+        {{ form.phone }}
+      </div>
+      <div>
+        <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Idioma preferido" %}</label>
+        {{ form.preferred_language }}
+      </div>
+      <div>
+        <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "NIF" %}</label>
+        {{ form.nif }}
+      </div>
+    </div>
+
+    <button type="submit"
+            class="mt-8 text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors">
+      {% trans "Guardar" %}
+    </button>
+
+    <a href="{% url 'accounts:logout' %}"
+       class="mt-4 inline-block text-xs uppercase tracking-widest border border-forest/40 px-8 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+      {% trans "Sair" %}
+    </a>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% load i18n %}
+<div class="group border border-stone/40 rounded-sm overflow-hidden bg-paper">
+  <a href="{% url 'catalog:product_detail' slug=product.slug %}">
+    <div class="overflow-hidden">
+      {% if product.primary_image %}
+      <img
+        src="{{ product.primary_image.image.url }}"
+        alt="{{ product.get_name }}"
+        class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        loading="lazy"
+      />
+      {% else %}
+      <div class="aspect-square w-full bg-stone/20 flex items-center justify-center">
+        <span class="text-muted text-sm">{% trans "Sem imagem" %}</span>
+      </div>
+      {% endif %}
+    </div>
+  </a>
+
+  <div class="p-4">
+    <p class="text-[10px] uppercase tracking-widest text-muted mb-1">
+      {{ product.category }}
+    </p>
+    <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="block">
+      <h3 class="font-serif text-lg italic mb-2 group-hover:text-terracotta transition-colors">
+        {{ product.get_name }}
+      </h3>
+    </a>
+    <div class="mb-4 bg-terracotta/6 px-3 py-3">
+      <p class="font-serif text-2xl italic leading-none text-forest">{{ product.price_display }}</p>
+      <p class="mt-1 text-xs uppercase tracking-[0.14em] text-terracotta">{{ product.quantity }}</p>
+    </div>
+
+    {% if product.available_locations.all %}
+    <div class="flex flex-wrap gap-1 mb-3">
+      {% for loc in product.available_locations.all %}
+      <span class="text-[10px] uppercase tracking-widest text-muted border border-stone/30 px-2 py-0.5 rounded-sm">
+        {{ loc.name }}
+      </span>
+      {% endfor %}
+      <span class="text-[10px] uppercase tracking-widest border px-2 py-0.5 rounded-sm {% if product.allow_shipping %}text-forest border-forest/30{% else %}text-muted border-stone/30{% endif %}">
+        {% if product.allow_shipping %}{% trans "Envio disponível" %}{% else %}{% trans "Apenas levantamento" %}{% endif %}
+      </span>
+    </div>
+    {% else %}
+    <div class="flex flex-wrap gap-1 mb-3">
+      <span class="text-[10px] uppercase tracking-widest border px-2 py-0.5 rounded-sm {% if product.allow_shipping %}text-forest border-forest/30{% else %}text-muted border-stone/30{% endif %}">
+        {% if product.allow_shipping %}{% trans "Envio disponível" %}{% else %}{% trans "Apenas levantamento" %}{% endif %}
+      </span>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'cart:add' product_id=product.pk %}"
+          hx-post="{% url 'cart:add' product_id=product.pk %}"
+          hx-swap="none">
+      {% csrf_token %}
+          <div class="flex items-center gap-2 mb-3">
+      <div class="flex items-center border border-stone/40 rounded-sm">
+        <button type="button"
+          onclick="const input=this.nextElementSibling; input.stepDown(); if (Number(input.value) < 1) input.value = 1;"
+          class="px-2 py-1 text-muted hover:text-forest transition-colors">−</button>
+        <input type="number" name="quantity" value="1" min="1" max="99"
+         class="w-12 text-center border-x border-stone/40 py-1 text-xs focus:outline-none no-spinner" />
+        <button type="button"
+          onclick="const input=this.previousElementSibling; input.stepUp();"
+          class="px-2 py-1 text-muted hover:text-forest transition-colors">+</button>
+      </div>
+      <button type="button" onclick="this.form.querySelector('input[name=quantity]').value=3"
+        class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">3x</button>
+      <button type="button" onclick="this.form.querySelector('input[name=quantity]').value=6"
+        class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">6x</button>
+          </div>
+      <button type="submit"
+              class="w-full text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors cursor-pointer {% if not product.in_stock %}opacity-50 cursor-not-allowed{% endif %}"
+              {% if not product.in_stock %}disabled{% endif %}>
+        {% if product.in_stock %}{% trans "Adicionar ao carrinho" %}{% else %}{% trans "Esgotado" %}{% endif %}
+      </button>
+    </form>
+  </div>
+</div>

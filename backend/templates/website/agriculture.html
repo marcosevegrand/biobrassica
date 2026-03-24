@@ -1,0 +1,172 @@
+{% extends "base_website.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Agricultura Biológica" %} | Biobrassica{% endblock %}
+{% block meta_description %}{% trans "Saiba como praticamos agricultura biológica certificada no Minho, com respeito pela biodiversidade e pelos ciclos naturais." %}{% endblock %}
+
+{% block content %}
+<!-- Hero: full-viewport with intro text -->
+<section class="relative h-screen flex items-center justify-center overflow-hidden">
+  {% with content=website_content %}
+  <img
+    src="{% if content and content.agriculture_hero_image %}{{ content.agriculture_hero_image.url }}{% else %}{% static 'images/products/006.jpg' %}{% endif %}"
+    alt="{% trans 'Campo de agricultura biológica' %}"
+    class="absolute inset-0 w-full h-full object-cover"
+    loading="eager"
+  />
+  <div class="relative z-10 text-center text-forest px-8 sm:px-10 md:px-12 py-10 max-w-4xl xl:max-w-5xl rounded-sm bg-paper/80 backdrop-blur-sm">
+    <h1 class="font-serif text-4xl md:text-6xl italic mb-6">{% trans "Agricultura Biológica" %}</h1>
+    <p class="text-base md:text-lg leading-relaxed text-forest/75 max-w-2xl mx-auto">
+      {{ content.agriculture_intro_text|default:_('A agricultura biológica é um sistema de produção que respeita os ciclos naturais, promove a biodiversidade e proíbe o uso de pesticidas e fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o coração de tudo o que fazemos.') }}
+    </p>
+  </div>
+  {% endwith %}
+</section>
+
+<!-- Principles -->
+<section class="bg-paper pb-20 pt-24">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <h2 class="text-3xl font-serif text-forest mb-4 italic">{% trans "Os Princípios da Agricultura Bio" %}</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8 mb-16">
+      <div class="flex gap-4">
+        <div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center">
+          <span class="text-forest font-serif text-lg">1</span>
+        </div>
+        <div>
+          <h3 class="font-serif text-lg text-forest mb-2">{% trans "Sem pesticidas sintéticos" %}</h3>
+          <p class="text-muted text-sm leading-relaxed">{% trans "Utilizamos apenas métodos naturais de controlo de pragas: insetos auxiliares, rotação de culturas e preparados biológicos." %}</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center">
+          <span class="text-forest font-serif text-lg">2</span>
+        </div>
+        <div>
+          <h3 class="font-serif text-lg text-forest mb-2">{% trans "Solo vivo" %}</h3>
+          <p class="text-muted text-sm leading-relaxed">{% trans "Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e coberturas vegetais mantêm a vida microbiana do solo." %}</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center">
+          <span class="text-forest font-serif text-lg">3</span>
+        </div>
+        <div>
+          <h3 class="font-serif text-lg text-forest mb-2">{% trans "Sem OGM" %}</h3>
+          <p class="text-muted text-sm leading-relaxed">{% trans "Não utilizamos organismos geneticamente modificados em nenhuma fase da produção." %}</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center">
+          <span class="text-forest font-serif text-lg">4</span>
+        </div>
+        <div>
+          <h3 class="font-serif text-lg text-forest mb-2">{% trans "Biodiversidade" %}</h3>
+          <p class="text-muted text-sm leading-relaxed">{% trans "Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas resilientes e equilibrados." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Certifications (original style: with cert images) -->
+<section class="bg-forest/5 py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="font-serif text-3xl md:text-4xl text-center italic mb-16">{% trans "As Nossas Certificações" %}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div class="bg-paper border border-stone/40 rounded-sm p-8 text-center">
+        <img src="{% static 'images/certs/eu-bio-logo.jpg' %}" alt="Euro Leaf" class="h-20 w-auto mx-auto mb-6" loading="lazy" />
+        <h3 class="font-serif text-xl italic mb-4">Euro Leaf</h3>
+        <p class="text-muted text-sm leading-relaxed">{% trans "O logótipo europeu de agricultura biológica garante que pelo menos 95% dos ingredientes agrícolas são de produção biológica certificada, seguindo regulamentos rigorosos da UE." %}</p>
+      </div>
+      <div class="bg-paper border border-stone/40 rounded-sm p-8 text-center">
+        <img src="{% static 'images/certs/certiplanet-logo.png' %}" alt="Certiplanet" class="h-20 w-auto mx-auto mb-6" loading="lazy" />
+        <h3 class="font-serif text-xl italic mb-4">Certiplanet</h3>
+        <p class="text-muted text-sm leading-relaxed">{% trans "Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet verifica e atesta que os nossos métodos de produção cumprem todas as normas de agricultura biológica." %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Seasonal Calendar (keep simplified 4-seasons version) -->
+<section class="bg-paper py-20">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <p class="text-xs uppercase tracking-[0.3em] text-muted mb-2">{% trans "Da Terra" %}</p>
+      <h2 class="text-3xl font-serif text-forest italic">{% trans "Calendário Sazonal" %}</h2>
+      <p class="text-muted mt-3 max-w-xl mx-auto">{% trans "Respeitamos as estações do ano. Cada época traz os seus sabores únicos." %}</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20">
+        <span class="text-3xl mb-3 block">🌱</span>
+        <h3 class="font-serif text-forest mb-1">{% trans "Primavera" %}</h3>
+        <p class="text-xs text-muted">{% trans "Ervilhas, favas, alfaces, morangos, ervas aromáticas" %}</p>
+      </div>
+      <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20">
+        <span class="text-3xl mb-3 block">☀️</span>
+        <h3 class="font-serif text-forest mb-1">{% trans "Verão" %}</h3>
+        <p class="text-xs text-muted">{% trans "Tomates, pepinos, pimentos, beringelas, melancia" %}</p>
+      </div>
+      <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20">
+        <span class="text-3xl mb-3 block">🍂</span>
+        <h3 class="font-serif text-forest mb-1">{% trans "Outono" %}</h3>
+        <p class="text-xs text-muted">{% trans "Abóboras, couves, brócolos, castanhas, cogumelos" %}</p>
+      </div>
+      <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20">
+        <span class="text-3xl mb-3 block">❄️</span>
+        <h3 class="font-serif text-forest mb-1">{% trans "Inverno" %}</h3>
+        <p class="text-xs text-muted">{% trans "Nabiças, grelos, couves, laranjas, tangerinas" %}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Porquê biológico? (from original) -->
+<section class="bg-forest/5 py-24">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      {% with content=website_content %}
+      <div>
+        <h2 class="font-serif text-3xl italic mb-6">{{ content.agriculture_why_title|default:_('Porquê biológico?') }}</h2>
+        <div class="space-y-4 text-muted text-sm leading-relaxed">
+          {{ content.agriculture_why_body|default:_('A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo.\n\nPara o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta.\n\nNa região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano.')|linebreaks }}
+        </div>
+      </div>
+      <div class="overflow-hidden rounded-sm">
+        <img
+          src="{% if content and content.agriculture_why_image %}{{ content.agriculture_why_image.url }}{% else %}{% static 'images/people/006.jpg' %}{% endif %}"
+          alt="{% trans 'Solo saudável e plantas biológicas' %}"
+          class="w-full aspect-3/4 object-cover"
+          loading="lazy"
+        />
+      </div>
+      {% endwith %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="relative bg-paper text-forest py-16 overflow-hidden border-t border-b border-stone/30">
+  <!-- Decorative SVG arts — flanking margins, organic placement -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <!-- Left side -->
+    <img src="{% static 'images/arts/cabbage.svg' %}"    alt="" class="absolute w-14 md:w-16 opacity-[0.18] -rotate-12" style="top:8%;  left:9%;  filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);" />
+    <img src="{% static 'images/arts/avocado.svg' %}"    alt="" class="absolute w-14 md:w-16 opacity-[0.16]  rotate-6"  style="top:43%; left:14%; filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);" />
+    <img src="{% static 'images/arts/garlic.svg' %}"     alt="" class="absolute w-14 md:w-16 opacity-[0.16] -rotate-8"  style="top:77%; left:10%; filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);" />
+    <!-- Right side -->
+    <img src="{% static 'images/arts/strawberry.svg' %}" alt="" class="absolute w-14 md:w-16 opacity-[0.18]  rotate-11" style="top:13%; left:83%; filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);" />
+    <img src="{% static 'images/arts/onion.svg' %>"      alt="" class="absolute w-14 md:w-16 opacity-[0.18]  rotate-7"  style="top:52%; left:87%; filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);" />
+    <img src="{% static 'images/arts/broccoli.svg' %}"   alt="" class="absolute w-14 md:w-16 opacity-[0.16] -rotate-9"  style="top:74%; left:82%; filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);" />
+  </div>
+  <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
+    <h2 class="text-2xl font-serif italic mb-4">{% trans "Prove a diferença do biológico" %}</h2>
+    <p class="text-forest/75 mb-8">{% trans "Visite a nossa loja online ou passe por uma das nossas lojas físicas." %}</p>
+    <a href="https://loja.biobrassica.pt/"
+       class="inline-block px-8 py-3 bg-forest text-paper text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-forest/90 transition-colors">
+      {% trans "Visitar Loja" %}
+    </a>
+  </div>
+</section>
+{% endblock %}

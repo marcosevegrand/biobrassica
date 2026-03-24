@@ -1,0 +1,38 @@
+{
+  "$ref": "#/definitions/categories",
+  "definitions": {
+    "categories": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "lang": {
+          "type": "string",
+          "default": "pt"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "image"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

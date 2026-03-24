@@ -1,0 +1,1725 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-20 18:12+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Conta criada com sucesso!"
+msgstr "Conta criada com sucesso!"
+
+msgid "Perfil atualizado com sucesso."
+msgstr "Perfil atualizado com sucesso."
+
+msgid "Indique uma quantidade válida."
+msgstr "Indique uma quantidade válida."
+
+#| msgid "Nenhum produto nesta categoria."
+msgid "Este produto está esgotado."
+msgstr "Este produto está esgotado."
+
+msgid "A quantidade foi ajustada ao stock disponível."
+msgstr "A quantidade foi ajustada ao stock disponível."
+
+msgid ""
+"Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+msgstr ""
+"Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+
+msgid "Preencha a morada de envio completa."
+msgstr "Preencha a morada de envio completa."
+
+msgid "Use o formato 1234-123."
+msgstr "Use o formato 1234-123."
+
+#| msgid "Local de levantamento"
+msgid "Selecione um local de levantamento."
+msgstr "Selecione um local de levantamento."
+
+msgid "Selecione um método de pagamento válido."
+msgstr "Selecione um método de pagamento válido."
+
+#| msgid "Número de telemóvel"
+msgid "Indique o número de telemóvel para MB WAY."
+msgstr "Indique o número de telemóvel para MB WAY."
+
+msgid "O seu carrinho está vazio."
+msgstr "O seu carrinho está vazio."
+
+msgid "Nenhum produto do seu carrinho tem stock disponível."
+msgstr "Nenhum produto do seu carrinho tem stock disponível."
+
+msgid ""
+"Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos "
+"abaixo e tente novamente."
+msgstr ""
+"Ajustámos o seu carrinho devido a limitações de stock. Verifique os"
+" produtos abaixo e tente novamente."
+
+#, python-format
+msgid "%(product)s: reduzido de %(requested)d para %(available)d unidades."
+msgstr "%(product)s: reduzido de %(requested)d para %(available)d unidades."
+
+#, python-format
+msgid "%(product)s: removido (sem stock disponível)."
+msgstr "%(product)s: removido (sem stock disponível)."
+
+msgid "Por favor preencha todos os campos obrigatórios."
+msgstr "Por favor preencha todos os campos obrigatórios."
+
+msgid "Não foi possível validar os dados da encomenda."
+msgstr "Não foi possível validar os dados da encomenda."
+
+msgid ""
+"Alguns produtos já não têm stock suficiente. Revise o carrinho e tente "
+"novamente."
+msgstr ""
+"Alguns produtos já não têm stock suficiente. Revise o carrinho e tente"
+" novamente."
+
+msgid ""
+"Não foi possível criar a encomenda. Verifique os dados e tente novamente."
+msgstr ""
+"Não foi possível criar a encomenda. Verifique os dados e tente novamente."
+
+msgid "Não foi possível iniciar o pagamento. Tente novamente."
+msgstr "Não foi possível iniciar o pagamento. Tente novamente."
+
+msgid "Não foi possível preparar o pagamento. Tente novamente."
+msgstr "Não foi possível preparar o pagamento. Tente novamente."
+
+msgid "Ainda não existe um pagamento associado a esta encomenda."
+msgstr "Ainda não existe um pagamento associado a esta encomenda."
+
+msgid "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
+msgstr "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
+
+msgid "Não foi possível atualizar o estado do pagamento. Tente novamente."
+msgstr "Não foi possível atualizar o estado do pagamento. Tente novamente."
+
+#| msgid "Conta criada com sucesso!"
+msgid "Pagamento confirmado com sucesso."
+msgstr "Pagamento confirmado com sucesso."
+
+msgid "O pagamento MB WAY não foi confirmado. Pode tentar novamente."
+msgstr "foi confirmado."
+
+msgid "Entrar"
+msgstr "Entrar"
+
+msgid "Email ou password incorretos."
+msgstr "Email ou palavra-passe incorretos."
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Password"
+msgstr "Palavra-passe"
+
+msgid "Esqueceu a password?"
+msgstr "Esqueceu-se da palavra-passe?"
+
+msgid "Ainda não tem conta?"
+msgstr "Ainda não tem conta?"
+
+msgid "Registar"
+msgstr "Registar"
+
+msgid "As minhas encomendas"
+msgstr "As minhas encomendas"
+
+msgid "Perfil"
+msgstr "Perfil"
+
+msgid "Encomendas"
+msgstr "Encomendas"
+
+msgid "Encomenda"
+msgstr "Encomenda"
+
+msgid "Envio:"
+msgstr "Envio:"
+
+msgid "Levantamento:"
+msgstr "Levantamento:"
+
+msgid "Ainda não fez nenhuma encomenda."
+msgstr "Ainda não fez nenhuma encomenda."
+
+msgid "Ver produtos"
+msgstr "Ver produtos"
+
+msgid "Recuperar password"
+msgstr "Recuperar palavra-passe"
+
+msgid "Enviar link de recuperação"
+msgstr "Enviar link de recuperação"
+
+msgid "Password alterada"
+msgstr "Palavra-passe alterada"
+
+msgid "A sua password foi redefinida com sucesso."
+msgstr "A sua palavra-passe foi redefinida com sucesso."
+
+msgid "Nova password"
+msgstr "Nova palavra-passe"
+
+msgid "Confirmar password"
+msgstr "Confirmar palavra-passe"
+
+msgid "Redefinir password"
+msgstr "Redefinir palavra-passe"
+
+msgid "Email enviado"
+msgstr "Email enviado"
+
+msgid ""
+"Se o email que indicou estiver registado, receberá um link para redefinir a "
+"sua password."
+msgstr ""
+"Se o email que indicou estiver registado, receberá um link para redefinir a "
+"sua palavra-passe."
+
+msgid "O meu perfil"
+msgstr "O meu perfil"
+
+msgid "Nome"
+msgstr "Nome"
+
+msgid "Apelido"
+msgstr "Apelido"
+
+msgid "Telefone"
+msgstr "Telefone"
+
+msgid "Idioma preferido"
+msgstr "Idioma preferido"
+
+msgid "NIF"
+msgstr "NIF"
+
+msgid "Guardar"
+msgstr "Guardar"
+
+msgid "Sair"
+msgstr "Sair"
+
+msgid "Criar conta"
+msgstr "Criar conta"
+
+msgid "Já tem conta?"
+msgstr "Já tem conta?"
+
+msgid "Django site admin"
+msgstr ""
+
+msgid "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
+msgstr "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
+
+msgid ""
+"Biobrassica — produtos biológicos selecionados com cuidado no coração do "
+"Minho."
+msgstr "Biobrassica — produtos biológicos selecionados com cuidado no coração do Minho."
+
+msgid "Carrinho"
+msgstr "Carrinho"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Ver carrinho"
+msgstr "Ver carrinho"
+
+msgid "Total:"
+msgstr "Total:"
+
+msgid "Finalizar encomenda"
+msgstr "Finalizar encomenda"
+
+msgid "Produtos"
+msgstr "Produtos"
+
+msgid "Imagem em breve"
+msgstr "Imagem em breve"
+
+msgid "Nenhum produto nesta categoria."
+msgstr "Nenhum produto nesta categoria."
+
+msgid "Sem imagem"
+msgstr "Sem imagem"
+
+#| msgid "3. Preços"
+msgid "Preço"
+msgstr "Preço"
+
+msgid "Envio disponível"
+msgstr "Envio disponível"
+
+#| msgid "Levantamento"
+msgid "Apenas levantamento"
+msgstr "Apenas levantamento"
+
+msgid "Adicionar ao carrinho"
+msgstr "Adicionar ao carrinho"
+
+msgid "Esgotado"
+msgstr "Esgotado"
+
+msgid "Em stock"
+msgstr "Em stock"
+
+msgid "De momento esgotado"
+msgstr "De momento esgotado"
+
+msgid "Descrição"
+msgstr "Descrição"
+
+msgid "Marca"
+msgstr "Marca"
+
+msgid "Alergénicos"
+msgstr "Alergénicos"
+
+#| msgid "Entidade"
+msgid "Quantidade"
+msgstr "Quantidade"
+
+msgid "Ingredientes"
+msgstr "Ingredientes"
+
+msgid "Código Bio"
+msgstr "Código Bio"
+
+msgid "Produtos relacionados"
+msgstr "Produtos relacionados"
+
+msgid "A nossa montra digital. Encomende online, levante na loja."
+msgstr "A nossa montra digital. Encomende online, levante na loja."
+
+msgid "Pesquisar produtos..."
+msgstr "Pesquisar produtos..."
+
+msgid "Nenhum produto encontrado."
+msgstr "Nenhum produto encontrado."
+
+msgid "Loja Online Biobrassica"
+msgstr "Loja Online Biobrassica"
+
+msgid "Produtos biológicos, entregues com cuidado"
+msgstr "Produtos biológicos, entregues com cuidado"
+
+msgid ""
+"Do campo para a sua porta. Encomende online e receba em casa ou levante nas "
+"nossas lojas em Braga e Guimarães."
+msgstr ""
+"Do campo para a sua porta. Encomende online e receba em casa ou levante nas "
+"nossas lojas em Braga e Guimarães."
+
+msgid "Ver Produtos"
+msgstr "Ver Produtos"
+
+msgid "Equipa Biobrassica"
+msgstr "Equipa Biobrassica"
+
+#, python-format
+msgid "100%% Biológico"
+msgstr "100%% Biológico"
+
+msgid "Certificado Certiplanet"
+msgstr "Certificado Certiplanet"
+
+msgid "Levantamento na loja"
+msgstr "Levantamento na loja"
+
+msgid "Braga ou Guimarães"
+msgstr "Braga ou Guimarães"
+
+msgid "Pagamento seguro"
+msgstr "Pagamento seguro"
+
+msgid "Seleção especial"
+msgstr "Seleção especial"
+
+msgid "Produtos em destaque"
+msgstr "Produtos em destaque"
+
+msgid "Ver todos os produtos"
+msgstr "Ver todos os produtos"
+
+msgid "Explore"
+msgstr "Explore"
+
+msgid "As nossas categorias"
+msgstr "As nossas categorias"
+
+#| msgid "Receita em Destaque"
+msgid "Categoria em Destaque"
+msgstr "Categoria em Destaque"
+
+#| msgid "Explore"
+msgid "Explorar"
+msgstr "Explorar"
+
+msgid "Novidades"
+msgstr "Novidades"
+
+msgid "Adicionados recentemente"
+msgstr "Adicionados recentemente"
+
+msgid "Visite-nos"
+msgstr "Visite-nos"
+
+msgid ""
+"Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e "
+"Guimarães. Teremos todo o gosto em recebê-lo."
+msgstr ""
+"Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e "
+"Guimarães. Teremos todo o gosto em recebê-lo."
+
+msgid "Ver Localizações"
+msgstr "Ver Localizações"
+
+msgid "Produtos biológicos selecionados com cuidado no coração do Minho."
+msgstr "Produtos biológicos selecionados com cuidado no coração do Minho."
+
+msgid "Lojas"
+msgstr "Lojas"
+
+msgid "Links"
+msgstr "Links"
+
+msgid "A minha conta"
+msgstr "A minha conta"
+
+msgid "© 2026 Biobrassica. Todos os direitos reservados."
+msgstr "© 2026 Biobrassica. Todos os direitos reservados."
+
+msgid "Métodos de pagamento:"
+msgstr "Métodos de pagamento:"
+
+msgid "Certificações"
+msgstr "Certificações"
+
+msgid "Política de Privacidade"
+msgstr "Política de Privacidade"
+
+msgid "Termos e Condições"
+msgstr "Termos e Condições"
+
+msgid "Todos os direitos reservados."
+msgstr "Todos os direitos reservados."
+
+msgid ""
+"Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
+msgstr ""
+"Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
+
+msgid "As Nossas Lojas"
+msgstr "As Nossas Lojas"
+
+msgid "Navegação"
+msgstr "Navegação"
+
+msgid "Quem Somos"
+msgstr "Quem Somos"
+
+msgid "Agricultura Bio"
+msgstr "Agricultura Bio"
+
+msgid "Blog"
+msgstr "Blog"
+
+msgid "Receitas"
+msgstr "Receitas"
+
+msgid "Loja Online"
+msgstr "Loja Online"
+
+msgid "Contactos"
+msgstr "Contactos"
+
+msgid "Início"
+msgstr "Início"
+
+msgid "Menu de conta e idioma"
+msgstr "Menu de conta e idioma"
+
+msgid "Idioma"
+msgstr "Idioma"
+
+msgid "Conta"
+msgstr "Conta"
+
+msgid "Anterior"
+msgstr "Anterior"
+
+msgid "Página"
+msgstr "Página"
+
+msgid "de"
+msgstr "de"
+
+msgid "Seguinte"
+msgstr "Seguinte"
+
+msgid "Voltar ao Blog"
+msgstr "Voltar ao Blog"
+
+msgid "Artigos sobre alimentação biológica, sustentabilidade e vida saudável."
+msgstr "Artigos sobre alimentação biológica, sustentabilidade e vida saudável."
+
+msgid "Notícias & Artigos"
+msgstr "Notícias & Artigos"
+
+msgid "Ainda não há artigos publicados. Volte em breve!"
+msgstr "Ainda não há artigos publicados. Volte em breve!"
+
+msgid "Prep"
+msgstr "Prep"
+
+msgid "Cozedura"
+msgstr "Cozedura"
+
+msgid "doses"
+msgstr "Doses"
+
+msgid "Ingredientes não disponíveis."
+msgstr "Ingredientes não disponíveis."
+
+msgid "Preparação"
+msgstr "Prep"
+
+#| msgid "Ingredientes não disponíveis."
+msgid "Instruções não disponíveis."
+msgstr "Instruções não disponíveis."
+
+#| msgid "Ingredientes"
+msgid "Comprar Ingredientes"
+msgstr "Comprar Ingredientes"
+
+msgid "Encontre estes produtos na nossa loja online."
+msgstr "Encontre estes produtos na nossa loja online."
+
+msgid "sem imagem"
+msgstr "Sem imagem"
+
+msgid "Voltar às Receitas"
+msgstr "Voltar às Receitas"
+
+msgid ""
+"Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha "
+"com produtos Biobrassica."
+msgstr ""
+"Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha "
+"com produtos Biobrassica."
+
+msgid "Inspiração"
+msgstr "Inspiração"
+
+msgid "Receitas saudáveis e biológicas para toda a família."
+msgstr "Receitas saudáveis e biológicas para toda a família."
+
+msgid "prep"
+msgstr "prep"
+
+msgid "cozedura"
+msgstr "cozedura"
+
+msgid "Ainda não há receitas publicadas. Volte em breve!"
+msgstr "Ainda não há receitas publicadas. Volte em breve!"
+
+msgid "A nossa loja online"
+msgstr "A nossa loja online"
+
+msgid ""
+"Produtos biológicos selecionados no Minho. Encomende online e levante na "
+"nossa loja de Braga ou Guimarães."
+msgstr ""
+"Produtos biológicos selecionados no Minho. Encomende online e levante na "
+"nossa loja de Braga ou Guimarães."
+
+msgid "Destaques"
+msgstr "Destaques"
+
+msgid "Certificado pela Certiplanet"
+msgstr "Certificado pela Certiplanet"
+
+msgid "Checkout"
+msgstr "Checkout"
+
+msgid "Finalizar Encomenda"
+msgstr "Finalizar Encomenda"
+
+#| msgid "Métodos de pagamento:"
+msgid "Método de entrega"
+msgstr "Método de entrega"
+
+msgid "Levantamento"
+msgstr "Levantamento"
+
+msgid "Recolha numa das lojas disponíveis."
+msgstr "Recolha numa das lojas disponíveis."
+
+msgid "Envio"
+msgstr "Envio"
+
+msgid "Entrega ao domicílio em Portugal continental."
+msgstr "Entrega ao domicílio em Portugal continental."
+
+msgid "Local de levantamento"
+msgstr "Local de levantamento"
+
+msgid "Selecione..."
+msgstr "Selecione..."
+
+msgid "Morada"
+msgstr "Morada"
+
+#| msgid "Morada"
+msgid "Morada (cont.)"
+msgstr "Morada (cont.)"
+
+msgid "Código Postal"
+msgstr "Código Postal"
+
+#| msgid "Comunidade"
+msgid "Cidade"
+msgstr "Cidade"
+
+msgid "Notas"
+msgstr "Notas"
+
+msgid "Alguma observação sobre a sua encomenda..."
+msgstr "Alguma observação sobre a sua encomenda..."
+
+msgid "Continuar para pagamento"
+msgstr "Continuar para pagamento"
+
+msgid "Resumo"
+msgstr "Resumo"
+
+msgid "Encomenda Confirmada"
+msgstr "Encomenda Confirmada"
+
+msgid "Obrigado!"
+msgstr "Obrigado!"
+
+#| msgid "A sua encomenda"
+msgid "O pagamento da sua encomenda"
+msgstr "O pagamento da sua encomenda"
+
+msgid "foi confirmado."
+msgstr "foi confirmado."
+
+msgid "Dados para pagamento Multibanco"
+msgstr "Dados para pagamento Multibanco"
+
+msgid "Entidade"
+msgstr "Entidade"
+
+msgid "Referência"
+msgstr "Referência"
+
+msgid "Valor"
+msgstr "Valor"
+
+msgid "Detalhes da encomenda"
+msgstr "Detalhes da encomenda"
+
+msgid "Estado"
+msgstr "Estado"
+
+msgid "Enviámos um email de confirmação para"
+msgstr "Enviámos um email de confirmação para"
+
+msgid "Continuar a comprar"
+msgstr "Continuar a comprar"
+
+msgid "Pagamento"
+msgstr "Pagamento"
+
+msgid "De momento, o pagamento está disponível apenas por MB WAY."
+msgstr "De momento, o pagamento está disponível apenas por MB WAY."
+
+msgid "Pagamento instantâneo via telemóvel"
+msgstr "Pagamento instantâneo via telemóvel"
+
+msgid "Número de telemóvel"
+msgstr "Número de telemóvel"
+
+msgid "Pagar com MB WAY"
+msgstr "Pagar com MB WAY"
+
+#| msgid "Voltar ao Blog"
+msgid "Voltar ao checkout"
+msgstr "Voltar ao checkout"
+
+#| msgid "Métodos de pagamento:"
+msgid "Estado do Pagamento"
+msgstr "Estado do Pagamento"
+
+#| msgid "Referência"
+msgid "Referência Multibanco"
+msgstr "Referência Multibanco"
+
+msgid ""
+"Utilize os dados abaixo para concluir o pagamento. A encomenda só fica "
+"confirmada após validação automática."
+msgstr ""
+"Utilize os dados abaixo para concluir o pagamento. A encomenda só fica"
+" confirmada após validação automática."
+
+msgid ""
+"O pedido de pagamento foi enviado para o telemóvel indicado. Depois de "
+"autorizar no MB WAY, atualize esta página."
+msgstr ""
+"O pedido de pagamento foi enviado para o telemóvel indicado. Depois de"
+" autorizar no MB WAY, atualize esta página."
+
+msgid "Telemóvel"
+msgstr "Telemóvel"
+
+msgid "Cartão de Crédito"
+msgstr "Cartão de Crédito"
+
+msgid ""
+"Se o pagamento ainda não estiver concluído, reabra a página segura do "
+"operador para finalizar a transação."
+msgstr ""
+"Se o pagamento ainda não estiver concluído, reabra a página segura do"
+" operador para finalizar a transação."
+
+#| msgid "Continuar para pagamento"
+msgid "Continuar pagamento"
+msgstr "Continuar pagamento"
+
+msgid "Atualizar estado"
+msgstr "Atualizar estado"
+
+msgid "Escolher outro método"
+msgstr "Escolher outro método"
+
+#, python-format
+msgid "Adicionar %(name)s"
+msgstr "Adicionar %(name)s"
+
+msgid ""
+"Conheça a história da Biobrassica, uma empresa familiar dedicada à "
+"agricultura biológica no Minho."
+msgstr ""
+"Conheça a história da Biobrassica, uma empresa familiar dedicada à "
+"agricultura biológica no Minho."
+
+msgid "A equipa Biobrassica"
+msgstr "A equipa Biobrassica"
+
+msgid "Do campo à sua mesa, com quem conhece a terra"
+msgstr "Do campo à sua mesa, com quem conhece a terra"
+
+msgid "Pessoas reais, produtos de confiança"
+msgstr "Pessoas reais, produtos de confiança"
+
+msgid "O que significa \"Biobrassica\""
+msgstr "O que significa \"Biobrassica\""
+
+msgid ""
+"O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: "
+"Bio, pela agricultura biológica e por um modo de produção responsável, e "
+"brassica, em homenagem à família de hortícolas que simboliza a origem "
+"agrícola da nossa região."
+msgstr ""
+"O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: "
+"Bio, pela agricultura biológica e por um modo de produção responsável, e "
+"brassica, em homenagem à família de hortícolas que simboliza a origem "
+"agrícola da nossa região."
+
+msgid "Produtos biológicos Biobrassica"
+msgstr "Produtos biológicos Biobrassica"
+
+msgid "Como escolhemos os produtos"
+msgstr "Como escolhemos os produtos"
+
+msgid ""
+"Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em "
+"frescura, origem e consistência, trabalhando com fornecedores e produtores "
+"de confiança alinhados com os nossos valores. A qualidade é acompanhada "
+"diariamente em loja, desde a receção ao acondicionamento e à exposição, para "
+"garantir produtos frescos, seguros e com origem clara para os nossos "
+"clientes."
+msgstr ""
+"Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em "
+"frescura, origem e consistência, trabalhando com fornecedores e produtores "
+"de confiança alinhados com os nossos valores. A qualidade é acompanhada "
+"diariamente em loja, desde a receção ao acondicionamento e à exposição, para "
+"garantir produtos frescos, seguros e com origem clara para os nossos "
+"clientes."
+
+msgid "Produção biológica"
+msgstr "Produção biológica"
+
+msgid "A nossa quinta biológica"
+msgstr "A nossa quinta biológica"
+
+msgid ""
+"A nossa quinta biológica é um projeto complementar, em pequena escala, que "
+"apoia a atividade da loja. Serve para reforçar alguns produtos e manter "
+"ligação direta à terra, sem substituir a nossa atividade principal: "
+"selecionar e disponibilizar, em loja, produtos de qualidade para a "
+"comunidade."
+msgstr ""
+"A nossa quinta biológica é um projeto complementar, em pequena escala, que "
+"apoia a atividade da loja. Serve para reforçar alguns produtos e manter "
+"ligação direta à terra, sem substituir a nossa atividade principal: "
+"selecionar e disponibilizar, em loja, produtos de qualidade para a "
+"comunidade."
+
+msgid "Quinta biológica da Biobrassica"
+msgstr "Quinta biológica da Biobrassica"
+
+msgid ""
+"Conheça a equipa que acompanha diariamente o atendimento, o aprovisionamento "
+"e a curadoria da loja."
+msgstr ""
+"Conheça a equipa que acompanha diariamente o atendimento, o"
+" aprovisionamento e a curadoria da loja."
+
+msgid "As nossas lojas"
+msgstr "As nossas lojas"
+
+msgid "Conheça os nossos espaços"
+msgstr "Conheça os nossos espaços"
+
+msgid "O seu navegador não suporta vídeo."
+msgstr "O seu navegador não suporta vídeo."
+
+msgid ""
+"Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos "
+"e a nossa equipa."
+msgstr ""
+"Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos "
+"e a nossa equipa."
+
+msgid "Agricultura Biológica"
+msgstr "Agricultura Biológica"
+
+msgid ""
+"Saiba como praticamos agricultura biológica certificada no Minho, com "
+"respeito pela biodiversidade e pelos ciclos naturais."
+msgstr ""
+"Saiba como praticamos agricultura biológica certificada no Minho, com "
+"respeito pela biodiversidade e pelos ciclos naturais."
+
+msgid "Campo de agricultura biológica"
+msgstr "Campo de agricultura biológica"
+
+msgid ""
+"A agricultura biológica é um sistema de produção que respeita os ciclos "
+"naturais, promove a biodiversidade e proíbe o uso de pesticidas e "
+"fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o "
+"coração de tudo o que fazemos."
+msgstr ""
+"A agricultura biológica é um sistema de produção que respeita os ciclos "
+"naturais, promove a biodiversidade e proíbe o uso de pesticidas e "
+"fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o "
+"coração de tudo o que fazemos."
+
+msgid "Os Princípios da Agricultura Bio"
+msgstr "Os Princípios da Agricultura Bio"
+
+msgid "Sem pesticidas sintéticos"
+msgstr "Sem pesticidas sintéticos"
+
+msgid ""
+"Utilizamos apenas métodos naturais de controlo de pragas: insetos "
+"auxiliares, rotação de culturas e preparados biológicos."
+msgstr ""
+"Utilizamos apenas métodos naturais de controlo de pragas: insetos "
+"auxiliares, rotação de culturas e preparados biológicos."
+
+msgid "Solo vivo"
+msgstr "Solo vivo"
+
+msgid ""
+"Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e "
+"coberturas vegetais mantêm a vida microbiana do solo."
+msgstr ""
+"Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e "
+"coberturas vegetais mantêm a vida microbiana do solo."
+
+msgid "Sem OGM"
+msgstr "Sem OGM"
+
+msgid ""
+"Não utilizamos organismos geneticamente modificados em nenhuma fase da "
+"produção."
+msgstr ""
+"Não utilizamos organismos geneticamente modificados em nenhuma fase da "
+"produção."
+
+msgid "Biodiversidade"
+msgstr "Biodiversidade"
+
+msgid ""
+"Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas "
+"resilientes e equilibrados."
+msgstr ""
+"Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas "
+"resilientes e equilibrados."
+
+msgid "As Nossas Certificações"
+msgstr "As Nossas Certificações"
+
+#, python-format
+msgid ""
+"O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos "
+"ingredientes agrícolas são de produção biológica certificada, seguindo "
+"regulamentos rigorosos da UE."
+msgstr ""
+"O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos "
+"ingredientes agrícolas são de produção biológica certificada, seguindo "
+"regulamentos rigorosos da UE."
+
+msgid ""
+"Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet "
+"verifica e atesta que os nossos métodos de produção cumprem todas as normas "
+"de agricultura biológica."
+msgstr ""
+"Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet "
+"verifica e atesta que os nossos métodos de produção cumprem todas as normas "
+"de agricultura biológica."
+
+msgid "Da Terra"
+msgstr "Da Terra"
+
+msgid "Calendário Sazonal"
+msgstr "Calendário Sazonal"
+
+msgid "Respeitamos as estações do ano. Cada época traz os seus sabores únicos."
+msgstr ""
+"Respeitamos as estações do ano. Cada época traz os seus sabores únicos."
+
+msgid "Primavera"
+msgstr "Primavera"
+
+msgid "Ervilhas, favas, alfaces, morangos, ervas aromáticas"
+msgstr "Ervilhas, favas, alfaces, morangos, ervas aromáticas"
+
+msgid "Verão"
+msgstr "Verão"
+
+msgid "Tomates, pepinos, pimentos, beringelas, melancia"
+msgstr "Tomates, pepinos, pimentos, beringelas, melancia"
+
+msgid "Outono"
+msgstr "Outono"
+
+msgid "Abóboras, couves, brócolos, castanhas, cogumelos"
+msgstr "Abóboras, couves, brócolos, castanhas, cogumelos"
+
+msgid "Inverno"
+msgstr "Inverno"
+
+msgid "Nabiças, grelos, couves, laranjas, tangerinas"
+msgstr "Nabiças, grelos, couves, laranjas, tangerinas"
+
+msgid "Porquê biológico?"
+msgstr "Porquê biológico?"
+
+msgid ""
+"A agricultura biológica não é apenas uma forma de produzir alimentos — é uma "
+"filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao "
+"evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a "
+"qualidade da água e a saúde do solo.\n"
+"\n"
+"Para o consumidor, os alimentos biológicos significam mais sabor, mais "
+"nutrientes e a garantia de que cada mordida está livre de resíduos químicos. "
+"É uma escolha consciente para a saúde da família e do planeta.\n"
+"\n"
+"Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
+"ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
+"variedade de produtos ao longo do ano."
+msgstr ""
+"A agricultura biológica não é apenas uma forma de produzir alimentos"
+" — é uma filosofia de vida que respeita o equilíbrio natural dos"
+" ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos"
+" a biodiversidade, a qualidade da água e a saúde do solo.\n"
+"\n"
+"Para o consumidor, os alimentos biológicos significam mais sabor, mais"
+" nutrientes e a garantia de que cada mordida está livre de resíduos"
+" químicos. É uma escolha consciente para a saúde da família e do"
+" planeta.\n"
+"\n"
+"Na região do Minho, a riqueza do solo e o clima atlântico criam condições"
+" ideais para a agricultura biológica, permitindo-nos cultivar uma enorme"
+" variedade de produtos ao longo do ano."
+
+msgid "Solo saudável e plantas biológicas"
+msgstr "Solo saudável e plantas biológicas"
+
+msgid "Prove a diferença do biológico"
+msgstr "Prove a diferença do biológico"
+
+msgid "Visite a nossa loja online ou passe por uma das nossas lojas físicas."
+msgstr "Visite a nossa loja online ou passe por uma das nossas lojas físicas."
+
+msgid "Visitar Loja"
+msgstr "Visitar Loja"
+
+msgid ""
+"Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-"
+"nos por telefone e email."
+msgstr ""
+"Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-"
+"nos por telefone e email."
+
+msgid "Biobrassica"
+msgstr "Biobrassica"
+
+msgid "Encontre-nos"
+msgstr "Encontre-nos"
+
+msgid "Visite-nos nas nossas lojas ou entre em contacto por telefone e email."
+msgstr "Visite-nos nas nossas lojas ou entre em contacto por telefone e email."
+
+msgid ""
+"As localizações serão apresentadas aqui assim que forem configuradas no "
+"backoffice."
+msgstr "As localizações serão apresentadas aqui assim que forem configuradas no backoffice."
+
+msgid "Prefere enviar mensagem?"
+msgstr "Prefere enviar mensagem?"
+
+msgid "Fale connosco pelo WhatsApp para encomendas, dúvidas ou informações."
+msgstr "Fale connosco pelo WhatsApp para encomendas, dúvidas ou informações."
+
+msgid "Enviar Mensagem"
+msgstr "Enviar Mensagem"
+
+msgid "Tudo que precisa para uma"
+msgstr "Tudo que precisa para uma"
+
+msgid "alimentação saudável"
+msgstr "alimentação saudável"
+
+msgid "Produtos biológicos, saudáveis para si, bons para o ambiente."
+msgstr "Produtos biológicos, saudáveis para si, bons para o ambiente."
+
+msgid "Engª Ângela Pereira"
+msgstr "Engª Ângela Pereira"
+
+msgid ""
+"Temos conseguido ao longo destes anos oferecer cada vez mais produtos "
+"frescos, colhidos no próprio dia, vindos das mãos de produtores que se "
+"levantam às 5h da manhã num esforço último de transmitir a vitalidade e "
+"qualidade das suas terras aos consumidores que já se haviam esquecido do "
+"sabor e do cheiro dos legumes acabados de colher!"
+msgstr ""
+"Temos conseguido ao longo destes anos oferecer cada vez mais produtos "
+"frescos, colhidos no próprio dia, vindos das mãos de produtores que se "
+"levantam às 5h da manhã num esforço último de transmitir a vitalidade e "
+"qualidade das suas terras aos consumidores que já se haviam esquecido do "
+"sabor e do cheiro dos legumes acabados de colher!"
+
+msgid "Fundadora"
+msgstr "Fundadora"
+
+msgid "Descubra os nossos produtos"
+msgstr "Descubra os nossos produtos"
+
+msgid ""
+"Entrega em todo o Portugal continental ou levantamento nas nossas lojas em "
+"Braga e Guimarães."
+msgstr ""
+"Entrega em todo o Portugal continental ou levantamento nas nossas lojas em "
+"Braga e Guimarães."
+
+msgid "Ir para a Loja"
+msgstr "Ir para a Loja"
+
+msgid "Política de privacidade e proteção de dados da Biobrassica."
+msgstr "Política de privacidade e proteção de dados da Biobrassica."
+
+msgid "Última atualização"
+msgstr "Última atualização"
+
+msgid "1. Responsável pelo Tratamento"
+msgstr "1. Responsável pelo Tratamento"
+
+msgid ""
+"A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a "
+"entidade responsável pelo tratamento dos seus dados pessoais."
+msgstr ""
+"A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a "
+"entidade responsável pelo tratamento dos seus dados pessoais."
+
+msgid "2. Dados Recolhidos"
+msgstr "2. Dados Recolhidos"
+
+msgid "Recolhemos apenas os dados necessários para:"
+msgstr "Recolhemos apenas os dados necessários para:"
+
+msgid ""
+"Processar as suas encomendas na loja online (nome, email, morada, telefone)"
+msgstr ""
+"Processar as suas encomendas na loja online (nome, email, morada, telefone)"
+
+msgid "Gerir a sua conta de cliente"
+msgstr "Gerir a sua conta de cliente"
+
+msgid "Enviar comunicações relacionadas com as suas encomendas"
+msgstr "Enviar comunicações relacionadas com as suas encomendas"
+
+msgid "3. Finalidade do Tratamento"
+msgstr "3. Finalidade do Tratamento"
+
+msgid "Os seus dados são utilizados exclusivamente para:"
+msgstr "Os seus dados são utilizados exclusivamente para:"
+
+msgid "Cumprimento de contratos de compra e venda"
+msgstr "Cumprimento de contratos de compra e venda"
+
+msgid "Cumprimento de obrigações legais e fiscais"
+msgstr "Cumprimento de obrigações legais e fiscais"
+
+msgid "Comunicação relativa ao estado das encomendas"
+msgstr "Comunicação relativa ao estado das encomendas"
+
+msgid "4. Partilha de Dados"
+msgstr "4. Partilha de Dados"
+
+msgid "Os seus dados podem ser partilhados com:"
+msgstr "Os seus dados podem ser partilhados com:"
+
+msgid "Processadores de pagamento (ifthenpay) — para efetuar o pagamento"
+msgstr "Processadores de pagamento (ifthenpay) — para efetuar o pagamento"
+
+msgid "Transportadoras (CTT) — para entrega de encomendas"
+msgstr "Transportadoras (CTT) — para entrega de encomendas"
+
+msgid "5. Conservação dos Dados"
+msgstr "5. Conservação dos Dados"
+
+msgid ""
+"Os seus dados pessoais são conservados pelo período necessário ao "
+"cumprimento das finalidades e obrigações legais aplicáveis."
+msgstr ""
+"Os seus dados pessoais são conservados pelo período necessário ao "
+"cumprimento das finalidades e obrigações legais aplicáveis."
+
+msgid ""
+"Os registos técnicos de callbacks de pagamento são minimizados, com IP "
+"anonimizado e retenção interna limitada ao período operacional estritamente "
+"necessário."
+msgstr ""
+"Os registos técnicos de callbacks de pagamento são minimizados, com IP"
+" anonimizado e retenção interna limitada ao período operacional"
+" estritamente necessário."
+
+msgid "6. Os Seus Direitos"
+msgstr "6. Os Seus Direitos"
+
+msgid "Nos termos do RGPD, tem direito a:"
+msgstr "Nos termos do RGPD, tem direito a:"
+
+msgid "Aceder aos seus dados pessoais"
+msgstr "Aceder aos seus dados pessoais"
+
+msgid "Retificar dados incorretos"
+msgstr "Retificar dados incorretos"
+
+msgid "Solicitar a eliminação dos seus dados"
+msgstr "Solicitar a eliminação dos seus dados"
+
+msgid "Solicitar a portabilidade dos seus dados"
+msgstr "Solicitar a portabilidade dos seus dados"
+
+msgid "Opor-se ao tratamento dos seus dados"
+msgstr "Opor-se ao tratamento dos seus dados"
+
+msgid "Para exercer os seus direitos, contacte-nos em"
+msgstr "Para exercer os seus direitos, contacte-nos em"
+
+msgid "7. Cookies"
+msgstr "7. Cookies"
+
+msgid ""
+"Este website utiliza cookies essenciais para o funcionamento da sessão e do "
+"carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
+msgstr ""
+"Este website utiliza cookies essenciais para o funcionamento da sessão e do "
+"carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
+
+msgid "8. Contacto"
+msgstr "8. Contacto"
+
+msgid "Para questões relacionadas com a proteção de dados:"
+msgstr "Para questões relacionadas com a proteção de dados:"
+
+msgid "Termos e condições de utilização da loja online Biobrassica."
+msgstr "Termos e condições de utilização da loja online Biobrassica."
+
+msgid "1. Identificação"
+msgstr "1. Identificação"
+
+msgid ""
+"O presente website e loja online são propriedade da Biobrassica, Lda., com "
+"sede na R. dos Capelistas 121, 4700-215 Braga."
+msgstr ""
+"O presente website e loja online são propriedade da Biobrassica, Lda., com "
+"sede na R. dos Capelistas 121, 4700-215 Braga."
+
+msgid "2. Produtos"
+msgstr "2. Produtos"
+
+msgid ""
+"Os produtos apresentados na loja online estão sujeitos a disponibilidade. "
+"Todas as descrições e imagens são tão fiéis quanto possível, podendo existir "
+"ligeiras variações."
+msgstr ""
+"Os produtos apresentados na loja online estão sujeitos a disponibilidade. "
+"Todas as descrições e imagens são tão fiéis quanto possível, podendo existir "
+"ligeiras variações."
+
+msgid "3. Preços"
+msgstr "Preço"
+
+msgid ""
+"Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser "
+"alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da "
+"encomenda."
+msgstr ""
+"Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser "
+"alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da "
+"encomenda."
+
+msgid "4. Encomendas"
+msgstr "4. Encomendas"
+
+msgid ""
+"Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou "
+"autorização do representante legal. A encomenda constitui uma proposta de "
+"compra, que será confirmada por email."
+msgstr ""
+"Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou "
+"autorização do representante legal. A encomenda constitui uma proposta de "
+"compra, que será confirmada por email."
+
+msgid "5. Pagamento"
+msgstr "5. Pagamento"
+
+msgid "Os métodos de pagamento disponíveis são:"
+msgstr "Os métodos de pagamento disponíveis são:"
+
+msgid "MB WAY"
+msgstr "MB WAY"
+
+msgid "6. Entregas"
+msgstr "6. Entregas"
+
+msgid "Disponibilizamos as seguintes opções de entrega:"
+msgstr "Disponibilizamos as seguintes opções de entrega:"
+
+msgid "Levantamento em loja (Braga ou Guimarães) — gratuito"
+msgstr "Levantamento em loja (Braga ou Guimarães) — gratuito"
+
+msgid "Entrega ao domicílio via CTT — custos de envio aplicáveis"
+msgstr "Entrega ao domicílio via CTT — custos de envio aplicáveis"
+
+msgid ""
+"O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
+msgstr ""
+"O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
+
+msgid "7. Devoluções"
+msgstr "7. Devoluções"
+
+msgid ""
+"O cliente tem direito a devolver o produto no prazo de 14 dias após a "
+"receção, desde que o produto esteja nas condições originais. Produtos "
+"alimentares perecíveis não são elegíveis para devolução."
+msgstr ""
+"O cliente tem direito a devolver o produto no prazo de 14 dias após a "
+"receção, desde que o produto esteja nas condições originais. Produtos "
+"alimentares perecíveis não são elegíveis para devolução."
+
+msgid "8. Garantias"
+msgstr "8. Garantias"
+
+msgid ""
+"Todos os produtos biológicos comercializados pela Biobrassica são "
+"certificados e cumprem a legislação europeia e nacional em vigor."
+msgstr ""
+"Todos os produtos biológicos comercializados pela Biobrassica são "
+"certificados e cumprem a legislação europeia e nacional em vigor."
+
+msgid "9. Resolução de Litígios"
+msgstr "9. Resolução de Litígios"
+
+msgid ""
+"Em caso de litígio, o consumidor pode recorrer às entidades de resolução "
+"alternativa de litígios. Mais informações em"
+msgstr ""
+"Em caso de litígio, o consumidor pode recorrer às entidades de resolução "
+"alternativa de litígios. Mais informações em"
+
+msgid "10. Lei Aplicável"
+msgstr "10. Lei Aplicável"
+
+msgid "Os presentes termos regem-se pela legislação portuguesa."
+msgstr "Os presentes termos regem-se pela legislação portuguesa."
+
+#~ msgid "Show all"
+#~ msgstr "Mostrar tudo"
+
+#~ msgid ""
+#~ "A agricultura biológica não é apenas uma forma de produzir alimentos — é "
+#~ "uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. "
+#~ "Ao evitar pesticidas e fertilizantes químicos, protegemos a "
+#~ "biodiversidade, a qualidade da água e a saúde do solo."
+#~ msgstr ""
+#~ "A agricultura biológica não é apenas uma forma de produzir alimentos — é "
+#~ "uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. "
+#~ "Ao evitar pesticidas e fertilizantes químicos, protegemos a "
+#~ "biodiversidade, a qualidade da água e a saúde do solo."
+
+#~ msgid ""
+#~ "Para o consumidor, os alimentos biológicos significam mais sabor, mais "
+#~ "nutrientes e a garantia de que cada mordida está livre de resíduos "
+#~ "químicos. É uma escolha consciente para a saúde da família e do planeta."
+#~ msgstr ""
+#~ "Para o consumidor, os alimentos biológicos significam mais sabor, mais "
+#~ "nutrientes e a garantia de que cada mordida está livre de resíduos "
+#~ "químicos. É uma escolha consciente para a saúde da família e do planeta."
+
+#~ msgid ""
+#~ "Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
+#~ "ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
+#~ "variedade de produtos ao longo do ano."
+#~ msgstr ""
+#~ "Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
+#~ "ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
+#~ "variedade de produtos ao longo do ano."
+
+#~ msgid "Segunda a Sábado"
+#~ msgstr "Segunda a Sábado"
+
+#~ msgid "Mapa da loja Biobrassica em Braga"
+#~ msgstr "Mapa da loja Biobrassica em Braga"
+
+#~ msgid "Guimarães"
+#~ msgstr "Guimarães"
+
+#~ msgid "Mapa da loja Biobrassica em Guimarães"
+#~ msgstr "Mapa da loja Biobrassica em Guimarães"
+
+#~ msgid "Receita"
+#~ msgstr "Receita"
+
+#~ msgid "Produtos Utilizados"
+#~ msgstr "Produtos Utilizados"
+
+#~ msgid "foi recebida."
+#~ msgstr "foi recebida."
+
+#~ msgid "Referência para pagamento em ATM ou homebanking"
+#~ msgstr "Referência para pagamento em ATM ou homebanking"
+
+#~ msgid "Uma Família, Uma Causa"
+#~ msgstr "Uma Família, Uma Causa"
+
+#~ msgid "Equipa Biobrassica em loja"
+#~ msgstr "Equipa Biobrassica em loja"
+
+#~ msgid "Membros da equipa Biobrassica"
+#~ msgstr "Membros da equipa Biobrassica"
+
+#~ msgid "Venha conhecer-nos"
+#~ msgstr "Venha conhecer-nos"
+
+#~ msgid "A Nossa História"
+#~ msgstr "A Nossa História"
+
+#~ msgid "Evento anterior"
+#~ msgstr "Evento anterior"
+
+#~ msgid "Próximo evento"
+#~ msgstr "Próximo evento"
+
+#~ msgid "A Semente"
+#~ msgstr "A Semente"
+
+#~ msgid ""
+#~ "Nascemos em Braga com a vontade de trazer produtos biológicos de "
+#~ "qualidade à comunidade, movidos pela paixão pela alimentação saudável."
+#~ msgstr ""
+#~ "Nascemos em Braga com a vontade de trazer produtos biológicos de "
+#~ "qualidade à comunidade, movidos pela paixão pela alimentação saudável."
+
+#~ msgid "Certificação Biológica"
+#~ msgstr "Certificação Biológica"
+
+#~ msgid ""
+#~ "Recebemos a certificação biológica da Certiplanet, validando o nosso "
+#~ "compromisso com práticas agrícolas sustentáveis."
+#~ msgstr ""
+#~ "Recebemos a certificação biológica da Certiplanet, validando o nosso "
+#~ "compromisso com práticas agrícolas sustentáveis."
+
+#~ msgid "Abertura em Braga"
+#~ msgstr "Abertura em Braga"
+
+#~ msgid ""
+#~ "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os "
+#~ "frescos de produtores locais diretamente ao consumidor."
+#~ msgstr ""
+#~ "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os "
+#~ "frescos de produtores locais diretamente ao consumidor."
+
+#~ msgid "Expansão para Guimarães"
+#~ msgstr "Expansão para Guimarães"
+
+#~ msgid ""
+#~ "Com a crescente procura, abrimos a segunda loja em Guimarães, "
+#~ "fortalecendo a nossa presença no Minho."
+#~ msgstr ""
+#~ "Com a crescente procura, abrimos a segunda loja em Guimarães, "
+#~ "fortalecendo a nossa presença no Minho."
+
+#~ msgid "O Futuro é Bio"
+#~ msgstr "O Futuro é Bio"
+
+#~ msgid ""
+#~ "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias "
+#~ "com produtores locais da região."
+#~ msgstr ""
+#~ "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias "
+#~ "com produtores locais da região."
+
+#~ msgid "Conhecer para valorizar."
+#~ msgstr "Conhecer para valorizar."
+
+#~ msgid "Da nossa terra, para a sua mesa."
+#~ msgstr "Da nossa terra, para a sua mesa."
+
+#~ msgid "Os Nossos Valores"
+#~ msgstr "Os Nossos Valores"
+
+#~ msgid "Terra"
+#~ msgstr "Terra"
+
+#~ msgid ""
+#~ "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que "
+#~ "utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada "
+#~ "estação."
+#~ msgstr ""
+#~ "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que "
+#~ "utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada "
+#~ "estação."
+
+#~ msgid ""
+#~ "Acreditamos no comércio local e na criação de laços fortes com as "
+#~ "famílias de Braga e Guimarães."
+#~ msgstr ""
+#~ "Acreditamos no comércio local e na criação de laços fortes com as "
+#~ "famílias de Braga e Guimarães."
+
+#~ msgid "Saúde"
+#~ msgstr "Saúde"
+
+#~ msgid ""
+#~ "Cada produto que selecionamos é livre de químicos, pensado para nutrir o "
+#~ "corpo e a alma de quem o consome."
+#~ msgstr ""
+#~ "Cada produto que selecionamos é livre de químicos, pensado para nutrir o "
+#~ "corpo e a alma de quem o consome."
+
+#~ msgid "Saber mais"
+#~ msgstr "Saber mais"
+
+#~ msgid "Ver receita"
+#~ msgstr "Ver receita"
+
+#~ msgid "Brevemente — siga-nos no Instagram @biobrassica"
+#~ msgstr "Brevemente — siga-nos no Instagram @biobrassica"
+
+#~ msgid "Multibanco (referência válida por 48 horas)"
+#~ msgstr "Multibanco (referência válida por 48 horas)"
+
+#~ msgid "Cartão de crédito/débito"
+#~ msgstr "Cartão de crédito/débito"
+
+#~ msgid "Welcome back to"
+#~ msgstr "Bem-vindo de volta a"
+
+#~ msgid "Light"
+#~ msgstr "Claro"
+
+#~ msgid "Dark"
+#~ msgstr "Escuro"
+
+#~ msgid "System"
+#~ msgstr "Sistema"
+
+#~ msgid "Add row"
+#~ msgstr "Adicionar linha"
+
+#~ msgid "Run"
+#~ msgstr "Executar"
+
+#~ msgid "Run the selected action"
+#~ msgstr "Executar a ação selecionada"
+
+#~ msgid "Expand row"
+#~ msgstr "Expandir linha"
+
+#~ msgid "You don’t have permission to view or edit anything."
+#~ msgstr "Não tem permissão para ver ou editar nada."
+
+#~ msgid "Filters"
+#~ msgstr "Filtros"
+
+#~ msgid "History"
+#~ msgstr "Histórico"
+
+#~ msgid "View on site"
+#~ msgstr "Ver no site"
+
+#~ msgid "Type to search"
+#~ msgstr "Escreva para pesquisar"
+
+#~ msgid "Toggle password visibility"
+#~ msgstr "Alternar visibilidade da palavra-passe"
+
+#~ msgid "Save"
+#~ msgstr "Guardar"
+
+#~ msgid "Save and continue editing"
+#~ msgstr "Guardar e continuar a editar"
+
+#~ msgid "Save and view"
+#~ msgstr "Guardar e ver"
+
+#~ msgid "Save and add another"
+#~ msgstr "Guardar e adicionar outro"
+
+#~ msgid "Save as new"
+#~ msgstr "Guardar como novo"
+
+#~ msgid "Close"
+#~ msgstr "Fechar"
+
+#~ msgid "Delete"
+#~ msgstr "Eliminar"
+
+#~ msgid "Delete?"
+#~ msgstr "Eliminar?"
+
+#~ msgid "Change"
+#~ msgstr "Alterar"
+
+#~ msgid "View"
+#~ msgstr "Ver"
+
+#~ msgid "Original"
+#~ msgstr "Original"
+
+#~ msgid "Currently:"
+#~ msgstr "Atual:"
+
+#~ msgid "Change:"
+#~ msgstr "Alterar:"
+
+#~ msgid "Change selected %(model)s"
+#~ msgstr "Alterar %(model)s selecionado"
+
+#~ msgid "Add another %(model)s"
+#~ msgstr "Adicionar outro %(model)s"
+
+#~ msgid "View selected %(model)s"
+#~ msgstr "Ver %(model)s selecionado"
+
+#~ msgid "Delete selected %(model)s"
+#~ msgstr "Eliminar %(model)s selecionado"
+
+#~ msgid "Add another %(verbose_name)s"
+#~ msgstr "Adicionar outro %(verbose_name)s"
+
+#~ msgid "Select %s"
+#~ msgstr "Selecionar %s"
+
+#~ msgid "Select %s to change"
+#~ msgstr "Selecionar %s para alterar"
+
+#~ msgid "Select %s to view"
+#~ msgstr "Selecionar %s para ver"
+
+#~ msgid ""
+#~ "After you've created a user, you’ll be able to edit more user options."
+#~ msgstr ""
+#~ "Depois de criar um utilizador, poderá editar mais opções do utilizador."
+
+#~ msgid "Change password"
+#~ msgstr "Alterar palavra-passe"
+
+#~ msgid "More actions"
+#~ msgstr "Mais ações"
+
+#~ msgid "All applications"
+#~ msgstr "Todas as aplicações"
+
+#~ msgid "View site"
+#~ msgstr "Ver site"
+
+#~ msgid "Log out"
+#~ msgstr "Terminar sessão"
+
+#~ msgid "You have been successfully logged out from the administration"
+#~ msgstr "Terminou sessão da administração com sucesso"
+
+#~ msgid "Thanks for spending some quality time with the web site today."
+#~ msgstr "Obrigado pelo tempo que passou no site hoje."
+
+#~ msgid "Log in again"
+#~ msgstr "Entrar novamente"
+
+#~ msgid "Recent searches"
+#~ msgstr "Pesquisas recentes"
+
+#~ msgid "No recent searches"
+#~ msgstr "Sem pesquisas recentes"
+
+#~ msgid "No data"
+#~ msgstr "Sem dados"
+
+#~ msgid "Unknown"
+#~ msgstr "Desconhecido"
+
+#~ msgid "True"
+#~ msgstr "Sim"
+
+#~ msgid "False"
+#~ msgstr "Não"
+
+#~ msgid "Select all rows"
+#~ msgstr "Selecionar todas as linhas"
+
+#~ msgid "Click here to select the objects across all pages"
+#~ msgstr "Clique aqui para selecionar os objetos de todas as páginas"
+
+#~ msgid "Select all %(total_count)s %(module_name)s"
+#~ msgstr "Selecionar todos os %(total_count)s %(module_name)s"
+
+#~ msgid "Clear selection"
+#~ msgstr "Limpar seleção"
+
+#~ msgid "Select all objects on this page for an action"
+#~ msgstr "Selecionar todos os objetos desta página para uma ação"
+
+#~ msgid "Apply Filters"
+#~ msgstr "Aplicar filtros"
+
+#~ msgid "Hide counts"
+#~ msgstr "Ocultar contagens"
+
+#~ msgid "Show counts"
+#~ msgstr "Mostrar contagens"
+
+#~ msgid "Clear all filters"
+#~ msgstr "Limpar todos os filtros"
+
+#~ msgid "Click to download"
+#~ msgstr "Clique para descarregar"
+
+#~ msgid "Go back"
+#~ msgstr "Voltar"
+
+#~ msgid "Record picture"
+#~ msgstr "Imagem do registo"
+
+#~ msgid "Previous"
+#~ msgstr "Anterior"
+
+#~ msgid "Next"
+#~ msgstr "Seguinte"
+
+#~ msgid "No results found"
+#~ msgstr "Nenhum resultado encontrado"
+
+#~ msgid ""
+#~ "This page yielded into no results. Create a new item or reset your "
+#~ "filters."
+#~ msgstr ""
+#~ "Esta página não devolveu resultados. Crie um novo item ou limpe os "
+#~ "filtros."
+
+#~ msgid "Reset filters"
+#~ msgstr "Limpar filtros"
+
+#~ msgid "No, take me back"
+#~ msgstr "Não, voltar atrás"
+
+#~ msgid "Yes, I’m sure"
+#~ msgstr "Sim, tenho a certeza"
+
+#~ msgid "General"
+#~ msgstr "Geral"
+
+#~ msgid "No results matching your query"
+#~ msgstr "Nenhum resultado corresponde à sua pesquisa"
+
+#~ msgid "Loading more results..."
+#~ msgstr "A carregar mais resultados..."
+
+#~ msgid "Remove"
+#~ msgstr "Remover"
+
+#~ msgid "Available %s"
+#~ msgstr "Disponíveis: %s"
+
+#~ msgid "Chosen %s"
+#~ msgstr "Selecionados: %s"
+
+#~ msgid ""
+#~ "Choose %s by selecting them and then select the \"Choose\" arrow button."
+#~ msgstr ""
+#~ "Escolha %s selecionando-os e depois carregando na seta \"Escolher\"."
+
+#~ msgid ""
+#~ "Remove %s by selecting them and then select the \"Remove\" arrow button."
+#~ msgstr "Remova %s selecionando-os e depois carregando na seta \"Remover\"."
+
+#~ msgid "(click to clear)"
+#~ msgstr "(clique para limpar)"
+
+#~ msgid "Hold down “Control”, or “Command” on a Mac, to select more than one."
+#~ msgstr ""
+#~ "Mantenha premida a tecla “Control”, ou “Command” num Mac, para selecionar "
+#~ "mais do que um."
+
+#~ msgid ""
+#~ "Produtos biológicos frescos, cultivados de forma sustentável no coração "
+#~ "do Minho."
+#~ msgstr ""
+#~ "Produtos biológicos frescos, cultivados de forma sustentável no coração "
+#~ "do Minho."
+
+#~ msgid "Couves biológicas"
+#~ msgstr "Couves biológicas"
+
+#~ msgid "Nabos biológicos"
+#~ msgstr "Nabos biológicos"
+
+#~ msgid "Mulher com legumes biológicos"
+#~ msgstr "Mulher com legumes biológicos"
