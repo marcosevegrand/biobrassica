@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext
@@ -29,6 +30,8 @@ DEFAULT_COMPANY_LEGAL_NAME = 'Biobrassica, Lda.'
 DEFAULT_COMPANY_ADDRESS = 'R. dos Capelistas 121, 4700-215 Braga'
 DEFAULT_SUPPORT_EMAIL = 'geral@biobrassica.pt'
 DEFAULT_WHATSAPP_NUMBER = '+351938722638'
+CONTACT_LOCATIONS_CACHE_KEY = 'core:contact_locations:v1'
+CONTACT_LOCATIONS_CACHE_TIMEOUT = 300
 
 
 def _normalize_whatsapp_number(number):
@@ -155,7 +158,11 @@ def get_website_base_url():
     return get_shop_base_url().replace('://loja.', '://', 1)
 
 
-def get_contact_locations():
+def clear_contact_locations_cache():
+    cache.delete(CONTACT_LOCATIONS_CACHE_KEY)
+
+
+def _build_contact_locations():
     locations = []
     default_email = DEFAULT_SUPPORT_EMAIL
 
@@ -163,7 +170,6 @@ def get_contact_locations():
         default_key = 'guimaraes' if 'guimar' in location.name.lower() else 'braga'
         defaults = DEFAULT_LOCATION_CONTENT[default_key]
         locations.append({
-            'obj': location,
             'name': location.name,
             'address_lines': [line.strip() for line in (location.address or '').splitlines() if line.strip()],
             'phone': location.phone or defaults['phone'],
@@ -174,4 +180,14 @@ def get_contact_locations():
             'image': location.image,
         })
 
+    return locations
+
+
+def get_contact_locations():
+    cached_locations = cache.get(CONTACT_LOCATIONS_CACHE_KEY)
+    if cached_locations is not None:
+        return cached_locations
+
+    locations = _build_contact_locations()
+    cache.set(CONTACT_LOCATIONS_CACHE_KEY, locations, CONTACT_LOCATIONS_CACHE_TIMEOUT)
     return locations

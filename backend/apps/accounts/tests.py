@@ -1,6 +1,7 @@
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 from typing import cast
 from decimal import Decimal
 from django.contrib import admin
@@ -169,6 +170,25 @@ class ProfileViewTests(TestCase):
 		self.assertEqual(self.user.preferred_language, 'en')
 		self.assertEqual(self.user.nif, '123456789')
 
+	def test_profile_post_normalizes_formatted_nif(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('accounts:profile'),
+			{
+				'first_name': 'Marco',
+				'last_name': 'Silva',
+				'phone': '912345678',
+				'preferred_language': 'en',
+				'nif': '123 456 789',
+			},
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		self.user = cast(AccountUser, User.objects.get(pk=self.user.pk))
+		self.assertRedirects(response, reverse('accounts:profile'))
+		self.assertEqual(self.user.nif, '123456789')
+
 	def test_profile_post_shows_field_errors(self):
 		self.client.force_login(self.user)
 
@@ -185,9 +205,38 @@ class ProfileViewTests(TestCase):
 		)
 
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'no máximo 9 caracteres')
+		self.assertContains(response, 'Indique um NIF português válido.')
 		self.user = cast(AccountUser, User.objects.get(pk=self.user.pk))
 		self.assertEqual(self.user.nif, '')
+
+	def test_profile_post_rejects_invalid_nif_checksum(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('accounts:profile'),
+			{
+				'first_name': 'Marco',
+				'last_name': 'Silva',
+				'phone': '912345678',
+				'preferred_language': 'en',
+				'nif': '123456780',
+			},
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Indique um NIF português válido.')
+		self.user = cast(AccountUser, User.objects.get(pk=self.user.pk))
+		self.assertEqual(self.user.nif, '')
+
+	def test_user_save_rejects_invalid_nif(self):
+		with self.assertRaises(ValidationError):
+			User.objects.create_user(
+				email='invalido@biobrassica.pt',
+				username='invalido@biobrassica.pt',
+				password='S3guraPass123',
+				nif='123456780',
+			)
 
 	def test_order_history_lists_only_current_user_orders(self):
 		other_user = User.objects.create_user(

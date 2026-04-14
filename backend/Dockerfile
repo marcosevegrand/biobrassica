@@ -24,7 +24,9 @@ FROM python:3.12-slim AS production
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl libpq-dev gettext && rm -rf /var/lib/apt/lists/*
+    curl gettext libpq5 && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --home-dir /app --shell /usr/sbin/nologin app
 
 # Install Tailwind standalone CLI
 RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.2.2/tailwindcss-linux-x64 \
@@ -39,6 +41,10 @@ RUN chmod +x /app/docker-entrypoint.sh
 
 # Build Tailwind CSS
 RUN tailwindcss -i static/css/input.css -o static/css/output.css --minify
+RUN python manage.py compilemessages
+RUN mkdir -p /app/staticfiles /app/media /tmp && chown -R app:app /app /tmp
+
+USER app
 
 EXPOSE 8000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

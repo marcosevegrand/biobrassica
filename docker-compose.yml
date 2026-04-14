@@ -5,18 +5,27 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
       - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
       - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-biobrassica.pt,www.biobrassica.pt,loja.biobrassica.pt,admin.biobrassica.pt}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-marcosevegrand.com,www.marcosevegrand.com,loja.marcosevegrand.com,admin.marcosevegrand.com}
       - DB_NAME=${DB_NAME:-biobrassica}
       - DB_USER=${DB_USER:-biobrassica}
       - DB_PASSWORD=${DB_PASSWORD:-}
       - DB_HOST=db
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
+      - SHOP_BASE_URL=${SHOP_BASE_URL:-https://loja.marcosevegrand.com}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
@@ -25,6 +34,7 @@ services:
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
       - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
     volumes:
       - media_files:/app/media

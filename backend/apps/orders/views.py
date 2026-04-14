@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 from django.contrib import messages
 from django.db import transaction
@@ -8,7 +9,7 @@ from django.urls import reverse
 from django.utils.translation import get_language, gettext as _
 from django.views.decorators.http import require_http_methods
 
-from apps.cart.models import Cart, CartItem
+from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items
 from apps.orders.forms import CheckoutForm, PaymentSelectionForm
 from apps.orders.models import Order
 from apps.orders.services import StockValidationError, cancel_unpaid_order, create_order_from_cart, transition_order_status
@@ -20,7 +21,6 @@ from apps.payments.services import (
     reset_payment,
     stripe_service,
 )
-from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_items_queryset, remove_inactive_cart_items
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,14 @@ def _store_guest_order_access(request, order):
     request.session[_guest_order_session_key(order)] = str(order.access_token)
 
 
+def _tokens_match(left, right):
+    if not left or not right:
+        return False
+    return secrets.compare_digest(str(left), str(right))
+
+
 def _has_guest_order_access(request, order):
-    return request.session.get(_guest_order_session_key(order)) == str(order.access_token)
+    return _tokens_match(request.session.get(_guest_order_session_key(order)), order.access_token)
 
 
 def _order_url(view_name, order):
@@ -55,7 +61,7 @@ def _get_order_for_request(request, order_id):
         return order, None
 
     post_token = request.POST.get('token')
-    if post_token and post_token == str(order.access_token):
+    if _tokens_match(post_token, order.access_token):
         _store_guest_order_access(request, order)
         return order, None
 
@@ -88,17 +94,18 @@ def _checkout_context(request, cart, items, cart_can_ship, form):
 
 def checkout(request, order_id=None):
     if order_id:
-        # If order_id is provided, allow user to review/modify their order
         order, redirect_response = _get_order_for_request(request, order_id)
         if redirect_response is not None:
             return redirect_response
-        # For now, redirect to create new checkout - in future could allow editing existing order
-        return redirect('orders:checkout')
-    
-    if request.user.is_authenticated:
-        cart = Cart.objects.filter(user=request.user).first()
-    else:
-        cart = Cart.objects.filter(session_key=request.session.session_key).first() if request.session.session_key else None
+
+        payment = _get_order_payment(order)
+        if order.status == Order.Status.PAID and payment:
+            return redirect(_order_url('orders:complete', order))
+        if payment is not None:
+            return redirect(_order_url('orders:payment_status', order))
+        return redirect(_order_url('orders:payment_select', order))
+
+    cart = get_cart_for_request(request)
 
     if not cart or cart.item_count == 0:
         messages.warning(request, _('O seu carrinho está vazio.'))
@@ -129,10 +136,7 @@ def checkout_confirm(request):
     if request.method != 'POST':
         return redirect('orders:checkout')
 
-    if request.user.is_authenticated:
-        cart = Cart.objects.filter(user=request.user).first()
-    else:
-        cart = Cart.objects.filter(session_key=request.session.session_key).first() if request.session.session_key else None
+    cart = get_cart_for_request(request)
 
     if not cart or cart.item_count == 0:
         return redirect('cart:detail')

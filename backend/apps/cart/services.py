@@ -8,6 +8,13 @@ from django.db.models.functions import Coalesce
 from apps.cart.models import Cart, CartItem
 
 
+def _cap_quantity_to_stock(product, requested_quantity):
+    available_stock = max(product.stock, 0)
+    final_quantity = min(requested_quantity, available_stock)
+    was_capped = final_quantity != requested_quantity
+    return final_quantity, was_capped
+
+
 def get_cart_for_request(request):
     if request.user.is_authenticated:
         return Cart.objects.filter(user=request.user).first()
@@ -43,11 +50,10 @@ def get_cart_preview_items(cart, *, limit=3):
     return list(get_cart_items_queryset(cart)[:limit])
 
 
-def get_cart_summary(cart, *, preview_limit=3):
+def get_cart_totals(cart):
     if cart is None:
         return {
             'cart_item_count': 0,
-            'cart_preview_items': [],
             'cart_total': Decimal('0'),
         }
 
@@ -66,7 +72,17 @@ def get_cart_summary(cart, *, preview_limit=3):
 
     return {
         'cart_item_count': totals['cart_item_count'],
-        'cart_preview_items': get_cart_preview_items(cart, limit=preview_limit),
+        'cart_total': totals['cart_total'],
+    }
+
+
+def get_cart_summary(cart, *, preview_limit=3):
+    totals = get_cart_totals(cart)
+    preview_items = [] if cart is None else get_cart_preview_items(cart, limit=preview_limit)
+
+    return {
+        'cart_item_count': totals['cart_item_count'],
+        'cart_preview_items': preview_items,
         'cart_total': totals['cart_total'],
     }
 
@@ -78,8 +94,7 @@ def add_product_to_cart(cart, product, *, quantity):
     with transaction.atomic():
         item = CartItem.objects.select_for_update().filter(cart=cart, product=product).first()
         current_quantity = item.quantity if item else 0
-        final_quantity = current_quantity + quantity
-        was_capped = False
+        final_quantity, was_capped = _cap_quantity_to_stock(product, current_quantity + quantity)
 
         if final_quantity <= 0:
             if item:
@@ -98,8 +113,7 @@ def add_product_to_cart(cart, product, *, quantity):
 def set_cart_item_quantity(item, *, quantity):
     with transaction.atomic():
         locked_item = CartItem.objects.select_for_update().select_related('product').get(pk=item.pk)
-        final_quantity = quantity
-        was_capped = False
+        final_quantity, was_capped = _cap_quantity_to_stock(locked_item.product, quantity)
 
         if final_quantity <= 0:
             locked_item.delete()
@@ -133,16 +147,23 @@ def merge_anonymous_cart_into_user_cart(request, user):
             existing_item = existing_items.get(item.product.pk)
 
             if existing_item:
-                merged_quantity = existing_item.quantity + item.quantity
+                merged_quantity, _ = _cap_quantity_to_stock(item.product, existing_item.quantity + item.quantity)
                 if merged_quantity > 0:
                     existing_item.quantity = merged_quantity
                     existing_item.save(update_fields=['quantity'])
                 else:
                     existing_item.delete()
+                item.delete()
                 continue
 
+            merged_quantity, _ = _cap_quantity_to_stock(item.product, item.quantity)
+            if merged_quantity <= 0:
+                item.delete()
+                continue
+
+            item.quantity = merged_quantity
             item.cart = user_cart
-            item.save(update_fields=['cart'])
+            item.save(update_fields=['quantity', 'cart'])
 
         anonymous_cart.delete()
         return user_cart

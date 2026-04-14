@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Production backup script — database + media files.
 #
 # Usage:
@@ -11,23 +11,18 @@
 # Retention: the script removes backups older than 14 days.
 # For durable off-site storage, pipe the output files to rclone/s3cmd/restic.
 
-set -eu
+set -euo pipefail
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-if [ -f "$PROJECT_DIR/.env" ]; then
-    set -a
-    # shellcheck disable=SC1091
-    . "$PROJECT_DIR/.env"
-    set +a
-fi
-
 BACKUP_DIR="${1:-/opt/biobrassica/backups}"
-DB_NAME="${DB_NAME:-biobrassica}"
-DB_USER="${DB_USER:-biobrassica}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-biobrassica}"
-COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} -f ${PROJECT_DIR}/docker-compose.yml"
+COMPOSE_ARGS=(-p "$COMPOSE_PROJECT_NAME" -f "$PROJECT_DIR/docker-compose.yml")
+if [ -f "$PROJECT_DIR/.env" ]; then
+    COMPOSE_ARGS=(--env-file "$PROJECT_DIR/.env" "${COMPOSE_ARGS[@]}")
+fi
+COMPOSE=(docker compose "${COMPOSE_ARGS[@]}")
 MEDIA_VOLUME="${COMPOSE_PROJECT_NAME}_media_files"
 DRY_RUN="${BACKUP_DRY_RUN:-0}"
 DATE="$(date +%Y%m%d_%H%M%S)"
@@ -38,14 +33,19 @@ if [ "$DRY_RUN" = "1" ]; then
     echo "[backup] dry-run enabled"
     echo "[backup] database → $BACKUP_DIR/db_${DATE}.sql.gz"
     echo "[backup] media → $BACKUP_DIR/media_${DATE}.tar.gz"
-    echo "[backup] would use compose project ${COMPOSE_PROJECT_NAME} with DB ${DB_NAME} (${DB_USER})"
+    echo "[backup] would use compose project ${COMPOSE_PROJECT_NAME}"
     echo "[backup] prune backups older than 14 days"
     exit 0
 fi
 
+"${COMPOSE[@]}" up -d db >/dev/null
+
+DB_NAME="${DB_NAME:-$("${COMPOSE[@]}" exec -T db printenv POSTGRES_DB)}"
+DB_USER="${DB_USER:-$("${COMPOSE[@]}" exec -T db printenv POSTGRES_USER)}"
+
 # --- Database ---
 DB_BACKUP="$BACKUP_DIR/db_${DATE}.sql.gz"
-$COMPOSE exec -T db pg_dump -U "$DB_USER" "$DB_NAME" | gzip > "$DB_BACKUP"
+"${COMPOSE[@]}" exec -T db pg_dump -U "$DB_USER" "$DB_NAME" | gzip > "$DB_BACKUP"
 echo "[backup] database → $DB_BACKUP"
 
 # --- Media files ---

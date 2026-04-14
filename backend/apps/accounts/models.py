@@ -1,6 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from apps.accounts.validators import normalize_portuguese_nif, validate_portuguese_nif
 
 
 class User(AbstractUser):
@@ -23,6 +26,19 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def clean(self):
+        super().clean()
+        self.nif = normalize_portuguese_nif(self.nif)
+        validate_portuguese_nif(self.nif)
+
+    def save(self, *args, **kwargs):
+        self.nif = normalize_portuguese_nif(self.nif)
+        try:
+            validate_portuguese_nif(self.nif)
+        except ValidationError:
+            raise
+        return super().save(*args, **kwargs)
 
 
 class Address(models.Model):

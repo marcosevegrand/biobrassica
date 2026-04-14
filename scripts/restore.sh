@@ -1,28 +1,22 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Production restore helper — database + optional media files.
 #
 # Usage:
-#   sh ./scripts/restore.sh --db /path/to/db.sql.gz [--media /path/to/media.tar.gz]
+#   ./scripts/restore.sh --db /path/to/db.sql.gz [--media /path/to/media.tar.gz] [--yes]
 
-set -eu
+set -euo pipefail
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-if [ -f "$PROJECT_DIR/.env" ]; then
-    set -a
-    # shellcheck disable=SC1091
-    . "$PROJECT_DIR/.env"
-    set +a
-fi
-
 usage() {
-    echo "Usage: sh ./scripts/restore.sh --db /path/to/db.sql.gz [--media /path/to/media.tar.gz]" >&2
+    echo "Usage: ./scripts/restore.sh --db /path/to/db.sql.gz [--media /path/to/media.tar.gz] [--yes]" >&2
     exit 1
 }
 
 DB_BACKUP=
 MEDIA_BACKUP=
+ASSUME_YES=0
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -35,6 +29,10 @@ while [ "$#" -gt 0 ]; do
             [ "$#" -ge 2 ] || usage
             MEDIA_BACKUP="$2"
             shift 2
+            ;;
+        --yes)
+            ASSUME_YES=1
+            shift
             ;;
         *)
             usage
@@ -53,33 +51,51 @@ if [ -n "$MEDIA_BACKUP" ] && [ ! -f "$MEDIA_BACKUP" ]; then
     exit 1
 fi
 
-DB_NAME="${DB_NAME:-biobrassica}"
-DB_USER="${DB_USER:-biobrassica}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-biobrassica}"
-COMPOSE_FILE="${PROJECT_DIR}/docker-compose.yml"
-COMPOSE="docker compose -p ${COMPOSE_PROJECT_NAME} -f ${COMPOSE_FILE}"
+COMPOSE_ARGS=(-p "$COMPOSE_PROJECT_NAME" -f "$PROJECT_DIR/docker-compose.yml")
+if [ -f "$PROJECT_DIR/.env" ]; then
+    COMPOSE_ARGS=(--env-file "$PROJECT_DIR/.env" "${COMPOSE_ARGS[@]}")
+fi
+COMPOSE=(docker compose "${COMPOSE_ARGS[@]}")
 MEDIA_VOLUME="${COMPOSE_PROJECT_NAME}_media_files"
 DRY_RUN="${RESTORE_DRY_RUN:-0}"
 
 if [ "$DRY_RUN" = "1" ]; then
     echo "[restore] dry-run enabled"
     echo "[restore] would start db service via compose project ${COMPOSE_PROJECT_NAME}"
-    echo "[restore] would restore database ${DB_NAME} as ${DB_USER} from ${DB_BACKUP}"
+    echo "[restore] would restore database ${DB_NAME:-biobrassica} as ${DB_USER:-biobrassica} from ${DB_BACKUP}"
     if [ -n "$MEDIA_BACKUP" ]; then
         echo "[restore] would extract media archive ${MEDIA_BACKUP} into volume ${MEDIA_VOLUME}"
     else
         echo "[restore] media restore skipped"
     fi
     echo "[restore] would bring the full stack up with --remove-orphans"
-    echo "[restore] would run host-header health checks for biobrassica.pt, loja.biobrassica.pt, and admin.biobrassica.pt"
+    echo "[restore] would run host-header health checks for marcosevegrand.com, loja.marcosevegrand.com, and admin.marcosevegrand.com"
     exit 0
 fi
 
+if [ "$ASSUME_YES" != "1" ]; then
+    if [ -t 0 ]; then
+        printf "[restore] type RESTORE to continue: " >&2
+        read -r confirmation
+        if [ "$confirmation" != "RESTORE" ]; then
+            echo "[restore] restore aborted" >&2
+            exit 1
+        fi
+    else
+        echo "[restore] --yes is required for non-interactive restores" >&2
+        exit 1
+    fi
+fi
+
 echo "[restore] ensuring db service is running"
-$COMPOSE up -d db
+"${COMPOSE[@]}" up -d db
+
+DB_NAME="${DB_NAME:-$("${COMPOSE[@]}" exec -T db printenv POSTGRES_DB)}"
+DB_USER="${DB_USER:-$("${COMPOSE[@]}" exec -T db printenv POSTGRES_USER)}"
 
 echo "[restore] restoring database from $DB_BACKUP"
-gunzip -c "$DB_BACKUP" | $COMPOSE exec -T db psql -U "$DB_USER" "$DB_NAME"
+gunzip -c "$DB_BACKUP" | "${COMPOSE[@]}" exec -T db psql -U "$DB_USER" "$DB_NAME"
 
 if [ -n "$MEDIA_BACKUP" ]; then
     MEDIA_BACKUP_DIR="$(CDPATH= cd -- "$(dirname "$MEDIA_BACKUP")" && pwd)"
@@ -92,9 +108,9 @@ if [ -n "$MEDIA_BACKUP" ]; then
 fi
 
 echo "[restore] starting full stack"
-$COMPOSE up -d --remove-orphans
+"${COMPOSE[@]}" up -d --remove-orphans
 
-for host in biobrassica.pt loja.biobrassica.pt admin.biobrassica.pt; do
+for host in marcosevegrand.com loja.marcosevegrand.com admin.marcosevegrand.com; do
     echo "[restore] health check for $host"
     curl -fsS -H "Host: $host" http://127.0.0.1/_health/ > /dev/null
 done

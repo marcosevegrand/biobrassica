@@ -13,11 +13,11 @@ def required_env(name):
     raise ImproperlyConfigured(f'Missing required production environment variable: {name}')
 
 DEBUG = False
-SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.biobrassica.pt').rstrip('/')
+SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
 
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
-    'biobrassica.pt,www.biobrassica.pt,loja.biobrassica.pt,admin.biobrassica.pt',
+    'marcosevegrand.com,www.marcosevegrand.com,loja.marcosevegrand.com,admin.marcosevegrand.com',
 )
 
 DB_PASSWORD = required_env('DB_PASSWORD')

@@ -42,14 +42,15 @@ class Cart(models.Model):
 
     @property
     def total(self) -> Decimal:
-        return sum(
-            (item.subtotal for item in self.items.select_related('product').filter(product__is_active=True)),
-            Decimal('0'),
-        )
+        from apps.cart.services import get_cart_totals
+
+        return get_cart_totals(self)['cart_total']
 
     @property
     def item_count(self) -> int:
-        return sum(item.quantity for item in self.items.filter(product__is_active=True))
+        from apps.cart.services import get_cart_totals
+
+        return get_cart_totals(self)['cart_item_count']
 
 
 class CartItem(models.Model):

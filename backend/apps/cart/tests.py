@@ -101,9 +101,9 @@ class CartViewTests(TestCase):
 		)
 
 		item = CartItem.objects.get(product=self.product)
-		self.assertEqual(item.quantity, 6)
+		self.assertEqual(item.quantity, 4)
 
-	def test_update_quantity_allows_values_above_available_stock(self):
+	def test_update_quantity_caps_value_at_available_stock(self):
 		session = self.client.session
 		session.save()
 		cart = Cart.objects.create(session_key=session.session_key)
@@ -119,7 +119,7 @@ class CartViewTests(TestCase):
 
 		item.refresh_from_db()
 		self.assertRedirects(response, reverse('cart:detail'))
-		self.assertEqual(item.quantity, 5)
+		self.assertEqual(item.quantity, 1)
 
 	def test_update_quantity_to_zero_deletes_item(self):
 		session = self.client.session
@@ -304,7 +304,7 @@ class CartViewTests(TestCase):
 		self.assertEqual(CartItem.objects.get(cart=user_cart, product=self.product).quantity, 1)
 		self.assertEqual(CartItem.objects.get(cart=anon_cart, product=self.product).quantity, 2)
 
-	def test_merge_anonymous_cart_keeps_quantities_above_stock_until_checkout(self):
+	def test_merge_anonymous_cart_caps_combined_quantities_at_stock(self):
 		user_model = get_user_model()
 		user = cast(Any, user_model._default_manager).create_user(
 			email='cliente2@biobrassica.pt',
@@ -322,7 +322,7 @@ class CartViewTests(TestCase):
 		merge_anonymous_cart_into_user_cart(request, user)
 
 		self.assertFalse(Cart.objects.filter(pk=anon_cart.pk).exists())
-		self.assertEqual(CartItem.objects.get(cart=user_cart, product=self.product).quantity, 6)
+		self.assertEqual(CartItem.objects.get(cart=user_cart, product=self.product).quantity, 3)
 
 
 class CartConstraintTests(TestCase):

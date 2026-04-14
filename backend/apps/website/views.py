@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.utils.translation import get_language
 
-from apps.core.site_content import get_contact_locations, get_website_content
+from apps.core.site_content import get_website_content
 from apps.content.querysets import featured_recipe_queryset
-from apps.website.models import TeamMember, WebsiteContent
+from apps.website.models import TeamMember
 
 
 def home(request):

@@ -10,7 +10,7 @@ backend/media/
 node_modules/
 
 # IDE
-.vscode/
+.vscode
 .idea/
 *.swp
 *.swo

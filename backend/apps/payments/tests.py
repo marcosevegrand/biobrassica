@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import SimpleTestCase
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone

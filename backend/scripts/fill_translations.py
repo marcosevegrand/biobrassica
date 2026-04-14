@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fill EN and FR .po files with translations, and set PT as identity."""
+"""Supported translation maintenance script for EN/FR/PT .po files."""
 import pathlib
 
 LOCALE = pathlib.Path(__file__).resolve().parent.parent / 'locale'
@@ -711,9 +711,10 @@ def patch_po(po_path: pathlib.Path, translations: dict, lang: str):
 
                 # If msgstr is empty, try to fill
                 if not msgstr_current and msgid_str:
-                    tr = translations.get(msgid_str)
+                    normalized_msgid = msgid_str.replace('\\"', '"')
+                    tr = translations.get(msgid_str) or translations.get(normalized_msgid)
                     if tr is None and lang == 'pt':
-                        tr = msgid_str  # PT = identity
+                        tr = normalized_msgid  # PT = identity
                     if tr:
                         # Escape quotes in translation
                         tr_escaped = tr.replace('\\', '\\\\').replace('"', '\\"')

@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
 
 from apps.cart.models import Cart, CartItem
 from apps.catalog.models import Category, CategoryTranslation, Location, Product, ProductTranslation
@@ -617,3 +616,61 @@ class OrderCheckoutFlowTests(TestCase):
         )
 
         self.assertEqual(second_response.status_code, 404)
+
+    def test_checkout_order_redirects_pending_order_to_payment_status(self):
+        order = Order.objects.create(
+            name='Marco',
+            email='marco@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('19.00'),
+            total=Decimal('19.00'),
+            status=Order.Status.PAYMENT_PENDING,
+        )
+        Payment.objects.create(
+            order=order,
+            method=Payment.Method.STRIPE,
+            status=Payment.Status.PENDING,
+            amount=order.total,
+            stripe_session_id='cs_resume_100',
+            checkout_url='https://checkout.stripe.com/pay/cs_resume_100',
+        )
+        session = self.client.session
+        session[f'guest_order_access:{order.pk}'] = str(order.access_token)
+        session.save()
+
+        response = self.client.get(
+            reverse('orders:checkout_order', kwargs={'order_id': order.pk}),
+            HTTP_HOST='loja.lvh.me',
+        )
+
+        self.assertRedirects(
+            response,
+            reverse('orders:payment_status', kwargs={'order_id': order.pk}),
+            fetch_redirect_response=False,
+        )
+
+    def test_checkout_order_redirects_unpaid_order_without_payment_to_payment_selection(self):
+        order = Order.objects.create(
+            name='Marco',
+            email='marco@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('19.00'),
+            total=Decimal('19.00'),
+            status=Order.Status.PENDING,
+        )
+        session = self.client.session
+        session[f'guest_order_access:{order.pk}'] = str(order.access_token)
+        session.save()
+
+        response = self.client.get(
+            reverse('orders:checkout_order', kwargs={'order_id': order.pk}),
+            HTTP_HOST='loja.lvh.me',
+        )
+
+        self.assertRedirects(
+            response,
+            reverse('orders:payment_select', kwargs={'order_id': order.pk}),
+            fetch_redirect_response=False,
+        )

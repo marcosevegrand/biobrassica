@@ -123,7 +123,7 @@ jobs:
           [ -n "$MEDIA_BACKUP" ]
           gunzip -t "$DB_BACKUP"
           tar tzf "$MEDIA_BACKUP" > /dev/null
-          RESTORE_DRY_RUN=1 sh ./scripts/restore.sh --db "$DB_BACKUP" --media "$MEDIA_BACKUP"
+          RESTORE_DRY_RUN=1 ./scripts/restore.sh --db "$DB_BACKUP" --media "$MEDIA_BACKUP"
 
   deploy:
     runs-on: ubuntu-latest
@@ -146,8 +146,8 @@ jobs:
             docker compose -f docker-compose.yml run --rm django python manage.py migrate --noinput
             docker compose -f docker-compose.yml up -d --remove-orphans
             docker compose -f docker-compose.yml exec -T django python manage.py check --deploy
-            curl -fsS -H 'Host: biobrassica.pt' http://127.0.0.1/_health/ > /dev/null
-            curl -fsS -H 'Host: loja.biobrassica.pt' http://127.0.0.1/_health/ > /dev/null
-            curl -fsS -H 'Host: admin.biobrassica.pt' http://127.0.0.1/_health/ > /dev/null
+            curl -fsS -H 'Host: marcosevegrand.com' http://127.0.0.1/_health/ > /dev/null
+            curl -fsS -H 'Host: loja.marcosevegrand.com' http://127.0.0.1/_health/ > /dev/null
+            curl -fsS -H 'Host: admin.marcosevegrand.com' http://127.0.0.1/_health/ > /dev/null
             echo "Deploy complete at $(date)"
             echo "Rollback candidate remains: ${PREVIOUS_SHA}"

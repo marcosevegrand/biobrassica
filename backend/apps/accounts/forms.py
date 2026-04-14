@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.validators import normalize_portuguese_nif, validate_portuguese_nif
+
 User = get_user_model()
 
 
@@ -57,6 +59,14 @@ class RegistrationForm(forms.ModelForm):
 
 
 class ProfileForm(forms.ModelForm):
+    nif = forms.CharField(
+        required=False,
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest',
+        }),
+    )
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'phone', 'preferred_language', 'nif')
@@ -73,7 +83,9 @@ class ProfileForm(forms.ModelForm):
             'preferred_language': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest',
             }),
-            'nif': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest',
-            }),
         }
+
+    def clean_nif(self):
+        nif = normalize_portuguese_nif(self.cleaned_data.get('nif', ''))
+        validate_portuguese_nif(nif)
+        return nif

@@ -131,10 +131,10 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'eur').strip().lower() or 'eur'
-SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.biobrassica.pt').rstrip('/')
+SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
 
 # Email
-DEFAULT_FROM_EMAIL = 'Biobrassica <loja@biobrassica.pt>'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Biobrassica <loja@marcosevegrand.com>')
 STAFF_NOTIFICATION_EMAILS = os.environ.get(
     'STAFF_NOTIFICATION_EMAILS', ''
 ).split(',') if os.environ.get('STAFF_NOTIFICATION_EMAILS') else []

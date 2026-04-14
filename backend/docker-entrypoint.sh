@@ -24,7 +24,6 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
         fi
 
         /usr/local/bin/python manage.py collectstatic --noinput
-        /usr/local/bin/python manage.py compilemessages
     fi
 fi
 

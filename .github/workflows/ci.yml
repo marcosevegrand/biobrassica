@@ -121,7 +121,7 @@ jobs:
           [ -n "$MEDIA_BACKUP" ]
           gunzip -t "$DB_BACKUP"
           tar tzf "$MEDIA_BACKUP" > /dev/null
-          RESTORE_DRY_RUN=1 sh ./scripts/restore.sh --db "$DB_BACKUP" --media "$MEDIA_BACKUP"
+          RESTORE_DRY_RUN=1 ./scripts/restore.sh --db "$DB_BACKUP" --media "$MEDIA_BACKUP"
 
       - name: Run browser smoke tests
         working-directory: backend
