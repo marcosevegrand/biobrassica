@@ -83,7 +83,7 @@ seed: .env.dev ## Seed content from markdown
 	$(DJANGO_EXEC) python manage.py runscript seed_from_markdown
 
 css-build: .env.dev ## Rebuild Tailwind CSS once
-	$(COMPOSE_DEV) run --rm tailwind npx @tailwindcss/cli -i static/css/input.css -o static/css/output.css
+	$(COMPOSE_DEV) run --rm tailwind npx @tailwindcss/cli -i assets/css/input.css -o static/css/output.css
 
 messages: .env.dev ## Extract translatable strings
 	$(DJANGO_EXEC) python manage.py makemessages -l pt -l en -l fr --no-wrap

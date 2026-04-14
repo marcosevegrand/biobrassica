@@ -40,7 +40,7 @@ COPY . .
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Build Tailwind CSS
-RUN tailwindcss -i static/css/input.css -o static/css/output.css --minify
+RUN tailwindcss -i assets/css/input.css -o static/css/output.css --minify
 RUN python manage.py compilemessages
 RUN mkdir -p /app/staticfiles /app/media /tmp && chown -R app:app /app /tmp
 
