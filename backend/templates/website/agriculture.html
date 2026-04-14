@@ -1,5 +1,5 @@
 {% extends "base_website.html" %}
-{% load i18n static %}
+{% load i18n shop_urls static %}
 
 {% block title %}{% trans "Agricultura Biológica" %} | Biobrassica{% endblock %}
 {% block meta_description %}{% trans "Saiba como praticamos agricultura biológica certificada no Minho, com respeito pela biodiversidade e pelos ciclos naturais." %}{% endblock %}
@@ -163,7 +163,7 @@
   <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
     <h2 class="text-2xl font-serif italic mb-4">{% trans "Prove a diferença do biológico" %}</h2>
     <p class="text-forest/75 mb-8">{% trans "Visite a nossa loja online ou passe por uma das nossas lojas físicas." %}</p>
-    <a href="https://loja.biobrassica.pt/"
+    <a href="{% shop_url 'catalog:shop_home' %}"
        class="inline-block px-8 py-3 bg-forest text-paper text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-forest/90 transition-colors">
       {% trans "Visitar Loja" %}
     </a>

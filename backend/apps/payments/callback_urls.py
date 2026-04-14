@@ -3,5 +3,5 @@ from django.urls import path
 from apps.payments import views
 
 urlpatterns = [
-    path('ifthenpay/', views.ifthenpay_callback, name='ifthenpay_callback'),
+    path('stripe/', views.stripe_callback, name='stripe_callback'),
 ]

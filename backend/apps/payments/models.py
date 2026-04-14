@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 
 PAYMENT_STATUS_TRANSITIONS = {
@@ -23,9 +24,7 @@ def _mask_value(value, *, keep_start=2, keep_end=2):
 
 class Payment(models.Model):
     class Method(models.TextChoices):
-        MULTIBANCO = 'multibanco', 'Multibanco'
-        MBWAY = 'mbway', 'MB WAY'
-        CREDIT_CARD = 'credit_card', 'Cartão de Crédito'
+        STRIPE = 'stripe', 'Stripe'
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pendente'
@@ -43,18 +42,10 @@ class Payment(models.Model):
     method = models.CharField('método', max_length=20, choices=Method.choices)
     status = models.CharField('estado', max_length=20, choices=Status.choices, default=Status.PENDING)
     amount = models.DecimalField('valor', max_digits=10, decimal_places=2)
-    ifthenpay_request_id = models.CharField('ID do pedido Ifthenpay', max_length=255, blank=True, db_index=True)
-
-    # Multibanco
-    mb_entity = models.CharField('entidade MB', max_length=10, blank=True)
-    mb_reference = models.CharField('referência MB', max_length=20, blank=True, db_index=True)
-
-    # MBWay
-    mbway_phone = models.CharField('telefone MB WAY', max_length=20, blank=True)
-    mbway_transaction_id = models.CharField('ID da transação MB WAY', max_length=255, blank=True)
-    checkout_url = models.URLField('URL de checkout', blank=True)
+    stripe_session_id = models.CharField('ID da sessão Stripe', max_length=255, blank=True, db_index=True)
+    stripe_payment_intent_id = models.CharField('ID do Payment Intent Stripe', max_length=255, blank=True, db_index=True)
+    checkout_url = models.URLField('URL de checkout', max_length=500, blank=True)
     last_error = models.TextField('último erro', blank=True)
-
     expires_at = models.DateTimeField('expira em', null=True, blank=True)
     paid_at = models.DateTimeField('pago em', null=True, blank=True)
     created_at = models.DateTimeField('criado em', auto_now_add=True)
@@ -64,14 +55,14 @@ class Payment(models.Model):
         verbose_name_plural = 'pagamentos'
         constraints = [
             models.UniqueConstraint(
-                fields=['ifthenpay_request_id'],
-                condition=~Q(ifthenpay_request_id=''),
-                name='payments_unique_ifthenpay_request_id',
+                fields=['stripe_session_id'],
+                condition=~Q(stripe_session_id=''),
+                name='payments_unique_stripe_session_id',
             ),
             models.UniqueConstraint(
-                fields=['mb_entity', 'mb_reference'],
-                condition=~Q(mb_entity='') & ~Q(mb_reference=''),
-                name='payments_unique_mb_entity_reference',
+                fields=['stripe_payment_intent_id'],
+                condition=~Q(stripe_payment_intent_id=''),
+                name='payments_unique_stripe_payment_intent_id',
             ),
         ]
         indexes = [
@@ -106,39 +97,39 @@ class Payment(models.Model):
         original_status = getattr(self, '_original_status', None)
 
         if original_status and self.status != original_status and not self.can_transition_to(self.status):
-            errors['status'] = 'Transição de estado inválida para o pagamento.'
+            errors['status'] = _('Transição de estado inválida para o pagamento.')
 
         if self.status == self.Status.PAID and self.paid_at is None:
-            errors['paid_at'] = 'Defina a data de pagamento quando o pagamento está confirmado.'
+            errors['paid_at'] = _('Defina a data de pagamento quando o pagamento está confirmado.')
 
         if self.status != self.Status.PAID and self.paid_at is not None:
-            errors['paid_at'] = 'A data de pagamento só pode estar preenchida em pagamentos pagos.'
+            errors['paid_at'] = _('A data de pagamento só pode estar preenchida em pagamentos pagos.')
 
         if errors:
             raise ValidationError(errors)
 
     @property
     def method_label(self):
-        return self.Method(self.method).label
+        return dict(self.Method.choices).get(self.method, self.method)
 
     @property
     def status_label(self):
-        return self.Status(self.status).label
+        return dict(self.Status.choices).get(self.status, self.status)
 
     def __str__(self):
         return f'Pagamento #{self.pk} ({self.method_label}) - {self.status_label}'
 
     @property
-    def masked_mbway_phone(self):
-        return _mask_value(self.mbway_phone, keep_start=3, keep_end=2)
+    def masked_stripe_session_id(self):
+        return _mask_value(self.stripe_session_id, keep_start=6, keep_end=4)
 
     @property
-    def masked_reference(self):
-        return _mask_value(self.mb_reference, keep_start=3, keep_end=2)
+    def masked_stripe_payment_intent_id(self):
+        return _mask_value(self.stripe_payment_intent_id, keep_start=6, keep_end=4)
 
     @property
-    def masked_request_id(self):
-        return _mask_value(self.ifthenpay_request_id, keep_start=4, keep_end=4)
+    def masked_provider_identifier(self):
+        return self.masked_stripe_session_id or self.masked_stripe_payment_intent_id
 
 
 class PaymentCallback(models.Model):
@@ -150,6 +141,7 @@ class PaymentCallback(models.Model):
         verbose_name='pagamento',
     )
     raw_payload = models.JSONField('carga útil bruta')
+    provider_event_id = models.CharField('ID do evento do provedor', max_length=255, blank=True, db_index=True)
     ip_address = models.GenericIPAddressField('endereço IP')
     is_valid = models.BooleanField('válido', default=False)
     validation_message = models.CharField('motivo da validação', max_length=255, blank=True)
@@ -158,6 +150,13 @@ class PaymentCallback(models.Model):
     class Meta:
         verbose_name = 'callback de pagamento'
         verbose_name_plural = 'callbacks de pagamento'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['provider_event_id'],
+                condition=~Q(provider_event_id=''),
+                name='payments_unique_provider_event_id',
+            ),
+        ]
 
     def __str__(self):
         return f'Callback {self.pk} - {"válido" if self.is_valid else "inválido"}'

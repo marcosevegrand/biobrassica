@@ -1,25 +1,33 @@
 from decimal import Decimal
-from unittest.mock import patch
+from typing import Any, cast
+from unittest.mock import Mock, patch
 
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+from django.test import SimpleTestCase
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth import get_user_model
-from typing import Any, cast
 
 from apps.orders.models import Order
 from apps.payments.models import Payment, PaymentCallback
-from apps.payments.services import PaymentTransitionError, mark_payment_failed
+from apps.payments.services import (
+    PaymentTransitionError,
+    StripeService,
+    STRIPE_CHECKOUT_EXPIRY_WINDOW,
+    configure_stripe_checkout,
+    expire_stale_pending_payments,
+    mark_payment_failed,
+    mark_payment_refunded,
+)
 
 
 @override_settings(
     ROOT_URLCONF='config.urls_shop',
-    IFTHENPAY_ANTI_PHISHING_KEY='secret-callback-key',
     DEFAULT_FROM_EMAIL='loja@biobrassica.pt',
     STAFF_NOTIFICATION_EMAILS=['ops@biobrassica.pt'],
 )
-class PaymentCallbackTests(TestCase):
+class PaymentWorkflowTests(TestCase):
     def setUp(self):
         self.order = Order.objects.create(
             name='Marco',
@@ -32,37 +40,13 @@ class PaymentCallbackTests(TestCase):
         )
         self.payment = Payment.objects.create(
             order=self.order,
-            method=Payment.Method.MULTIBANCO,
+            method=Payment.Method.STRIPE,
             status=Payment.Status.PENDING,
             amount=self.order.total,
-            ifthenpay_request_id='req-100',
-            mb_entity='12345',
-            mb_reference='543210987',
+            stripe_session_id='cs_test_100',
+            stripe_payment_intent_id='pi_test_100',
+            checkout_url='https://checkout.stripe.com/pay/cs_test_100',
         )
-
-    @patch('apps.payments.services.send_mail')
-    def test_valid_callback_marks_order_paid_and_sends_notifications(self, send_mail):
-        with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.get(
-                reverse('ifthenpay_callback'),
-                {
-                    'anti_phishing_key': 'secret-callback-key',
-                    'request_id': 'req-100',
-                    'entidade': '12345',
-                    'referencia': '543210987',
-                    'valor': '19.00',
-                },
-                HTTP_HOST='loja.lvh.me',
-            )
-
-        self.payment.refresh_from_db()
-        self.order.refresh_from_db()
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.payment.status, Payment.Status.PAID)
-        self.assertEqual(self.order.status, Order.Status.PAID)
-        self.assertEqual(send_mail.call_count, 2)
-        self.assertTrue(PaymentCallback.objects.get(payment=self.payment).is_valid)
 
     def test_invalid_payment_transition_blocked(self):
         self.payment.status = Payment.Status.PAID
@@ -72,115 +56,148 @@ class PaymentCallbackTests(TestCase):
         with self.assertRaises(PaymentTransitionError):
             mark_payment_failed(self.payment, reason='late failure')
 
-    def test_callback_rejects_missing_amount(self):
-        response = self.client.get(
-            reverse('ifthenpay_callback'),
-            {
-                'anti_phishing_key': 'secret-callback-key',
-                'request_id': 'req-100',
-                'entidade': '12345',
-                'referencia': '543210987',
-            },
-            HTTP_HOST='loja.lvh.me',
+    @override_settings(STRIPE_SECRET_KEY='sk_test_key', STRIPE_CURRENCY='eur')
+    @patch('apps.payments.services.stripe.checkout.Session.create')
+    def test_stripe_checkout_session_metadata_excludes_guest_access_token(self, session_create):
+        order = Mock()
+        order.pk = 42
+        order.email = 'marco@example.com'
+        order.access_token = 'secret-token'
+        order.items.all.return_value = [
+            Mock(quantity=2, price=Decimal('9.50'), product_name='Azeite bio'),
+        ]
+        payment = Mock(pk=7)
+        session_create.return_value = type('StripeSession', (), {
+            'id': 'cs_test_meta',
+            'payment_intent': 'pi_test_meta',
+            'url': 'https://checkout.stripe.com/pay/cs_test_meta',
+            'expires_at': None,
+        })()
+
+        StripeService().create_checkout_session(
+            order=order,
+            payment=payment,
+            success_url='https://example.com/success',
+            cancel_url='https://example.com/cancel',
         )
 
-        callback = PaymentCallback.objects.get(payment=self.payment)
+        metadata = session_create.call_args.kwargs['metadata']
+        self.assertEqual(metadata['order_id'], '42')
+        self.assertEqual(metadata['payment_id'], '7')
+        self.assertNotIn('access_token', metadata)
+
+    def test_configure_stripe_checkout_sets_local_expiry(self):
+        before_call = timezone.now()
+
+        configure_stripe_checkout(
+            self.payment,
+            session_id='cs_test_200',
+            payment_intent_id='pi_test_200',
+            checkout_url='https://checkout.stripe.com/pay/cs_test_200',
+        )
+
         self.payment.refresh_from_db()
 
-        self.assertEqual(response.status_code, 400)
-        self.assertFalse(callback.is_valid)
-        self.assertEqual(callback.validation_message, 'missing amount')
-        self.assertEqual(self.payment.status, Payment.Status.PENDING)
+        self.assertGreaterEqual(self.payment.expires_at, before_call + STRIPE_CHECKOUT_EXPIRY_WINDOW)
 
-    def test_callback_payload_and_ip_are_stored_sanitized(self):
-        self.client.get(
-            reverse('ifthenpay_callback'),
-            {
-                'anti_phishing_key': 'secret-callback-key',
-                'request_id': 'req-100',
-                'entidade': '12345',
-                'referencia': '543210987',
-                'valor': '19.00',
-                'customer_email': 'cliente@example.com',
-                'mobileNumber': '912345678',
-            },
-            HTTP_HOST='loja.lvh.me',
-            HTTP_X_FORWARDED_FOR='203.0.113.45',
-        )
+    def test_expire_stale_pending_payments_reverts_order_to_pending(self):
+        self.payment.expires_at = timezone.now() - timezone.timedelta(minutes=5)
+        self.payment.save(update_fields=['expires_at'])
 
-        callback = PaymentCallback.objects.get(payment=self.payment)
-
-        self.assertEqual(callback.ip_address, '203.0.113.0')
-        self.assertEqual(callback.raw_payload['anti_phishing_key'], '[redacted]')
-        self.assertEqual(callback.raw_payload['mobileNumber'], '912***78')
-        self.assertEqual(callback.raw_payload['customer_email'], 'cl***@example.com')
-
-    @patch('apps.payments.services.send_mail')
-    def test_already_paid_callback_is_idempotent_and_does_not_resend_notifications(self, send_mail):
-        self.payment.status = Payment.Status.PAID
-        self.payment.paid_at = timezone.now()
-        self.payment.save(update_fields=['status', 'paid_at'])
-        self.order.status = Order.Status.PAID
-        self.order.save(update_fields=['status', 'updated_at'])
-
-        with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.get(
-                reverse('ifthenpay_callback'),
-                {
-                    'anti_phishing_key': 'secret-callback-key',
-                    'request_id': 'req-100',
-                    'entidade': '12345',
-                    'referencia': '543210987',
-                    'valor': '19.00',
-                },
-                HTTP_HOST='loja.lvh.me',
-            )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(send_mail.call_count, 0)
-
-    @patch('apps.payments.services.send_mail')
-    def test_callback_uses_entity_and_reference_when_request_id_is_missing(self, send_mail):
-        other_order = Order.objects.create(
-            name='Outro Cliente',
-            email='outro@example.com',
-            fulfillment_method=Order.FulfillmentMethod.PICKUP,
-            pickup_location=Order.PickupLocation.GUIMARAES,
-            subtotal=Decimal('19.00'),
-            total=Decimal('19.00'),
-            status=Order.Status.PAYMENT_PENDING,
-        )
-        Payment.objects.create(
-            order=other_order,
-            method=Payment.Method.MULTIBANCO,
-            status=Payment.Status.PENDING,
-            amount=other_order.total,
-            ifthenpay_request_id='req-200',
-            mb_entity='99999',
-            mb_reference='543210987',
-        )
-
-        with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.get(
-                reverse('ifthenpay_callback'),
-                {
-                    'anti_phishing_key': 'secret-callback-key',
-                    'entidade': '12345',
-                    'referencia': '543210987',
-                    'valor': '19.00',
-                },
-                HTTP_HOST='loja.lvh.me',
-            )
+        expired_count = expire_stale_pending_payments()
 
         self.payment.refresh_from_db()
         self.order.refresh_from_db()
-        other_order.refresh_from_db()
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.payment.status, Payment.Status.PAID)
-        self.assertEqual(self.order.status, Order.Status.PAID)
-        self.assertEqual(other_order.status, Order.Status.PAYMENT_PENDING)
-        self.assertEqual(send_mail.call_count, 2)
+        self.assertEqual(expired_count, 1)
+        self.assertEqual(self.payment.status, Payment.Status.EXPIRED)
+        self.assertEqual(self.order.status, Order.Status.PENDING)
+
+    def test_mark_payment_refunded_cancels_paid_order_and_restores_stock(self):
+        from apps.catalog.models import Category, CategoryTranslation, Product, ProductTranslation
+        from apps.orders.models import OrderItem
+
+        category = Category.objects.create(slug='mercearia-refund')
+        CategoryTranslation.objects.create(
+            category=category,
+            language='pt',
+            name='Mercearia',
+            description='Categoria de mercearia',
+        )
+        product = Product.objects.create(
+            category=category,
+            slug='produto-refund',
+            brand='Biobrassica',
+            price=Decimal('4.00'),
+            quantity='1 un',
+            allow_shipping=True,
+            stock=3,
+            is_active=True,
+            bio_code='PT-BIO-03',
+        )
+        ProductTranslation.objects.create(
+            product=product,
+            language='pt',
+            name='Produto refund',
+            description='Produto para testar refund.',
+            allergens='Sem alergénios declarados.',
+            ingredients='Ingrediente.',
+        )
+        paid_order = Order.objects.create(
+            name='Refund',
+            email='refund@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('8.00'),
+            total=Decimal('8.00'),
+            status=Order.Status.PAID,
+        )
+        refunded_payment = Payment.objects.create(
+            order=paid_order,
+            method=Payment.Method.STRIPE,
+            status=Payment.Status.PAID,
+            amount=paid_order.total,
+            paid_at=timezone.now(),
+            stripe_session_id='cs_refund_paid',
+        )
+        OrderItem.objects.create(
+            order=paid_order,
+            product=product,
+            product_name='Produto refund',
+            price=Decimal('4.00'),
+            quantity=2,
+        )
+        product.stock = 1
+        product.save(update_fields=['stock', 'updated_at'])
+
+        changed = mark_payment_refunded(refunded_payment)
+
+        refunded_payment.refresh_from_db()
+        paid_order.refresh_from_db()
+        product.refresh_from_db()
+
+        self.assertTrue(changed)
+        self.assertEqual(refunded_payment.status, Payment.Status.REFUNDED)
+        self.assertEqual(paid_order.status, Order.Status.CANCELLED)
+        self.assertEqual(product.stock, 3)
+
+    def test_mark_payment_refunded_flags_preparing_order_for_manual_review(self):
+        self.order.status = Order.Status.PREPARING
+        self.order.notes = 'Separar cabaz.'
+        self.order.save(update_fields=['status', 'notes', 'updated_at'])
+        self.payment.status = Payment.Status.PAID
+        self.payment.paid_at = timezone.now()
+        self.payment.save(update_fields=['status', 'paid_at'])
+
+        changed = mark_payment_refunded(self.payment)
+
+        self.payment.refresh_from_db()
+        self.order.refresh_from_db()
+
+        self.assertTrue(changed)
+        self.assertEqual(self.payment.status, Payment.Status.REFUNDED)
+        self.assertEqual(self.order.status, Order.Status.PREPARING)
+        self.assertIn('Reembolso registado', self.order.notes)
 
 
 class PaymentConstraintTests(TestCase):
@@ -195,71 +212,47 @@ class PaymentConstraintTests(TestCase):
             status=Order.Status.PAYMENT_PENDING,
         )
 
-    def test_duplicate_non_empty_ifthenpay_request_id_is_rejected(self):
+    def test_duplicate_non_empty_stripe_session_id_is_rejected(self):
         first_order = self._create_order(email='primeiro@example.com')
         second_order = self._create_order(email='segundo@example.com')
         Payment.objects.create(
             order=first_order,
-            method=Payment.Method.MBWAY,
+            method=Payment.Method.STRIPE,
             status=Payment.Status.PENDING,
             amount=first_order.total,
-            ifthenpay_request_id='req-duplicate',
+            stripe_session_id='cs_duplicate',
         )
 
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Payment.objects.create(
                     order=second_order,
-                    method=Payment.Method.MBWAY,
+                    method=Payment.Method.STRIPE,
                     status=Payment.Status.PENDING,
                     amount=second_order.total,
-                    ifthenpay_request_id='req-duplicate',
+                    stripe_session_id='cs_duplicate',
                 )
 
-    def test_duplicate_multibanco_entity_reference_pair_is_rejected(self):
-        first_order = self._create_order(email='primeiro@example.com')
-        second_order = self._create_order(email='segundo@example.com')
-        Payment.objects.create(
-            order=first_order,
-            method=Payment.Method.MULTIBANCO,
-            status=Payment.Status.PENDING,
-            amount=first_order.total,
-            mb_entity='12345',
-            mb_reference='543210987',
+    def test_duplicate_non_empty_provider_event_id_is_rejected(self):
+        PaymentCallback.objects.create(
+            payment=None,
+            raw_payload={'type': 'checkout.session.completed'},
+            provider_event_id='evt_duplicate',
+            ip_address='203.0.113.0',
+            is_valid=True,
+            validation_message='ok',
         )
 
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
-                Payment.objects.create(
-                    order=second_order,
-                    method=Payment.Method.MULTIBANCO,
-                    status=Payment.Status.PENDING,
-                    amount=second_order.total,
-                    mb_entity='12345',
-                    mb_reference='543210987',
+                PaymentCallback.objects.create(
+                    payment=None,
+                    raw_payload={'type': 'checkout.session.completed'},
+                    provider_event_id='evt_duplicate',
+                    ip_address='203.0.113.0',
+                    is_valid=True,
+                    validation_message='ok',
                 )
-
-    def test_same_reference_with_different_entity_is_allowed(self):
-        first_order = self._create_order(email='primeiro@example.com')
-        second_order = self._create_order(email='segundo@example.com')
-        Payment.objects.create(
-            order=first_order,
-            method=Payment.Method.MULTIBANCO,
-            status=Payment.Status.PENDING,
-            amount=first_order.total,
-            mb_entity='12345',
-            mb_reference='543210987',
-        )
-        Payment.objects.create(
-            order=second_order,
-            method=Payment.Method.MULTIBANCO,
-            status=Payment.Status.PENDING,
-            amount=second_order.total,
-            mb_entity='67890',
-            mb_reference='543210987',
-        )
-
-        self.assertEqual(Payment.objects.filter(mb_reference='543210987').count(), 2)
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
@@ -284,19 +277,19 @@ class PaymentAdminWorkflowTests(TestCase):
         )
         self.payment = Payment.objects.create(
             order=order,
-            method=Payment.Method.MULTIBANCO,
+            method=Payment.Method.STRIPE,
             status=Payment.Status.PENDING,
             amount=order.total,
-            ifthenpay_request_id='req-admin-1',
-            mb_entity='12345',
-            mb_reference='543210987',
+            stripe_session_id='cs_admin_1',
+            stripe_payment_intent_id='pi_admin_1',
         )
         PaymentCallback.objects.create(
             payment=self.payment,
-            raw_payload={'status': 'missing amount'},
+            raw_payload={'type': 'checkout.session.completed'},
+            provider_event_id='evt_admin_invalid',
             ip_address='203.0.113.0',
             is_valid=False,
-            validation_message='missing amount',
+            validation_message='signature verification failed',
         )
 
     def test_payment_admin_changelist_shows_workflow_cards(self):
@@ -312,3 +305,192 @@ class PaymentAdminWorkflowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Abrir encomenda')
         self.assertContains(response, 'Ver callbacks')
+
+
+@override_settings(
+    ROOT_URLCONF='config.urls_shop',
+    STRIPE_WEBHOOK_SECRET='whsec_test_secret',
+    DEFAULT_FROM_EMAIL='loja@biobrassica.pt',
+    STAFF_NOTIFICATION_EMAILS=['ops@biobrassica.pt'],
+)
+class StripeWebhookTests(TestCase):
+    def setUp(self):
+        self.order = Order.objects.create(
+            name='Marco',
+            email='marco@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('19.00'),
+            total=Decimal('19.00'),
+            status=Order.Status.PAYMENT_PENDING,
+        )
+        self.payment = Payment.objects.create(
+            order=self.order,
+            method=Payment.Method.STRIPE,
+            status=Payment.Status.PENDING,
+            amount=self.order.total,
+            stripe_session_id='cs_test_100',
+            stripe_payment_intent_id='pi_test_100',
+            checkout_url='https://checkout.stripe.com/pay/cs_test_100',
+        )
+
+    @patch('apps.payments.services.send_mail')
+    @patch('apps.payments.views.stripe_service.construct_webhook_event')
+    def test_stripe_completed_webhook_marks_order_paid(self, construct_event, send_mail):
+        construct_event.return_value = {
+            'id': 'evt_test_completed',
+            'type': 'checkout.session.completed',
+            'data': {
+                'object': {
+                    'id': 'cs_test_100',
+                    'payment_intent': 'pi_test_100',
+                    'customer_details': {'email': 'marco@example.com'},
+                    'metadata': {'order_id': str(self.order.pk)},
+                },
+            },
+        }
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse('stripe_callback'),
+                data='{}',
+                content_type='application/json',
+                HTTP_HOST='loja.lvh.me',
+                HTTP_STRIPE_SIGNATURE='test-signature',
+            )
+
+        self.payment.refresh_from_db()
+        self.order.refresh_from_db()
+        callback = PaymentCallback.objects.get(provider_event_id='evt_test_completed')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.payment.status, Payment.Status.PAID)
+        self.assertEqual(self.order.status, Order.Status.PAID)
+        self.assertTrue(callback.is_valid)
+        self.assertEqual(send_mail.call_count, 2)
+
+    def test_invalid_stripe_signature_is_rejected(self):
+        response = self.client.post(
+            reverse('stripe_callback'),
+            data='{}',
+            content_type='application/json',
+            HTTP_HOST='loja.lvh.me',
+            HTTP_STRIPE_SIGNATURE='invalid-signature',
+        )
+
+        callback = PaymentCallback.objects.get(payment=None)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(callback.is_valid)
+        self.assertEqual(callback.validation_message, 'invalid stripe signature')
+
+    @patch('apps.payments.views.stripe_service.construct_webhook_event')
+    def test_duplicate_stripe_event_is_idempotent(self, construct_event):
+        PaymentCallback.objects.create(
+            payment=self.payment,
+            raw_payload={'type': 'checkout.session.completed'},
+            provider_event_id='evt_test_duplicate',
+            ip_address='203.0.113.0',
+            is_valid=True,
+            validation_message='ok',
+        )
+        construct_event.return_value = {
+            'id': 'evt_test_duplicate',
+            'type': 'checkout.session.completed',
+            'data': {'object': {'id': 'cs_test_100', 'payment_intent': 'pi_test_100', 'metadata': {}}},
+        }
+
+        response = self.client.post(
+            reverse('stripe_callback'),
+            data='{}',
+            content_type='application/json',
+            HTTP_HOST='loja.lvh.me',
+            HTTP_STRIPE_SIGNATURE='test-signature',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PaymentCallback.objects.filter(provider_event_id='evt_test_duplicate').count(), 1)
+
+    @patch('apps.payments.views.PaymentCallback.objects.get_or_create', side_effect=IntegrityError)
+    @patch('apps.payments.views.stripe_service.construct_webhook_event')
+    def test_duplicate_stripe_event_race_returns_ok(self, construct_event, get_or_create):
+        construct_event.return_value = {
+            'id': 'evt_test_duplicate_race',
+            'type': 'checkout.session.completed',
+            'data': {'object': {'id': 'cs_test_100', 'payment_intent': 'pi_test_100', 'metadata': {}}},
+        }
+
+        response = self.client.post(
+            reverse('stripe_callback'),
+            data='{}',
+            content_type='application/json',
+            HTTP_HOST='loja.lvh.me',
+            HTTP_STRIPE_SIGNATURE='test-signature',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        get_or_create.assert_called_once()
+
+    @patch('apps.payments.views.stripe_service.construct_webhook_event')
+    def test_refunded_webhook_cancels_paid_order(self, construct_event):
+        self.payment.status = Payment.Status.PAID
+        self.payment.paid_at = timezone.now()
+        self.payment.save(update_fields=['status', 'paid_at'])
+        self.order.status = Order.Status.PAID
+        self.order.save(update_fields=['status', 'updated_at'])
+        construct_event.return_value = {
+            'id': 'evt_test_refund',
+            'type': 'charge.refunded',
+            'data': {
+                'object': {
+                    'id': 'pi_test_100',
+                    'payment_intent': 'pi_test_100',
+                    'metadata': {},
+                },
+            },
+        }
+
+        response = self.client.post(
+            reverse('stripe_callback'),
+            data='{}',
+            content_type='application/json',
+            HTTP_HOST='loja.lvh.me',
+            HTTP_STRIPE_SIGNATURE='test-signature',
+        )
+
+        self.payment.refresh_from_db()
+        self.order.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.payment.status, Payment.Status.REFUNDED)
+        self.assertEqual(self.order.status, Order.Status.CANCELLED)
+
+    @patch('apps.payments.views.stripe_service.construct_webhook_event')
+    def test_unknown_stripe_payment_is_recorded_without_failing_delivery(self, construct_event):
+        construct_event.return_value = {
+            'id': 'evt_unknown_payment',
+            'type': 'checkout.session.completed',
+            'data': {
+                'object': {
+                    'id': 'cs_unknown',
+                    'payment_intent': 'pi_unknown',
+                    'customer_details': {'email': 'unknown@example.com'},
+                    'metadata': {},
+                },
+            },
+        }
+
+        response = self.client.post(
+            reverse('stripe_callback'),
+            data='{}',
+            content_type='application/json',
+            HTTP_HOST='loja.lvh.me',
+            HTTP_STRIPE_SIGNATURE='test-signature',
+        )
+
+        callback = PaymentCallback.objects.get(provider_event_id='evt_unknown_payment')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(callback.payment)
+        self.assertFalse(callback.is_valid)
+        self.assertEqual(callback.validation_message, 'payment not found')

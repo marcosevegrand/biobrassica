@@ -14,6 +14,12 @@ class SubdomainRoutingTests(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 		self.assertTemplateUsed(response, 'catalog/shop_home.html')
+		self.assertContains(response, '/static/js/htmx.min.js')
+		self.assertContains(response, 'https://lvh.me/pt/contactos/')
+		self.assertContains(response, 'https://lvh.me')
+		self.assertNotContains(response, 'https://biobrassica.pt/pt/contactos/')
+		self.assertNotContains(response, 'https://unpkg.com/htmx.org@2.0.4')
+		self.assertNotContains(response, 'fonts.googleapis.com')
 
 	def test_admin_is_blocked_on_website_host(self):
 		response = self.client.get('/admin/', HTTP_HOST='lvh.me')
@@ -37,6 +43,8 @@ class WebsiteRoutingTests(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 		self.assertTemplateUsed(response, 'website/home.html')
+		self.assertContains(response, '/static/js/instagram-feed.js')
+		self.assertNotContains(response, 'fonts.googleapis.com')
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
@@ -65,7 +73,7 @@ class AdminDashboardTests(TestCase):
 		self.order = Order.objects.get(email=self.customer.email)
 		Payment.objects.create(
 			order=self.order,
-			method=Payment.Method.MBWAY,
+			method=Payment.Method.STRIPE,
 			status=Payment.Status.PAID,
 			amount='12.00',
 			paid_at=timezone.now(),
@@ -90,6 +98,30 @@ class AdminDashboardTests(TestCase):
 		self.assertNotContains(response, 'Atalhos rápidos')
 		self.assertNotContains(response, 'Authentication and Authorization')
 		self.assertNotContains(response, 'Gerir equipa')
+
+	def test_admin_dashboard_excludes_refunded_orders_from_paid_metrics(self):
+		refunded_order = Order.objects.create(
+			user=self.customer,
+			name='Cliente Reembolso',
+			email='refund@example.com',
+			fulfillment_method=Order.FulfillmentMethod.PICKUP,
+			pickup_location=Order.PickupLocation.BRAGA,
+			subtotal='8.00',
+			total='8.00',
+			status=Order.Status.PREPARING,
+		)
+		Payment.objects.create(
+			order=refunded_order,
+			method=Payment.Method.STRIPE,
+			status=Payment.Status.REFUNDED,
+			amount='8.00',
+		)
+
+		response = self.client.get(reverse('admin:index'))
+		metric_map = {card['label']: card['value'] for card in response.context['dashboard_metric_cards']}
+		paid_orders = metric_map.get('Encomendas pagas', metric_map.get('Paid orders'))
+
+		self.assertEqual(paid_orders, 1)
 
 	def test_admin_branding_uses_biobrassica_sidebar_logo(self):
 		self.assertEqual(settings.UNFOLD['SITE_LOGO'], '/static/images/brand/favicon_green.png')

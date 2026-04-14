@@ -1,4 +1,4 @@
-.PHONY: help up down logs shell migrate makemigrations createsuperuser test lint format typecheck build restart seed collectstatic css-build status messages compilemessages check backup restore open prod-config coverage
+.PHONY: help up down logs shell migrate makemigrations createsuperuser test test-fast test-integration test-contracts test-browser-smoke test-security test-all lint format typecheck build restart seed collectstatic css-build status messages compilemessages check backup restore open prod-config coverage stripe-listen
 
 .DEFAULT_GOAL := help
 
@@ -96,6 +96,24 @@ compilemessages: ## Compile .po → .mo translation files
 test: ## Run test suite
 	$(COMPOSE_DEV) exec django python manage.py test
 
+test-fast: ## Run fast pytest suites (unit/service/model/form/queryset/contracts)
+	$(COMPOSE_DEV) exec django pytest -m "fast or contract"
+
+test-integration: ## Run Django integration pytest suites
+	$(COMPOSE_DEV) exec django pytest -m "integration and not browser"
+
+test-contracts: ## Run contract pytest suites
+	$(COMPOSE_DEV) exec django pytest -m contract
+
+test-browser-smoke: ## Run browser smoke suite
+	$(COMPOSE_DEV) exec django pytest -m browser
+
+test-security: ## Run security smoke pytest suites
+	$(COMPOSE_DEV) exec django pytest -m security
+
+test-all: ## Run fast, integration, and contract pytest suites
+	$(COMPOSE_DEV) exec django pytest -m "fast or integration or contract"
+
 lint: ## Run linter (ruff)
 	$(COMPOSE_DEV) exec django ruff check .
 
@@ -108,6 +126,9 @@ typecheck: ## Run type checker (pyright)
 coverage: ## Run tests with coverage report
 	$(COMPOSE_DEV) exec django coverage run --source=apps manage.py test
 	$(COMPOSE_DEV) exec django coverage report
+
+stripe-listen: ## Forward Stripe test-mode webhooks into local nginx
+	$(COMPOSE_DEV) run --rm stripe-cli listen --forward-to http://nginx/api/payments/callback/stripe/ --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired,payment_intent.payment_failed,charge.refunded
 
 check: ## Run Django deployment checks
 	$(COMPOSE_DEV) exec django python manage.py check --deploy

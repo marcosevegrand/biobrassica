@@ -79,6 +79,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.cart.context_processors.cart_count',
+                'apps.core.context_processors.contact_locations',
             ],
         },
     },
@@ -125,14 +126,12 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# ifthenpay
-IFTHENPAY_BACKOFFICE_KEY = os.environ.get('IFTHENPAY_BACKOFFICE_KEY', '')
-IFTHENPAY_MBWAY_KEY = os.environ.get('IFTHENPAY_MBWAY_KEY', '')
-IFTHENPAY_MB_ENTITY = os.environ.get('IFTHENPAY_MB_ENTITY', '')
-IFTHENPAY_MB_SUBENTITY = os.environ.get('IFTHENPAY_MB_SUBENTITY', '')
-IFTHENPAY_CCARD_KEY = os.environ.get('IFTHENPAY_CCARD_KEY', '')
-IFTHENPAY_ANTI_PHISHING_KEY = os.environ.get('IFTHENPAY_ANTI_PHISHING_KEY', '')
-IFTHENPAY_CALLBACK_URL = os.environ.get('IFTHENPAY_CALLBACK_URL', 'https://loja.biobrassica.pt/api/payments/callback/')
+# Stripe
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'eur').strip().lower() or 'eur'
+SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.biobrassica.pt').rstrip('/')
 
 # Email
 DEFAULT_FROM_EMAIL = 'Biobrassica <loja@biobrassica.pt>'
@@ -141,7 +140,6 @@ STAFF_NOTIFICATION_EMAILS = os.environ.get(
 ).split(',') if os.environ.get('STAFF_NOTIFICATION_EMAILS') else []
 
 PAYMENT_CALLBACK_RETENTION_DAYS = int(os.environ.get('PAYMENT_CALLBACK_RETENTION_DAYS', '30'))
-MBWAY_PAYMENT_EXPIRY_MINUTES = int(os.environ.get('MBWAY_PAYMENT_EXPIRY_MINUTES', '15'))
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True

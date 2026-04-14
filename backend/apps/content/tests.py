@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib import admin
 from django.contrib.postgres.indexes import GinIndex
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, connection, transaction
@@ -6,8 +7,11 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from decimal import Decimal
 from typing import Any, cast
 
+from apps.catalog.models import Category, Location, Product, ProductTranslation
 from apps.content.models import BlogPost, BlogPostTranslation, Recipe, RecipeTranslation
 
 
@@ -126,6 +130,30 @@ class ContentConstraintTests(TestCase):
                     instructions=['Misturar'],
                 )
 
+    def test_blogpost_publish_requires_pt_translation_and_cover_image(self):
+        post = BlogPost(slug='por-publicar', is_published=True)
+
+        with self.assertRaises(ValidationError) as ctx:
+            post.full_clean()
+
+        self.assertIn('adicionar tradução PT', ctx.exception.messages)
+        self.assertIn('carregar imagem de capa', ctx.exception.messages)
+
+    def test_recipe_publish_requires_pt_content(self):
+        recipe = Recipe(
+            slug='receita-por-publicar',
+            prep_time=15,
+            cook_time=20,
+            servings=4,
+            is_published=True,
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            recipe.full_clean()
+
+        self.assertIn('adicionar tradução PT', ctx.exception.messages)
+        self.assertIn('carregar imagem de capa', ctx.exception.messages)
+
 
 class ContentIndexTests(TestCase):
     def test_blogpost_tags_uses_named_gin_index(self):
@@ -216,6 +244,32 @@ class ContentListAndDetailViewTests(TestCase):
             self.assertEqual(response.status_code, 200)
 
         self.assertLessEqual(len(queries), 8)
+
+    def test_recipe_detail_uses_environment_shop_domain_for_related_products(self):
+        category = Category.objects.create(slug='mercearia')
+        product = Product.objects.create(
+            category=category,
+            slug='arroz-bio',
+            brand='Biobrassica',
+            price=Decimal('4.50'),
+            quantity='1 kg',
+            stock=10,
+            is_active=True,
+            bio_code='PT-BIO-04',
+        )
+        ProductTranslation.objects.create(
+            product=product,
+            language='pt',
+            name='Arroz bio',
+        )
+        braga = Location.objects.create(name='Loja Braga', address='Rua Exemplo', is_active=True)
+        product.available_locations.add(braga)
+        self.recipe.related_products.add(product)
+
+        response = self.client.get(f'/pt/receitas/{self.recipe.slug}/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'https://loja.lvh.me/pt/produto/arroz-bio/')
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
@@ -308,3 +362,7 @@ class ContentAdminWorkflowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(self.recipe.is_published)
         self.assertContains(response, 'Não foi possível publicar: carregar imagem de capa')
+
+    def test_publish_flags_are_not_list_editable_in_content_admin(self):
+        self.assertNotIn('is_published', admin.site._registry[BlogPost].list_editable)
+        self.assertNotIn('is_published', admin.site._registry[Recipe].list_editable)

@@ -24,10 +24,11 @@
         {% endif %}
 
         <div class="formset-wrapper">
-            <div class="formset border border-base-200 overflow-hidden rounded-default shadow-xs w-full dark:border-base-800" data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
-                 {% if inline_admin_formset.opts.ordering_field %}
-                     data-ordering-field="{{ inline_admin_formset.opts.ordering_field }}" x-on:end="sortRecords" x-sort.ghost
-                 {% endif %}>
+            <div class="formset">
+                <div class="formset border border-base-200 overflow-hidden rounded-default shadow-xs w-full dark:border-base-800" data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
+                     {% if inline_admin_formset.opts.ordering_field %}
+                         data-ordering-field="{{ inline_admin_formset.opts.ordering_field }}" x-on:end="sortRecords" x-sort.ghost
+                     {% endif %}>
 
             {% for inline_admin_form in inline_admin_formset %}
                 <div x-sort:item class="form-group inline-related group inline-stacked {% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last and inline_admin_formset.has_add_permission %} empty-form last-related hidden{% endif %}" id="{{ inline_admin_formset.formset.prefix }}-{% if not forloop.last %}{{ forloop.counter0 }}{% else %}__prefix__{% endif %}" {% if inline_admin_formset.opts.collapsible and inline_admin_form.original %}x-data="{ open: {% if inline_admin_form.errors %}true{% else %}false{% endif %} }"{% endif %}>
@@ -111,13 +112,14 @@
                 </div>
             {% endfor %}
 
-            {% if inline_admin_formset.has_add_permission %}
-                <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
-                    <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
-                        {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                {% if inline_admin_formset.has_add_permission %}
+                    <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
+                        <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
+                            {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                        </div>
                     </div>
+                {% endif %}
                 </div>
-            {% endif %}
             </div>
         </div>
 

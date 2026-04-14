@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import translation
 from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.translations import DEFAULT_LANGUAGE, normalized_language
 
@@ -53,66 +54,82 @@ class LocalizedWebsiteContent:
 
 class TeamMember(models.Model):
     """Admin-managed team members shown on the 'A Nossa Equipa' section."""
-    name = models.CharField('nome', max_length=255, help_text='Nome do membro da equipa')
-    role = models.CharField('função', max_length=255, help_text='Cargo / Função')
-    photo = models.ImageField('foto', upload_to='team/', help_text='Foto do membro')
-    order = models.PositiveIntegerField('ordem', default=0)
-    is_active = models.BooleanField('ativo', default=True)
+    name = models.CharField(_('nome'), max_length=255, help_text=_('Nome do membro da equipa'))
+    role = models.CharField(_('função'), max_length=255, help_text=_('Cargo / Função'))
+    photo = models.ImageField(_('foto'), upload_to='team/', help_text=_('Foto do membro'))
+    order = models.PositiveIntegerField(_('ordem'), default=0)
+    is_active = models.BooleanField(_('ativo'), default=True)
 
     class Meta:
         ordering = ['order', 'name']
-        verbose_name = 'membro da equipa'
-        verbose_name_plural = 'membros da equipa'
+        verbose_name = _('membro da equipa')
+        verbose_name_plural = _('membros da equipa')
 
     def __str__(self):
         return self.name
 
 
 class WebsiteContent(models.Model):
-    home_hero_image = models.ImageField('imagem hero home', upload_to='website/', blank=True)
-    home_hero_title_line1 = models.CharField('título home linha 1', max_length=120, blank=True)
-    home_hero_title_line2 = models.CharField('título home linha 2', max_length=120, blank=True)
-    home_hero_tagline = models.CharField('subtítulo home', max_length=255, blank=True)
-    home_quote_text = models.TextField('citação home', blank=True)
-    home_quote_author = models.CharField('autor da citação', max_length=120, blank=True)
-    home_quote_role = models.CharField('função do autor', max_length=120, blank=True)
-    home_quote_image = models.ImageField('imagem da citação', upload_to='website/', blank=True)
-    home_shop_cta_title = models.CharField('título CTA loja', max_length=120, blank=True)
-    home_shop_cta_body = models.TextField('texto CTA loja', blank=True)
+    company_legal_name = models.CharField(_('designação legal'), max_length=255, blank=True)
+    company_address = models.TextField(_('morada legal'), blank=True)
+    company_nif = models.CharField(_('NIF da empresa'), max_length=20, blank=True)
+    support_email = models.EmailField(_('email de apoio'), blank=True)
+    home_hero_image = models.ImageField(_('imagem hero home'), upload_to='website/', blank=True)
+    home_hero_title_line1 = models.CharField(_('título home linha 1'), max_length=120, blank=True)
+    home_hero_title_line2 = models.CharField(_('título home linha 2'), max_length=120, blank=True)
+    home_hero_tagline = models.CharField(_('subtítulo home'), max_length=255, blank=True)
+    home_quote_text = models.TextField(_('citação home'), blank=True)
+    home_quote_author = models.CharField(_('autor da citação'), max_length=120, blank=True)
+    home_quote_role = models.CharField(_('função do autor'), max_length=120, blank=True)
+    home_quote_image = models.ImageField(_('imagem da citação'), upload_to='website/', blank=True)
+    home_shop_cta_title = models.CharField(_('título CTA loja'), max_length=120, blank=True)
+    home_shop_cta_body = models.TextField(_('texto CTA loja'), blank=True)
 
-    about_hero_image = models.ImageField('imagem hero quem somos', upload_to='website/', blank=True)
-    about_hero_title = models.CharField('título hero quem somos', max_length=160, blank=True)
-    about_hero_subtitle = models.CharField('subtítulo hero quem somos', max_length=255, blank=True)
-    about_meaning_title = models.CharField('título bloco significado', max_length=160, blank=True)
-    about_meaning_body = models.TextField('texto bloco significado', blank=True)
-    about_meaning_image = models.ImageField('imagem bloco significado', upload_to='website/', blank=True)
-    about_selection_title = models.CharField('título bloco seleção', max_length=160, blank=True)
-    about_selection_body = models.TextField('texto bloco seleção', blank=True)
-    about_selection_image = models.ImageField('imagem bloco seleção', upload_to='website/', blank=True)
-    about_farm_title = models.CharField('título bloco quinta', max_length=160, blank=True)
-    about_farm_body = models.TextField('texto bloco quinta', blank=True)
-    about_farm_image = models.ImageField('imagem bloco quinta', upload_to='website/', blank=True)
-    about_video_title = models.CharField('título vídeo quem somos', max_length=160, blank=True)
-    about_video_body = models.TextField('texto vídeo quem somos', blank=True)
+    about_hero_image = models.ImageField(_('imagem hero quem somos'), upload_to='website/', blank=True)
+    about_hero_title = models.CharField(_('título hero quem somos'), max_length=160, blank=True)
+    about_hero_subtitle = models.CharField(_('subtítulo hero quem somos'), max_length=255, blank=True)
+    about_meaning_title = models.CharField(_('título bloco significado'), max_length=160, blank=True)
+    about_meaning_body = models.TextField(_('texto bloco significado'), blank=True)
+    about_meaning_image = models.ImageField(_('imagem bloco significado'), upload_to='website/', blank=True)
+    about_selection_title = models.CharField(_('título bloco seleção'), max_length=160, blank=True)
+    about_selection_body = models.TextField(_('texto bloco seleção'), blank=True)
+    about_selection_image = models.ImageField(_('imagem bloco seleção'), upload_to='website/', blank=True)
+    about_farm_title = models.CharField(_('título bloco quinta'), max_length=160, blank=True)
+    about_farm_body = models.TextField(_('texto bloco quinta'), blank=True)
+    about_farm_image = models.ImageField(_('imagem bloco quinta'), upload_to='website/', blank=True)
+    about_video_title = models.CharField(_('título vídeo quem somos'), max_length=160, blank=True)
+    about_video_body = models.TextField(_('texto vídeo quem somos'), blank=True)
 
-    agriculture_hero_image = models.ImageField('imagem hero agricultura', upload_to='website/', blank=True)
-    agriculture_intro_text = models.TextField('introdução agricultura', blank=True)
-    agriculture_why_title = models.CharField('título porquê biológico', max_length=160, blank=True)
-    agriculture_why_body = models.TextField('texto porquê biológico', blank=True)
-    agriculture_why_image = models.ImageField('imagem porquê biológico', upload_to='website/', blank=True)
+    agriculture_hero_image = models.ImageField(_('imagem hero agricultura'), upload_to='website/', blank=True)
+    agriculture_intro_text = models.TextField(_('introdução agricultura'), blank=True)
+    agriculture_why_title = models.CharField(_('título porquê biológico'), max_length=160, blank=True)
+    agriculture_why_body = models.TextField(_('texto porquê biológico'), blank=True)
+    agriculture_why_image = models.ImageField(_('imagem porquê biológico'), upload_to='website/', blank=True)
 
-    contacts_hero_title = models.CharField('título contactos', max_length=160, blank=True)
-    contacts_hero_body = models.TextField('texto contactos', blank=True)
-    whatsapp_number = models.CharField('número WhatsApp', max_length=20, blank=True)
+    contacts_hero_title = models.CharField(_('título contactos'), max_length=160, blank=True)
+    contacts_hero_body = models.TextField(_('texto contactos'), blank=True)
+    whatsapp_number = models.CharField(_('número WhatsApp'), max_length=20, blank=True)
 
-    updated_at = models.DateTimeField('atualizado em', auto_now=True)
+    updated_at = models.DateTimeField(_('atualizado em'), auto_now=True)
 
     class Meta:
-        verbose_name = 'conteúdo do website'
-        verbose_name_plural = 'conteúdo do website'
+        verbose_name = _('conteúdo do website')
+        verbose_name_plural = _('conteúdo do website')
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(pk=1),
+                name='website_singleton_pk_1',
+            ),
+        ]
 
     def __str__(self):
         return 'Conteúdo do website'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        if kwargs.get('force_insert') and type(self).objects.filter(pk=1).exists():
+            kwargs['force_insert'] = False
+        return super().save(*args, **kwargs)
 
     def for_language(self, lang=None):
         return LocalizedWebsiteContent(self, lang=lang)

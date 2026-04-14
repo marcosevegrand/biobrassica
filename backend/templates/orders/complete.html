@@ -16,17 +16,17 @@
     {% trans "O pagamento da sua encomenda" %} <strong>#{{ order.pk }}</strong> {% trans "foi confirmado." %}
   </p>
 
-  {% if order.payment.method == 'multibanco' and order.payment.mb_entity %}
+  {% if order.payment.method == 'stripe' %}
   <div class="border border-stone/30 rounded-sm p-8 text-left mb-8">
-    <h3 class="font-serif text-lg italic mb-4">{% trans "Dados para pagamento Multibanco" %}</h3>
+    <h3 class="font-serif text-lg italic mb-4">{% trans "Pagamento" %}</h3>
     <div class="space-y-2 text-sm">
       <div class="flex justify-between">
-        <span class="text-muted">{% trans "Entidade" %}</span>
-        <span class="font-mono font-medium">{{ order.payment.mb_entity }}</span>
+        <span class="text-muted">{% trans "Método" %}</span>
+        <span class="font-medium">Stripe</span>
       </div>
       <div class="flex justify-between">
-        <span class="text-muted">{% trans "Referência" %}</span>
-        <span class="font-mono font-medium">{{ order.payment.mb_reference }}</span>
+        <span class="text-muted">{% trans "Sessão" %}</span>
+        <span class="font-mono font-medium">{{ order.payment.masked_stripe_session_id }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-muted">{% trans "Valor" %}</span>

@@ -1,6 +1,12 @@
 -r requirements.txt
 ruff>=0.11.0
 coverage>=7.6.0
+pytest>=8.3.0
+pytest-django>=4.9.0
+pytest-xdist>=3.6.0
+playwright>=1.53.0
+factory-boy>=3.3.0
+Faker>=37.0.0
 pyright
 django-stubs
 types-requests

@@ -8,8 +8,6 @@
       <span class="font-serif text-2xl italic ml-2">{{ cart_summary.cart_total|floatformat:2 }}€</span>
     </p>
     <a href="{% url 'orders:checkout' %}"
-       hx-get="{% url 'orders:checkout' %}"
-       hx-swap="none"
        class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors">
       {% trans "Finalizar encomenda" %}
     </a>

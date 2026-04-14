@@ -40,8 +40,13 @@ jobs:
       DB_PORT: 5432
       REDIS_URL: redis://127.0.0.1:6379/0
       EMAIL_HOST: localhost
+      EMAIL_HOST_USER: ci-user
+      EMAIL_HOST_PASSWORD: ci-password
       EMAIL_PORT: 1025
-      IFTHENPAY_ANTI_PHISHING_KEY: ci-callback-key
+      STRIPE_SECRET_KEY: sk_test_ci_secret
+      STRIPE_PUBLISHABLE_KEY: pk_test_ci_publishable
+      STRIPE_WEBHOOK_SECRET: whsec_ci_secret
+      STRIPE_CURRENCY: eur
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,7 +61,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r backend/requirements-dev.txt
+
+      - name: Install Chromium for browser smoke tests
+        run: python -m playwright install --with-deps chromium
 
       - name: Validate production compose
         run: docker compose -f docker-compose.yml config
@@ -70,14 +78,53 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.development
         run: python manage.py migrate --noinput
 
-      - name: Run focused tests
+      - name: Run full Django test suite
         working-directory: backend
         env:
           DJANGO_SETTINGS_MODULE: config.settings.development
-        run: python manage.py test apps.core.tests apps.orders.tests apps.payments.tests
+        run: >-
+          python manage.py test
+          apps.accounts.tests
+          apps.catalog.tests
+          apps.cart.tests
+          apps.content.tests
+          apps.core.tests
+          apps.orders.tests
+          apps.payments.tests
+          apps.website.tests
 
       - name: Run deploy checks
         working-directory: backend
         env:
           DJANGO_SETTINGS_MODULE: config.settings.production
         run: python manage.py check --deploy
+
+      - name: Build production image
+        run: docker compose -f docker-compose.yml build django
+
+      - name: Smoke test production entrypoint
+        run: >-
+          docker compose -f docker-compose.yml run --rm django
+          sh -lc 'DJANGO_SETTINGS_MODULE=config.settings.production /app/docker-entrypoint.sh gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --check-config'
+
+      - name: Backup script dry-run
+        run: BACKUP_DRY_RUN=1 ./scripts/backup.sh "$(mktemp -d)"
+
+      - name: Verify backup/restore contract
+        run: |
+          TMP_DIR="$(mktemp -d)"
+          docker compose -f docker-compose.yml up -d db
+          ./scripts/backup.sh "$TMP_DIR"
+          DB_BACKUP="$(find "$TMP_DIR" -maxdepth 1 -name 'db_*.sql.gz' | head -n 1)"
+          MEDIA_BACKUP="$(find "$TMP_DIR" -maxdepth 1 -name 'media_*.tar.gz' | head -n 1)"
+          [ -n "$DB_BACKUP" ]
+          [ -n "$MEDIA_BACKUP" ]
+          gunzip -t "$DB_BACKUP"
+          tar tzf "$MEDIA_BACKUP" > /dev/null
+          RESTORE_DRY_RUN=1 sh ./scripts/restore.sh --db "$DB_BACKUP" --media "$MEDIA_BACKUP"
+
+      - name: Run browser smoke tests
+        working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.development
+        run: python -m pytest tests/browser -m browser

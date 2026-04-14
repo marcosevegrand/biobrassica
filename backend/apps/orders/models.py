@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 if TYPE_CHECKING:
     from apps.payments.models import Payment
@@ -17,7 +18,7 @@ PT_POSTAL_CODE_RE = re.compile(r'^\d{4}-\d{3}$')
 ORDER_STATUS_TRANSITIONS = {
     'pending': {'payment_pending', 'cancelled'},
     'payment_pending': {'pending', 'paid', 'cancelled'},
-    'paid': {'preparing'},
+    'paid': {'preparing', 'cancelled'},
     'preparing': {'ready'},
     'ready': {'delivered'},
     'delivered': set(),
@@ -31,21 +32,21 @@ class Order(models.Model):
         payment: 'Payment'
 
     class Status(models.TextChoices):
-        PENDING = 'pending', 'Pendente'
-        PAYMENT_PENDING = 'payment_pending', 'Aguarda Pagamento'
-        PAID = 'paid', 'Pago'
-        PREPARING = 'preparing', 'Em Preparação'
-        READY = 'ready', 'Pronto para Levantamento'
-        DELIVERED = 'delivered', 'Entregue'
-        CANCELLED = 'cancelled', 'Cancelado'
+        PENDING = 'pending', _('Pendente')
+        PAYMENT_PENDING = 'payment_pending', _('Aguarda Pagamento')
+        PAID = 'paid', _('Pago')
+        PREPARING = 'preparing', _('Em Preparação')
+        READY = 'ready', _('Pronto para Levantamento')
+        DELIVERED = 'delivered', _('Entregue')
+        CANCELLED = 'cancelled', _('Cancelado')
 
     class PickupLocation(models.TextChoices):
-        BRAGA = 'braga', 'Loja Braga'
-        GUIMARAES = 'guimaraes', 'Loja Guimarães'
+        BRAGA = 'braga', _('Loja Braga')
+        GUIMARAES = 'guimaraes', _('Loja Guimarães')
 
     class FulfillmentMethod(models.TextChoices):
-        PICKUP = 'pickup', 'Levantamento na loja'
-        SHIPPING = 'shipping', 'Envio ao domicílio'
+        PICKUP = 'pickup', _('Levantamento na loja')
+        SHIPPING = 'shipping', _('Envio ao domicílio')
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -53,35 +54,35 @@ class Order(models.Model):
         null=True,
         blank=True,
         related_name='orders',
-        verbose_name='utilizador',
+        verbose_name=_('utilizador'),
     )
     access_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    email = models.EmailField('email')
-    phone = models.CharField('telefone', max_length=20, blank=True)
-    name = models.CharField('nome', max_length=255)
-    status = models.CharField('estado', max_length=20, choices=Status.choices, default=Status.PENDING)
+    email = models.EmailField(_('email'))
+    phone = models.CharField(_('telefone'), max_length=20, blank=True)
+    name = models.CharField(_('nome'), max_length=255)
+    status = models.CharField(_('estado'), max_length=20, choices=Status.choices, default=Status.PENDING)
     fulfillment_method = models.CharField(
-        'método de entrega',
+        _('método de entrega'),
         max_length=20,
         choices=FulfillmentMethod.choices,
         default=FulfillmentMethod.PICKUP,
     )
-    pickup_location = models.CharField('local de levantamento', max_length=20, choices=PickupLocation.choices, blank=True)
-    shipping_address_line1 = models.CharField('morada', max_length=255, blank=True)
-    shipping_address_line2 = models.CharField('morada (cont.)', max_length=255, blank=True)
-    shipping_city = models.CharField('cidade', max_length=100, blank=True)
-    shipping_postal_code = models.CharField('código postal', max_length=10, blank=True)
-    language = models.CharField('idioma', max_length=2, default='pt')
-    subtotal = models.DecimalField('subtotal', max_digits=10, decimal_places=2)
-    total = models.DecimalField('total', max_digits=10, decimal_places=2)
-    notes = models.TextField('notas', blank=True)
-    created_at = models.DateTimeField('criado em', auto_now_add=True)
-    updated_at = models.DateTimeField('atualizado em', auto_now=True)
+    pickup_location = models.CharField(_('local de levantamento'), max_length=20, choices=PickupLocation.choices, blank=True)
+    shipping_address_line1 = models.CharField(_('morada'), max_length=255, blank=True)
+    shipping_address_line2 = models.CharField(_('morada (cont.)'), max_length=255, blank=True)
+    shipping_city = models.CharField(_('cidade'), max_length=100, blank=True)
+    shipping_postal_code = models.CharField(_('código postal'), max_length=10, blank=True)
+    language = models.CharField(_('idioma'), max_length=2, default='pt')
+    subtotal = models.DecimalField(_('subtotal'), max_digits=10, decimal_places=2)
+    total = models.DecimalField(_('total'), max_digits=10, decimal_places=2)
+    notes = models.TextField(_('notas'), blank=True)
+    created_at = models.DateTimeField(_('criado em'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('atualizado em'), auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'encomenda'
-        verbose_name_plural = 'encomendas'
+        verbose_name = _('encomenda')
+        verbose_name_plural = _('encomendas')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -114,20 +115,20 @@ class Order(models.Model):
         original_status = getattr(self, '_original_status', None)
 
         if original_status and self.status != original_status and not self.can_transition_to(self.status):
-            errors['status'] = 'Transição de estado inválida para a encomenda.'
+            errors['status'] = _('Transição de estado inválida para a encomenda.')
 
         if self.fulfillment_method == self.FulfillmentMethod.PICKUP:
             if not self.pickup_location:
-                errors['pickup_location'] = 'Selecione um local de levantamento.'
+                errors['pickup_location'] = _('Selecione um local de levantamento.')
         elif self.fulfillment_method == self.FulfillmentMethod.SHIPPING:
             for field_name in ('shipping_address_line1', 'shipping_city', 'shipping_postal_code'):
                 value = getattr(self, field_name, '')
                 if not value or not value.strip():
-                    errors[field_name] = 'Este campo é obrigatório para envio.'
+                    errors[field_name] = _('Este campo é obrigatório para envio.')
 
             postal_code = (self.shipping_postal_code or '').strip()
             if postal_code and not PT_POSTAL_CODE_RE.match(postal_code):
-                errors['shipping_postal_code'] = 'Use o formato 1234-123.'
+                errors['shipping_postal_code'] = _('Use o formato 1234-123.')
 
         payment = None
         try:
@@ -137,10 +138,10 @@ class Order(models.Model):
 
         if self.status in {self.Status.PREPARING, self.Status.READY, self.Status.DELIVERED}:
             if payment is None or payment.status != payment.Status.PAID:
-                errors['status'] = 'A encomenda só pode avançar após pagamento confirmado.'
+                errors['status'] = _('A encomenda só pode avançar após pagamento confirmado.')
 
         if self.status == self.Status.CANCELLED and payment is not None and payment.status == payment.Status.PAID:
-            errors['status'] = 'As encomendas pagas não podem ser canceladas por este fluxo.'
+            errors['status'] = _('As encomendas pagas não podem ser canceladas por este fluxo.')
 
         if errors:
             raise ValidationError(errors)
@@ -183,20 +184,20 @@ class OrderItem(models.Model):
     if TYPE_CHECKING:
         product_id: int | None
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='encomenda')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name=_('encomenda'))
     product = models.ForeignKey(
         'catalog.Product',
         on_delete=models.SET_NULL,
         null=True,
-        verbose_name='produto',
+        verbose_name=_('produto'),
     )
-    product_name = models.CharField('nome do produto', max_length=255)
-    price = models.DecimalField('preço', max_digits=8, decimal_places=2)
-    quantity = models.PositiveIntegerField('quantidade')
+    product_name = models.CharField(_('nome do produto'), max_length=255)
+    price = models.DecimalField(_('preço'), max_digits=8, decimal_places=2)
+    quantity = models.PositiveIntegerField(_('quantidade'))
 
     class Meta:
-        verbose_name = 'item da encomenda'
-        verbose_name_plural = 'itens da encomenda'
+        verbose_name = _('item da encomenda')
+        verbose_name_plural = _('itens da encomenda')
 
     def __str__(self):
         return f'{self.quantity}x {self.product_name}'

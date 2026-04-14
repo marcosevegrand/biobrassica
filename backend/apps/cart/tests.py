@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from apps.cart.models import Cart, CartItem
-from apps.cart.services import get_cart_summary, merge_anonymous_cart_into_user_cart
+from apps.cart.services import get_cart_items_queryset, get_cart_summary, merge_anonymous_cart_into_user_cart
 from apps.catalog.models import Category, CategoryTranslation, Product, ProductTranslation
 
 
@@ -187,6 +187,24 @@ class CartViewTests(TestCase):
 		self.assertNotContains(response, 'id="cart-items"', html=False)
 		self.assertEqual(response.headers.get('HX-Reswap'), None)
 
+	def test_htmx_update_invalid_quantity_returns_cart_message(self):
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		item = CartItem.objects.create(cart=cart, product=self.product, quantity=2)
+
+		response = self.client.post(
+			reverse('cart:update', kwargs={'item_id': item.pk}),
+			{'quantity': 'abc'},
+			HTTP_HOST='loja.lvh.me',
+			HTTP_HX_REQUEST='true',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'id="cart-messages"', html=False)
+		self.assertContains(response, 'Indique uma quantidade válida.')
+		self.assertContains(response, f'id="cart-item-{item.pk}"', html=False)
+
 	def test_htmx_remove_returns_empty_state_and_hides_summary(self):
 		session = self.client.session
 		session.save()
@@ -233,6 +251,36 @@ class CartViewTests(TestCase):
 
 		self.assertEqual(cart.item_count, 5)
 		self.assertEqual(cart.total, Decimal('31.75'))
+
+	def test_cart_summary_and_totals_ignore_inactive_products(self):
+		inactive_product = self._create_product('sumo-inativo', 'Sumo inativo', Decimal('3.50'))
+		inactive_product.is_active = False
+		inactive_product.save(update_fields=['is_active'])
+
+		cart = Cart.objects.create(session_key='inactive-summary-session')
+		CartItem.objects.create(cart=cart, product=self.product, quantity=2)
+		CartItem.objects.create(cart=cart, product=inactive_product, quantity=4)
+
+		summary = get_cart_summary(cart)
+
+		self.assertEqual(summary['cart_item_count'], 2)
+		self.assertEqual(summary['cart_total'], Decimal('19.00'))
+		self.assertEqual(cart.item_count, 2)
+		self.assertEqual(cart.total, Decimal('19.00'))
+
+	def test_cart_queryset_excludes_inactive_products(self):
+		inactive_product = self._create_product('feijao-inativo', 'Feijão inativo', Decimal('2.00'))
+		cart = Cart.objects.create(session_key='inactive-queryset-session')
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1)
+		CartItem.objects.create(cart=cart, product=inactive_product, quantity=1)
+
+		inactive_product.is_active = False
+		inactive_product.save(update_fields=['is_active'])
+
+		items = list(get_cart_items_queryset(cart))
+
+		self.assertEqual(len(items), 1)
+		self.assertEqual(items[0].product_id, self.product.pk)
 
 	def test_merge_anonymous_cart_rolls_back_if_delete_fails(self):
 		user_model = get_user_model()

@@ -6,7 +6,9 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib import admin
 from typing import Any, cast
+from django.utils import translation
 
 from apps.catalog.models import Category, CategoryTranslation, DeliveryMethod, Location, Product, ProductImage, ProductTranslation
 
@@ -68,6 +70,41 @@ class ProductModelTests(TestCase):
 		self.assertIn('description', ctx.exception.message_dict)
 		self.assertIn('allergens', ctx.exception.message_dict)
 		self.assertIn('ingredients', ctx.exception.message_dict)
+
+	def test_active_product_requires_stock_primary_image_and_location(self):
+		product = Product.objects.create(
+			category=self.category,
+			slug='produto-ativo-invalido',
+			brand='Casa do Tahini',
+			price='5.90',
+			quantity='250 g',
+			stock=1,
+			bio_code='PT-BIO-03',
+			is_active=False,
+		)
+		ProductTranslation.objects.create(
+			product=product,
+			language='pt',
+			name='Tahini',
+			description='Descrição',
+			allergens='Sésamo',
+			ingredients='Sementes de sésamo',
+		)
+		ProductImage.objects.create(
+			product=product,
+			image=SimpleUploadedFile('produto.gif', GIF_BYTES, content_type='image/gif'),
+			alt_text='Tahini',
+			is_primary=True,
+		)
+
+		product.stock = 0
+		product.is_active = True
+
+		with self.assertRaises(ValidationError) as ctx:
+			product.full_clean()
+
+		self.assertIn('O produto precisa de stock para estar ativo.', ctx.exception.messages)
+		self.assertIn('O produto precisa de pelo menos uma localização para levantamento.', ctx.exception.messages)
 
 
 @override_settings(ROOT_URLCONF='config.urls_shop')
@@ -179,6 +216,23 @@ class CatalogConstraintTests(TestCase):
 					ingredients='Sementes de sésamo',
 				)
 
+	def test_duplicate_primary_product_image_is_rejected(self):
+		ProductImage.objects.create(
+			product=self.product,
+			image=SimpleUploadedFile('primary-1.gif', GIF_BYTES, content_type='image/gif'),
+			alt_text='Primeira',
+			is_primary=True,
+		)
+
+		with self.assertRaises(IntegrityError):
+			with transaction.atomic():
+				ProductImage.objects.create(
+					product=self.product,
+					image=SimpleUploadedFile('primary-2.gif', GIF_BYTES, content_type='image/gif'),
+					alt_text='Segunda',
+					is_primary=True,
+				)
+
 
 @override_settings(ROOT_URLCONF='config.urls_shop')
 class CatalogListViewTests(TestCase):
@@ -230,7 +284,46 @@ class CatalogListViewTests(TestCase):
 				)
 			self.assertEqual(response.status_code, 200)
 
-		self.assertLessEqual(len(queries), 8)
+		self.assertLessEqual(len(queries), 10)
+
+	def test_product_list_uses_pt_fallback_when_requested_language_is_missing(self):
+		with translation.override('en'):
+			response = self.client.get(
+				reverse('catalog:product_list'),
+				HTTP_HOST='loja.lvh.me',
+			)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Produto 12')
+
+	def test_product_list_search_uses_pt_fallback_when_requested_language_is_missing(self):
+		product = Product.objects.create(
+			category=self.category,
+			slug='produto-so-pt',
+			brand='Biobrassica',
+			price='4.20',
+			quantity='200 g',
+			stock=10,
+			bio_code='PT-BIO-99',
+		)
+		ProductTranslation.objects.create(
+			product=product,
+			language='pt',
+			name='Pesquisa PT',
+			description='Encontrado via fallback',
+			allergens='Sem alergénios',
+			ingredients='Ingredientes PT',
+		)
+
+		with translation.override('en'):
+			response = self.client.get(
+				reverse('catalog:product_list'),
+				{'q': 'Pesquisa'},
+				HTTP_HOST='loja.lvh.me',
+			)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Pesquisa PT')
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
@@ -319,6 +412,10 @@ class ProductAdminWorkflowTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertFalse(self.product.is_active)
 		self.assertContains(response, 'Produto desativado até reposição.')
+
+	def test_product_admin_does_not_allow_is_active_inline_edit(self):
+		product_admin = admin.site._registry[Product]
+		self.assertNotIn('is_active', product_admin.list_editable)
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')

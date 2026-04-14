@@ -1,5 +1,5 @@
 {% extends "base_website.html" %}
-{% load i18n static %}
+{% load i18n shop_urls static %}
 
 {% block title %}{{ recipe.safe_translation.title }} | Biobrassica{% endblock %}
 {% block meta_description %}{{ recipe.safe_translation.description|default:recipe.safe_translation.title }}{% endblock %}
@@ -135,7 +135,7 @@
     </p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {% for product in related_products %}
-      <a href="https://loja.biobrassica.pt/produto/{{ product.slug }}/"
+      <a href="{% shop_url 'catalog:product_detail' slug=product.slug %}"
          class="group bg-paper rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-shadow">
         {% with img=product.primary_image %}
         {% if img %}

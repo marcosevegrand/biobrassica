@@ -1,0 +1,24 @@
+{% load i18n %}
+{% get_current_language as CURRENT_LANG %}
+{% get_available_languages as LANGUAGES %}
+
+{% if mode == 'menu' %}
+<div class="{{ wrapper_class|default:'space-y-1' }}">
+  {% for lang_code, lang_name in LANGUAGES %}
+  <a href="/{{ lang_code }}{{ request.path|cut:'/pt'|cut:'/en'|cut:'/fr' }}"
+     class="{{ link_class|default:'block px-3 py-2 text-sm rounded-sm hover:bg-forest/5' }} {% if lang_code == CURRENT_LANG %}{{ current_class|default:'font-medium text-forest' }}{% else %}{{ other_class|default:'text-muted' }}{% endif %}">
+    {% if display == 'name' %}{{ lang_name }}{% else %}{{ lang_code|upper }}{% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="{{ wrapper_class|default:'flex items-center gap-1 text-xs uppercase tracking-widest' }}">
+  {% for lang_code, lang_name in LANGUAGES %}
+    {% if not forloop.first %}<span class="{{ separator_class|default:'opacity-40' }}">|</span>{% endif %}
+    <a href="/{{ lang_code }}{{ request.path|cut:'/pt'|cut:'/en'|cut:'/fr' }}"
+       class="{{ link_class|default:'transition-colors' }} {% if lang_code == CURRENT_LANG %}{{ current_class|default:'font-medium opacity-100' }}{% else %}{{ other_class|default:'opacity-60 hover:opacity-100' }}{% endif %}">
+      {% if display == 'name' %}{{ lang_name }}{% else %}{{ lang_code|upper }}{% endif %}
+    </a>
+  {% endfor %}
+</div>
+{% endif %}

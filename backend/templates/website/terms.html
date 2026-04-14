@@ -5,6 +5,7 @@
 {% block meta_description %}{% trans "Termos e condições de utilização da loja online Biobrassica." %}{% endblock %}
 
 {% block content %}
+{% with content=website_content %}
 <section class="bg-forest text-paper">
   <div class="max-w-4xl mx-auto px-6 sm:px-8 pt-44 pb-24 text-center">
     <h1 class="text-4xl sm:text-5xl font-serif italic">{% trans "Termos e Condições" %}</h1>
@@ -16,7 +17,7 @@
     <p class="text-muted text-sm">{% trans "Última atualização" %}: {% now "j F Y" %}</p>
 
     <h2>{% trans "1. Identificação" %}</h2>
-    <p>{% trans "O presente website e loja online são propriedade da Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga." %}</p>
+    <p>{% blocktrans with legal_name=website_defaults.company_legal_name legal_address=website_defaults.company_address %}O presente website e loja online são propriedade da {{ legal_name }}, com sede em {{ legal_address }}.{% endblocktrans %}{% if content.company_nif %} {% trans "NIF" %}: {{ content.company_nif }}.{% endif %}</p>
 
     <h2>{% trans "2. Produtos" %}</h2>
     <p>{% trans "Os produtos apresentados na loja online estão sujeitos a disponibilidade. Todas as descrições e imagens são tão fiéis quanto possível, podendo existir ligeiras variações." %}</p>
@@ -36,7 +37,7 @@
     <h2>{% trans "6. Entregas" %}</h2>
     <p>{% trans "Disponibilizamos as seguintes opções de entrega:" %}</p>
     <ul>
-      <li>{% trans "Levantamento em loja (Braga ou Guimarães) — gratuito" %}</li>
+      <li>{% blocktrans with pickup_locations=website_defaults.pickup_locations_label %}Levantamento em loja ({{ pickup_locations }}) — gratuito{% endblocktrans %}</li>
       <li>{% trans "Entrega ao domicílio via CTT — custos de envio aplicáveis" %}</li>
     </ul>
     <p>{% trans "O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental." %}</p>
@@ -52,6 +53,10 @@
 
     <h2>{% trans "10. Lei Aplicável" %}</h2>
     <p>{% trans "Os presentes termos regem-se pela legislação portuguesa." %}</p>
+
+    <h2>{% trans "11. Apoio ao Cliente" %}</h2>
+    <p>{% trans "Para esclarecimentos adicionais, contacte-nos em" %} <a href="mailto:{{ website_defaults.support_email }}">{{ website_defaults.support_email }}</a>.</p>
   </div>
 </section>
+{% endwith %}
 {% endblock %}

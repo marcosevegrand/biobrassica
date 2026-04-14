@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import translation
 from typing import Any, cast
 
 from apps.catalog.models import Location
@@ -15,8 +17,14 @@ GIF_BYTES = (
 )
 
 
+class WebsiteTestCase(TestCase):
+    def tearDown(self):
+        translation.activate(settings.LANGUAGE_CODE)
+        super().tearDown()
+
+
 @override_settings(ROOT_URLCONF='config.urls_website')
-class WebsiteAboutViewTests(TestCase):
+class WebsiteAboutViewTests(WebsiteTestCase):
     def test_about_page_renders_active_team_members_only(self):
         TeamMember.objects.create(
             name='Ângela Pereira',
@@ -54,7 +62,7 @@ class WebsiteAboutViewTests(TestCase):
 
 
 @override_settings(ROOT_URLCONF='config.urls_website')
-class WebsiteContentTranslationTests(TestCase):
+class WebsiteContentTranslationTests(WebsiteTestCase):
     def setUp(self):
         self.content = WebsiteContent.objects.first() or WebsiteContent.objects.create()
         self.content.home_hero_title_line1 = 'Tudo que precisa para uma'
@@ -87,9 +95,21 @@ class WebsiteContentTranslationTests(TestCase):
         self.assertContains(response, 'Trouvez-nous')
         self.assertNotContains(response, 'Encontre-nos')
 
+    def test_homepage_uses_environment_shop_domain_in_navigation(self):
+        response = self.client.get('/en/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'https://loja.lvh.me/en/')
+
 
 @override_settings(ROOT_URLCONF='config.urls_website')
-class WebsiteContactsViewTests(TestCase):
+class WebsiteContactsViewTests(WebsiteTestCase):
+    def test_contacts_page_uses_centralized_meta_description_default(self):
+        response = self.client.get(reverse('website:contacts'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-nos por telefone e email.')
+
     def test_contacts_page_uses_location_records(self):
         Location.objects.create(
             name='Loja Braga',
@@ -108,9 +128,72 @@ class WebsiteContactsViewTests(TestCase):
         self.assertContains(response, 'Avenida Central')
         self.assertContains(response, 'https://example.com/mapa')
 
+    def test_footer_uses_active_location_records(self):
+        Location.objects.create(
+            name='Loja Guimarães',
+            address='Rua Exemplo 5\nGuimarães',
+            phone='253 145 388',
+            email='guimaraes@biobrassica.pt',
+            is_active=True,
+        )
+
+        response = self.client.get(reverse('website:home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Loja Guimarães')
+        self.assertContains(response, 'guimaraes@biobrassica.pt')
+
+    def test_homepage_footer_uses_managed_whatsapp_number_when_present(self):
+        WebsiteContent.objects.create(whatsapp_number='+351 912 345 678')
+
+        response = self.client.get(reverse('website:home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'https://wa.me/351912345678')
+
+
+@override_settings(ROOT_URLCONF='config.urls_website')
+class WebsiteLegalPagesTests(WebsiteTestCase):
+    def test_privacy_and_terms_pages_use_managed_company_details(self):
+        WebsiteContent.objects.create(
+            company_legal_name='Biobrassica Cooperativa',
+            company_address='Rua da Empresa 42, Braga',
+            company_nif='123456789',
+            support_email='apoio@biobrassica.pt',
+        )
+
+        privacy_response = self.client.get(reverse('website:privacy'))
+        terms_response = self.client.get(reverse('website:terms'))
+
+        self.assertEqual(privacy_response.status_code, 200)
+        self.assertContains(privacy_response, 'Biobrassica Cooperativa')
+        self.assertContains(privacy_response, 'Rua da Empresa 42, Braga')
+        self.assertContains(privacy_response, 'apoio@biobrassica.pt')
+        self.assertContains(privacy_response, '123456789')
+
+        self.assertEqual(terms_response.status_code, 200)
+        self.assertContains(terms_response, 'Biobrassica Cooperativa')
+        self.assertContains(terms_response, 'Rua da Empresa 42, Braga')
+        self.assertContains(terms_response, 'apoio@biobrassica.pt')
+        self.assertContains(terms_response, '123456789')
+
+    def test_privacy_and_terms_pages_use_centralized_defaults_without_website_content(self):
+        privacy_response = self.client.get(reverse('website:privacy'))
+        terms_response = self.client.get(reverse('website:terms'))
+
+        self.assertEqual(privacy_response.status_code, 200)
+        self.assertContains(privacy_response, 'Biobrassica, Lda.')
+        self.assertContains(privacy_response, 'R. dos Capelistas 121, 4700-215 Braga')
+        self.assertContains(privacy_response, 'geral@biobrassica.pt')
+
+        self.assertEqual(terms_response.status_code, 200)
+        self.assertContains(terms_response, 'Biobrassica, Lda.')
+        self.assertContains(terms_response, 'R. dos Capelistas 121, 4700-215 Braga')
+        self.assertContains(terms_response, 'geral@biobrassica.pt')
+
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
-class TeamMemberAdminWorkflowTests(TestCase):
+class TeamMemberAdminWorkflowTests(WebsiteTestCase):
     def setUp(self):
         user_model = get_user_model()
         self.admin_user = cast(Any, user_model._default_manager).create_superuser(
@@ -151,7 +234,7 @@ class TeamMemberAdminWorkflowTests(TestCase):
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
-class WebsiteContentAdminTests(TestCase):
+class WebsiteContentAdminTests(WebsiteTestCase):
     def setUp(self):
         user_model = get_user_model()
         self.admin_user = cast(Any, user_model._default_manager).create_superuser(
@@ -168,5 +251,17 @@ class WebsiteContentAdminTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Operação editorial')
+        self.assertContains(response, 'Email de apoio')
         self.assertContains(response, 'Gerir equipa')
         self.assertContains(response, 'Gerir lojas')
+
+
+class WebsiteContentSingletonTests(WebsiteTestCase):
+    def test_create_reuses_singleton_row(self):
+        first = WebsiteContent.objects.create(home_hero_title_line1='Primeira versão')
+        second = WebsiteContent.objects.create(home_hero_title_line1='Versão final')
+
+        self.assertEqual(first.pk, 1)
+        self.assertEqual(second.pk, 1)
+        self.assertEqual(WebsiteContent.objects.count(), 1)
+        self.assertEqual(WebsiteContent.objects.get(pk=1).home_hero_title_line1, 'Versão final')

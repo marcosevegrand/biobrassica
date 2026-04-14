@@ -51,16 +51,7 @@
 
           <div class="border-t border-stone/20 pt-3">
             <p class="px-3 pb-2 text-[10px] uppercase tracking-widest text-muted">{% trans "Idioma" %}</p>
-            <div class="space-y-1">
-              {% get_current_language as CURRENT_LANG %}
-              {% get_available_languages as LANGUAGES %}
-              {% for lang_code, lang_name in LANGUAGES %}
-              <a href="/{{ lang_code }}{{ request.path|cut:'/pt'|cut:'/en'|cut:'/fr' }}"
-                 class="block px-3 py-2 text-sm rounded-sm hover:bg-forest/5 {% if lang_code == CURRENT_LANG %}font-medium text-forest{% else %}text-muted{% endif %}">
-                {{ lang_name }}
-              </a>
-              {% endfor %}
-            </div>
+            {% include "components/language_selector.html" with mode='menu' display='name' %}
           </div>
         </div>
       </div>
@@ -68,19 +59,9 @@
 
     <!-- Mobile Actions -->
     <div class="flex lg:hidden items-center gap-4 ml-auto">
-      <div class="flex items-center gap-1 text-xs uppercase tracking-widest">
-        {% get_current_language as CURRENT_LANG %}
-        {% get_available_languages as LANGUAGES %}
-        {% for lang_code, lang_name in LANGUAGES %}
-          {% if not forloop.first %}<span class="opacity-40">|</span>{% endif %}
-          <a href="/{{ lang_code }}{{ request.path|cut:'/pt'|cut:'/en'|cut:'/fr' }}"
-             class="transition-colors {% if lang_code == CURRENT_LANG %}font-medium opacity-100{% else %}opacity-60 hover:opacity-100{% endif %}">
-            {{ lang_code|upper }}
-          </a>
-        {% endfor %}
-      </div>
+      {% include "components/language_selector.html" with mode='inline' display='code' %}
 
-      <button id="mobile-menu-btn" class="flex flex-col gap-1.5 p-1" aria-label="Toggle menu">
+      <button id="mobile-menu-btn" class="flex flex-col gap-1.5 p-1" aria-label="{% trans 'Alternar menu' %}">
         <span class="block w-6 h-0.5 bg-current transition-transform" id="hamburger-top"></span>
         <span class="block w-6 h-0.5 bg-current transition-opacity" id="hamburger-mid"></span>
         <span class="block w-6 h-0.5 bg-current transition-transform" id="hamburger-bot"></span>
@@ -102,126 +83,3 @@
     </ul>
   </div>
 </header>
-
-<script>
-  const menuBtn = document.getElementById('mobile-menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const hTop = document.getElementById('hamburger-top');
-  const hMid = document.getElementById('hamburger-mid');
-  const hBot = document.getElementById('hamburger-bot');
-  let isOpen = false;
-  menuBtn?.addEventListener('click', () => {
-    isOpen = !isOpen;
-    mobileMenu?.classList.toggle('hidden');
-    hTop.style.transform = isOpen ? 'rotate(45deg) translate(3px, 3px)' : '';
-    hMid.style.opacity = isOpen ? '0' : '';
-    hBot.style.transform = isOpen ? 'rotate(-45deg) translate(3px, -3px)' : '';
-  });
-
-  // Scroll effect
-  const header = document.getElementById('site-header');
-  const cartTrigger = document.getElementById('cart-trigger');
-  const userMenuTrigger = document.getElementById('user-menu-trigger');
-  const logoWhite = document.getElementById('logo-white');
-  const logoGreen = document.getElementById('logo-green');
-
-  function closeCartPopup() {
-    const cartPopup = document.getElementById('cart-popup');
-    cartPopup?.classList.add('hidden');
-    cartPopup?.classList.remove('block');
-  }
-
-  function openCartPopup() {
-    const cartPopup = document.getElementById('cart-popup');
-    cartPopup?.classList.remove('hidden');
-    cartPopup?.classList.add('block');
-  }
-
-  function closeUserMenu() {
-    const userMenu = document.getElementById('user-menu');
-    userMenu?.classList.add('hidden');
-    userMenu?.classList.remove('block');
-  }
-
-  function openUserMenu() {
-    const userMenu = document.getElementById('user-menu');
-    userMenu?.classList.remove('hidden');
-    userMenu?.classList.add('block');
-  }
-
-  cartTrigger?.addEventListener('click', (event) => {
-    event.preventDefault();
-    closeUserMenu();
-    const cartPopup = document.getElementById('cart-popup');
-    if (!cartPopup) return;
-    if (cartPopup.classList.contains('hidden')) {
-      openCartPopup();
-      return;
-    }
-    closeCartPopup();
-  });
-
-  document.addEventListener('click', (event) => {
-    const cartPopup = document.getElementById('cart-popup');
-    if (!cartPopup || cartPopup.classList.contains('hidden')) return;
-    const clickedInsidePopup = cartPopup.contains(event.target);
-    const clickedTrigger = cartTrigger?.contains(event.target);
-    if (!clickedInsidePopup && !clickedTrigger) {
-      closeCartPopup();
-    }
-  });
-
-  userMenuTrigger?.addEventListener('click', (event) => {
-    event.preventDefault();
-    closeCartPopup();
-    const userMenu = document.getElementById('user-menu');
-    if (!userMenu) return;
-    if (userMenu.classList.contains('hidden')) {
-      openUserMenu();
-      return;
-    }
-    closeUserMenu();
-  });
-
-  document.addEventListener('click', (event) => {
-    const userMenu = document.getElementById('user-menu');
-    if (!userMenu || userMenu.classList.contains('hidden')) return;
-    const clickedInsideMenu = userMenu.contains(event.target);
-    const clickedTrigger = userMenuTrigger?.contains(event.target);
-    if (!clickedInsideMenu && !clickedTrigger) {
-      closeUserMenu();
-    }
-  });
-
-  document.addEventListener('click', (event) => {
-    if (event.target && event.target.id === 'cart-popup-close') {
-      closeCartPopup();
-    }
-  });
-
-  document.body.addEventListener('htmx:afterSwap', (event) => {
-    if (event.target && event.target.id === 'cart-popup' && !event.target.classList.contains('hidden')) {
-      openCartPopup();
-    }
-  });
-
-  function applyHeaderTheme(isScrolled) {
-    if (isScrolled) {
-      header?.classList.remove('bg-forest', 'text-paper');
-      header?.classList.add('bg-paper', 'text-forest', 'shadow-sm');
-      if (logoWhite) logoWhite.style.display = 'none';
-      if (logoGreen) logoGreen.style.display = 'block';
-      return;
-    }
-    header?.classList.add('bg-forest', 'text-paper');
-    header?.classList.remove('bg-paper', 'text-forest', 'shadow-sm');
-    if (logoWhite) logoWhite.style.display = 'block';
-    if (logoGreen) logoGreen.style.display = 'none';
-  }
-
-  window.addEventListener('scroll', () => {
-    applyHeaderTheme(window.scrollY > 50);
-  });
-
-  applyHeaderTheme(window.scrollY > 50);
-</script>

@@ -67,10 +67,10 @@ That keeps checkout-to-order conversion consistent and avoids duplicating order 
 
 [backend/apps/payments/services.py](../backend/apps/payments/services.py) owns payment state transitions and provider integration.
 
-- normalization/parsing helpers translate provider payloads into internal types
+- webhook sanitization and Stripe client helpers isolate external-provider handling
 - payment status transitions (`paid`, `failed`, reset) update both `Payment` and related `Order`
 - notification scheduling is deferred with `transaction.on_commit`
-- `IfThenPayService` wraps external API calls for Multibanco, MBWay, and card flows
+- Stripe Checkout session creation and webhook verification live in the same service layer
 
 This is the main boundary between checkout/order state and external payment systems.
 

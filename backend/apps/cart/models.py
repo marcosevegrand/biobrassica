@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 
 class Cart(models.Model):
@@ -24,8 +25,8 @@ class Cart(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'carrinho'
-        verbose_name_plural = 'carrinhos'
+        verbose_name = _('carrinho')
+        verbose_name_plural = _('carrinhos')
         constraints = [
             models.UniqueConstraint(
                 fields=['session_key'],
@@ -41,11 +42,14 @@ class Cart(models.Model):
 
     @property
     def total(self) -> Decimal:
-        return sum((item.subtotal for item in self.items.select_related('product')), Decimal('0'))
+        return sum(
+            (item.subtotal for item in self.items.select_related('product').filter(product__is_active=True)),
+            Decimal('0'),
+        )
 
     @property
     def item_count(self) -> int:
-        return sum(item.quantity for item in self.items.all())
+        return sum(item.quantity for item in self.items.filter(product__is_active=True))
 
 
 class CartItem(models.Model):
@@ -54,8 +58,8 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
-        verbose_name = 'item do carrinho'
-        verbose_name_plural = 'itens do carrinho'
+        verbose_name = _('item do carrinho')
+        verbose_name_plural = _('itens do carrinho')
         constraints = [
             models.UniqueConstraint(
                 fields=['cart', 'product'],

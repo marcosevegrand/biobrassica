@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 18:12+0000\n"
+"POT-Creation-Date: 2026-03-24 18:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,1300 +17,4260 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Conta criada com sucesso!"
-msgstr "Conta criada com sucesso!"
+#: apps/accounts/admin.py:38
+msgid "Pesquise por email, nome, telefone ou NIF do cliente."
+msgstr "Pesquise por email, nome, telefone ou NIF do cliente."
 
-msgid "Perfil atualizado com sucesso."
-msgstr "Perfil atualizado com sucesso."
+#: apps/accounts/admin.py:47
+#, fuzzy
+#| msgid "Gerir a sua conta de cliente"
+msgid "Resumo de cliente"
+msgstr "Gerir a sua conta de cliente"
 
-msgid "Indique uma quantidade válida."
-msgstr "Indique uma quantidade válida."
-
-#| msgid "Nenhum produto nesta categoria."
-msgid "Este produto está esgotado."
-msgstr "Este produto está esgotado."
-
-msgid "A quantidade foi ajustada ao stock disponível."
-msgstr "A quantidade foi ajustada ao stock disponível."
-
-msgid ""
-"Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+#: apps/accounts/admin.py:48
+msgid "Informação Pessoal"
 msgstr ""
-"Este carrinho contém produtos disponíveis apenas para levantamento em loja."
 
-msgid "Preencha a morada de envio completa."
-msgstr "Preencha a morada de envio completa."
-
-msgid "Use o formato 1234-123."
-msgstr "Use o formato 1234-123."
-
-#| msgid "Local de levantamento"
-msgid "Selecione um local de levantamento."
-msgstr "Selecione um local de levantamento."
-
-msgid "Selecione um método de pagamento válido."
-msgstr "Selecione um método de pagamento válido."
-
-#| msgid "Número de telemóvel"
-msgid "Indique o número de telemóvel para MB WAY."
-msgstr "Indique o número de telemóvel para MB WAY."
-
-msgid "O seu carrinho está vazio."
-msgstr "O seu carrinho está vazio."
-
-msgid "Nenhum produto do seu carrinho tem stock disponível."
-msgstr "Nenhum produto do seu carrinho tem stock disponível."
-
-msgid ""
-"Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos "
-"abaixo e tente novamente."
+#: apps/accounts/admin.py:49
+msgid "Permissões"
 msgstr ""
-"Ajustámos o seu carrinho devido a limitações de stock. Verifique os"
-" produtos abaixo e tente novamente."
 
-#, python-format
-msgid "%(product)s: reduzido de %(requested)d para %(available)d unidades."
-msgstr "%(product)s: reduzido de %(requested)d para %(available)d unidades."
-
-#, python-format
-msgid "%(product)s: removido (sem stock disponível)."
-msgstr "%(product)s: removido (sem stock disponível)."
-
-msgid "Por favor preencha todos os campos obrigatórios."
-msgstr "Por favor preencha todos os campos obrigatórios."
-
-msgid "Não foi possível validar os dados da encomenda."
-msgstr "Não foi possível validar os dados da encomenda."
-
-msgid ""
-"Alguns produtos já não têm stock suficiente. Revise o carrinho e tente "
-"novamente."
+#: apps/accounts/admin.py:52
+msgid "Datas Importantes"
 msgstr ""
-"Alguns produtos já não têm stock suficiente. Revise o carrinho e tente"
-" novamente."
 
-msgid ""
-"Não foi possível criar a encomenda. Verifique os dados e tente novamente."
+#: apps/accounts/admin.py:53 apps/accounts/admin.py:63
+#, fuzzy
+#| msgid "Nenhum produto encontrado."
+msgid "Informação Adicional"
+msgstr "Nenhum produto encontrado."
+
+#: apps/accounts/admin.py:87
+#, fuzzy
+#| msgid "Cliente reativado."
+msgid "Clientes ativos"
+msgstr "Cliente reativado."
+
+#: apps/accounts/admin.py:87
+msgid "Com acesso ativo"
 msgstr ""
-"Não foi possível criar a encomenda. Verifique os dados e tente novamente."
 
-msgid "Não foi possível iniciar o pagamento. Tente novamente."
-msgstr "Não foi possível iniciar o pagamento. Tente novamente."
+#: apps/accounts/admin.py:88
+#, fuzzy
+#| msgid "Encomendas"
+msgid "Com encomendas"
+msgstr "Encomendas"
 
-msgid "Não foi possível preparar o pagamento. Tente novamente."
-msgstr "Não foi possível preparar o pagamento. Tente novamente."
+#: apps/accounts/admin.py:88
+msgid "Já compraram"
+msgstr ""
 
-msgid "Ainda não existe um pagamento associado a esta encomenda."
-msgstr "Ainda não existe um pagamento associado a esta encomenda."
+#: apps/accounts/admin.py:89 apps/accounts/admin.py:211
+#: apps/core/admin_dashboard.py:136
+#, fuzzy
+#| msgid "Telefone"
+msgid "Sem telefone"
+msgstr "Telefone"
 
-msgid "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
-msgstr "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
+#: apps/accounts/admin.py:89
+msgid "Suporte com contacto incompleto"
+msgstr ""
 
-msgid "Não foi possível atualizar o estado do pagamento. Tente novamente."
-msgstr "Não foi possível atualizar o estado do pagamento. Tente novamente."
+#: apps/accounts/admin.py:90 apps/accounts/admin.py:217
+#: apps/core/admin_dashboard.py:137
+#, fuzzy
+#| msgid "morada predefinida"
+msgid "Sem morada predefinida"
+msgstr "morada predefinida"
 
-#| msgid "Conta criada com sucesso!"
-msgid "Pagamento confirmado com sucesso."
-msgstr "Pagamento confirmado com sucesso."
+#: apps/accounts/admin.py:90
+#, fuzzy
+#| msgid "Checkout"
+msgid "Fricção no checkout"
+msgstr "Checkout"
 
-msgid "O pagamento MB WAY não foi confirmado. Pode tentar novamente."
-msgstr "foi confirmado."
+#: apps/accounts/admin.py:97
+msgid "Desativar acesso"
+msgstr "Desativar acesso"
 
-msgid "Entrar"
-msgstr "Entrar"
+#: apps/accounts/admin.py:98
+msgid "Reativar acesso"
+msgstr "Reativar acesso"
 
-msgid "Email ou password incorretos."
-msgstr "Email ou palavra-passe incorretos."
+#: apps/accounts/admin.py:104
+msgid "Cliente desativado."
+msgstr "Cliente desativado."
 
-msgid "Email"
-msgstr "Email"
+#: apps/accounts/admin.py:110
+msgid "Cliente reativado."
+msgstr "Cliente reativado."
 
-msgid "Password"
-msgstr "Palavra-passe"
+#: apps/accounts/admin.py:118
+msgid "Ver encomendas"
+msgstr "Ver encomendas"
 
-msgid "Esqueceu a password?"
-msgstr "Esqueceu-se da palavra-passe?"
+#: apps/accounts/admin.py:124
+msgid "Adicionar morada"
+msgstr "Adicionar morada"
 
-msgid "Ainda não tem conta?"
-msgstr "Ainda não tem conta?"
+#: apps/accounts/admin.py:133
+msgid "Abrir morada predefinida"
+msgstr "Abrir morada predefinida"
 
-msgid "Registar"
-msgstr "Registar"
+#: apps/accounts/admin.py:140 apps/accounts/admin.py:310
+#: apps/orders/admin.py:232 apps/orders/admin.py:295 apps/payments/admin.py:122
+#: apps/payments/admin.py:159
+msgid "Cliente"
+msgstr ""
 
-msgid "As minhas encomendas"
-msgstr "As minhas encomendas"
+#: apps/accounts/admin.py:144 apps/core/admin_dashboard.py:135
+msgid "Sem nome definido"
+msgstr ""
 
-msgid "Perfil"
-msgstr "Perfil"
-
+#: apps/accounts/admin.py:147 apps/accounts/admin.py:214 apps/orders/apps.py:9
+#: templates/accounts/order_history.html:17 templates/accounts/profile.html:17
+#: templates/components/navbar_shop.html:46
 msgid "Encomendas"
 msgstr "Encomendas"
 
-msgid "Encomenda"
-msgstr "Encomenda"
+#: apps/accounts/admin.py:151 templates/accounts/order_history.html:13
+#: templates/accounts/profile.html:4 templates/accounts/profile.html:13
+#: templates/components/navbar_shop.html:45
+msgid "Perfil"
+msgstr "Perfil"
 
-msgid "Envio:"
-msgstr "Envio:"
-
-msgid "Levantamento:"
-msgstr "Levantamento:"
-
-msgid "Ainda não fez nenhuma encomenda."
-msgstr "Ainda não fez nenhuma encomenda."
-
-msgid "Ver produtos"
-msgstr "Ver produtos"
-
-msgid "Recuperar password"
-msgstr "Recuperar palavra-passe"
-
-msgid "Enviar link de recuperação"
-msgstr "Enviar link de recuperação"
-
-msgid "Password alterada"
-msgstr "Palavra-passe alterada"
-
-msgid "A sua password foi redefinida com sucesso."
-msgstr "A sua palavra-passe foi redefinida com sucesso."
-
-msgid "Nova password"
-msgstr "Nova palavra-passe"
-
-msgid "Confirmar password"
-msgstr "Confirmar palavra-passe"
-
-msgid "Redefinir password"
-msgstr "Redefinir palavra-passe"
-
-msgid "Email enviado"
-msgstr "Email enviado"
-
-msgid ""
-"Se o email que indicou estiver registado, receberá um link para redefinir a "
-"sua password."
+#: apps/accounts/admin.py:154 apps/accounts/admin.py:209
+msgid "Suspenso"
 msgstr ""
-"Se o email que indicou estiver registado, receberá um link para redefinir a "
-"sua palavra-passe."
 
-msgid "O meu perfil"
-msgstr "O meu perfil"
-
-msgid "Nome"
-msgstr "Nome"
-
-msgid "Apelido"
-msgstr "Apelido"
-
-msgid "Telefone"
+#: apps/accounts/admin.py:158 apps/accounts/models.py:8
+#: apps/orders/models.py:61
+#, fuzzy
+#| msgid "Telefone"
+msgid "telefone"
 msgstr "Telefone"
 
-msgid "Idioma preferido"
-msgstr "Idioma preferido"
+#: apps/accounts/admin.py:162 apps/accounts/models.py:39
+#: apps/orders/models.py:71
+msgid "morada"
+msgstr "Morada"
 
+#: apps/accounts/admin.py:165
+msgid "Dados em falta"
+msgstr ""
+
+#: apps/accounts/admin.py:167
+#, fuzzy
+#| msgid "Abrir cliente"
+msgid "Novo cliente"
+msgstr "Abrir cliente"
+
+#: apps/accounts/admin.py:168
+msgid "Acompanhado"
+msgstr ""
+
+#: apps/accounts/admin.py:170 apps/accounts/admin.py:254
+#: apps/accounts/models.py:31 apps/catalog/admin.py:103
+#: apps/orders/admin.py:311 templates/orders/checkout.html:96
+#: templates/website/privacy.html:65
+msgid "Morada"
+msgstr "Morada"
+
+#: apps/accounts/admin.py:173 apps/accounts/admin.py:295
+#: apps/accounts/admin.py:311
+#, fuzzy
+#| msgid "morada predefinida"
+msgid "Predefinida"
+msgstr "morada predefinida"
+
+#: apps/accounts/admin.py:174
+#, fuzzy
+#| msgid "morada predefinida"
+msgid "Por definir"
+msgstr "morada predefinida"
+
+#: apps/accounts/admin.py:176 apps/accounts/admin.py:212
+#: apps/accounts/models.py:15 templates/accounts/profile.html:62
 msgid "NIF"
 msgstr "NIF"
 
-msgid "Guardar"
-msgstr "Guardar"
+#: apps/accounts/admin.py:184 apps/accounts/admin.py:207
+#, fuzzy
+#| msgid "Estado do Pagamento"
+msgid "Resumo do cliente"
+msgstr "Estado do Pagamento"
 
-msgid "Sair"
-msgstr "Sair"
-
-msgid "Criar conta"
-msgstr "Criar conta"
-
-msgid "Já tem conta?"
-msgstr "Já tem conta?"
-
-msgid "Django site admin"
+#: apps/accounts/admin.py:187
+msgid "Guarde o cliente para ver o resumo operacional."
 msgstr ""
 
-msgid "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
-msgstr "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
+#: apps/accounts/admin.py:202
+msgid "Complete telefone, NIF e uma morada predefinida para acelerar apoio ao cliente."
+msgstr ""
 
-msgid ""
-"Biobrassica — produtos biológicos selecionados com cuidado no coração do "
-"Minho."
-msgstr "Biobrassica — produtos biológicos selecionados com cuidado no coração do Minho."
+#: apps/accounts/admin.py:204
+msgid "Perfil operacionalmente completo para suporte e encomendas."
+msgstr ""
 
+#: apps/accounts/admin.py:209 apps/accounts/admin.py:292
+#: apps/catalog/admin.py:127 apps/catalog/admin.py:217
+#: apps/catalog/admin.py:337 apps/content/admin.py:123
+#: apps/content/admin.py:148 apps/content/admin.py:276
+#: apps/content/admin.py:312 apps/orders/admin.py:267 apps/payments/admin.py:78
+#: apps/payments/admin.py:160 apps/website/admin.py:68 apps/website/admin.py:84
+#: templates/orders/complete.html:43
+msgid "Estado"
+msgstr "Estado"
+
+#: apps/accounts/admin.py:209 apps/accounts/admin.py:231
+#: apps/catalog/admin.py:217 apps/catalog/admin.py:648
+msgid "Ativo"
+msgstr ""
+
+#: apps/accounts/admin.py:210 apps/catalog/admin.py:218
+#: apps/orders/admin.py:297 apps/website/admin.py:82
+#: templates/accounts/profile.html:33 templates/accounts/register.html:29
+#: templates/orders/checkout.html:26
+msgid "Nome"
+msgstr "Nome"
+
+#: apps/accounts/admin.py:211 apps/orders/admin.py:298
+#, fuzzy
+#| msgid "Contactos"
+msgid "Contacto"
+msgstr "Contactos"
+
+#: apps/accounts/admin.py:213 templates/accounts/profile.html:55
+msgid "Idioma preferido"
+msgstr "Idioma preferido"
+
+#: apps/accounts/admin.py:215
+msgid "Receita acumulada"
+msgstr ""
+
+#: apps/accounts/admin.py:216
+#, fuzzy
+#| msgid "Detalhes da encomenda"
+msgid "Última encomenda"
+msgstr "Detalhes da encomenda"
+
+#: apps/accounts/admin.py:216
+#, fuzzy
+#| msgid "Ver encomendas"
+msgid "Sem encomendas"
+msgstr "Ver encomendas"
+
+#: apps/accounts/admin.py:217
+#, fuzzy
+#| msgid "morada predefinida"
+msgid "Morada predefinida"
+msgstr "morada predefinida"
+
+#: apps/accounts/admin.py:222 apps/accounts/admin.py:229
+msgid "Serviço e acesso"
+msgstr ""
+
+#: apps/accounts/admin.py:225
+msgid "Guarde o cliente para ver o estado de serviço."
+msgstr ""
+
+#: apps/accounts/admin.py:231
+#, fuzzy
+#| msgid "Ver no site"
+msgid "Acesso ao site"
+msgstr "Ver no site"
+
+#: apps/accounts/admin.py:231
+#, fuzzy
+#| msgid "Desativar acesso"
+msgid "Desativado"
+msgstr "Desativar acesso"
+
+#: apps/accounts/admin.py:232
+msgid "Permissão de staff"
+msgstr ""
+
+#: apps/accounts/admin.py:232 apps/catalog/admin.py:338
+#: apps/catalog/admin.py:340 apps/catalog/admin.py:615
+#: apps/catalog/admin.py:617 apps/catalog/admin.py:651
+#: apps/content/admin.py:151 apps/content/admin.py:152
+#: apps/content/admin.py:314 apps/content/admin.py:315
+#: apps/content/admin.py:316 apps/content/admin.py:317
+msgid "Sim"
+msgstr ""
+
+#: apps/accounts/admin.py:232 apps/catalog/admin.py:338
+#: apps/catalog/admin.py:340 apps/catalog/admin.py:615
+#: apps/catalog/admin.py:617 apps/content/admin.py:151
+#: apps/content/admin.py:152 apps/content/admin.py:314
+#: apps/content/admin.py:315 apps/content/admin.py:316
+#: apps/content/admin.py:317
+#, fuzzy
+#| msgid "Verão"
+msgid "Não"
+msgstr "Verão"
+
+#: apps/accounts/admin.py:233
+msgid "Moradas guardadas"
+msgstr ""
+
+#: apps/accounts/admin.py:234
+msgid "Último login"
+msgstr ""
+
+#: apps/accounts/admin.py:234
+#, fuzzy
+#| msgid "Ainda não tem conta?"
+msgid "Ainda não autenticou"
+msgstr "Ainda não tem conta?"
+
+#: apps/accounts/admin.py:235
+#, fuzzy
+#| msgid "Atualizar estado"
+msgid "Criado em"
+msgstr "Atualizar estado"
+
+#: apps/accounts/admin.py:237
+msgid "Use os atalhos acima para abrir encomendas ou tratar a morada do cliente sem sair deste contexto."
+msgstr ""
+
+#: apps/accounts/admin.py:248
+msgid "Pesquise por cliente, nome da morada, cidade ou código postal."
+msgstr "Pesquise por cliente, nome da morada, cidade ou código postal."
+
+#: apps/accounts/admin.py:253 templates/orders/checkout.html:157
+msgid "Resumo"
+msgstr "Resumo"
+
+#: apps/accounts/admin.py:268
+#, fuzzy
+#| msgid "Morada (cont.)"
+msgid "Moradas totais"
+msgstr "Morada (cont.)"
+
+#: apps/accounts/admin.py:268
+#, fuzzy
+#| msgid "moradas"
+msgid "Livro de moradas"
+msgstr "moradas"
+
+#: apps/accounts/admin.py:269
+#, fuzzy
+#| msgid "morada predefinida"
+msgid "Predefinidas"
+msgstr "morada predefinida"
+
+#: apps/accounts/admin.py:269
+#, fuzzy
+#| msgid "Checkout"
+msgid "Preferidas no checkout"
+msgstr "Checkout"
+
+#: apps/accounts/admin.py:270
+msgid "Secundárias"
+msgstr ""
+
+#: apps/accounts/admin.py:270
+msgid "Alternativas guardadas"
+msgstr ""
+
+#: apps/accounts/admin.py:271
+#, fuzzy
+#| msgid "Cliente desativado."
+msgid "Clientes sem default"
+msgstr "Cliente desativado."
+
+#: apps/accounts/admin.py:271
+msgid "Rever para checkout rápido"
+msgstr ""
+
+#: apps/accounts/admin.py:279 apps/orders/admin.py:168
+msgid "Abrir cliente"
+msgstr "Abrir cliente"
+
+#: apps/accounts/admin.py:285
+msgid "Histórico de encomendas"
+msgstr "Histórico de encomendas"
+
+#: apps/accounts/admin.py:296 apps/accounts/admin.py:311
+msgid "Secundária"
+msgstr ""
+
+#: apps/accounts/admin.py:298
+#, fuzzy
+#| msgid "Encomendas"
+msgid "Encomendas cliente"
+msgstr "Encomendas"
+
+#: apps/accounts/admin.py:302 apps/accounts/admin.py:308
+#, fuzzy
+#| msgid "Detalhes da encomenda"
+msgid "Resumo da morada"
+msgstr "Detalhes da encomenda"
+
+#: apps/accounts/admin.py:305
+msgid "Guarde a morada para ver o resumo operacional."
+msgstr ""
+
+#: apps/accounts/admin.py:311
+msgid "Tipo"
+msgstr ""
+
+#: apps/accounts/admin.py:312
+msgid "Linha 1"
+msgstr ""
+
+#: apps/accounts/admin.py:313
+msgid "Linha 2"
+msgstr ""
+
+#: apps/accounts/admin.py:314 apps/accounts/models.py:33
+#: templates/orders/checkout.html:124
+msgid "Cidade"
+msgstr "Cidade"
+
+#: apps/accounts/admin.py:315
+#, fuzzy
+#| msgid "Código Postal"
+msgid "Código postal"
+msgstr "Código Postal"
+
+#: apps/accounts/admin.py:316 apps/accounts/models.py:35
+msgid "País"
+msgstr "País"
+
+#: apps/accounts/admin.py:317
+#, fuzzy
+#| msgid "Encomenda Confirmada"
+msgid "Encomendas do cliente"
+msgstr "Encomenda Confirmada"
+
+#: apps/accounts/admin.py:319
+msgid "Abra o cliente para ajustar preferências ou usar o histórico de encomendas como contexto de suporte."
+msgstr ""
+
+#: apps/accounts/apps.py:9
+msgid "Contas"
+msgstr "Contas"
+
+#: apps/accounts/forms.py:39
+msgid "As passwords não coincidem."
+msgstr "As passwords não coincidem."
+
+#: apps/accounts/models.py:7 apps/orders/models.py:60
+#, fuzzy
+#| msgid "Email"
+msgid "email"
+msgstr "Email"
+
+#: apps/accounts/models.py:10
+#, fuzzy
+#| msgid "Idioma preferido"
+msgid "idioma preferido"
+msgstr "Idioma preferido"
+
+#: apps/accounts/models.py:12 apps/content/models.py:64
+#: apps/content/models.py:179
+msgid "Português"
+msgstr "Português"
+
+#: apps/accounts/models.py:12 apps/content/models.py:64
+#: apps/content/models.py:179
+msgid "Inglês"
+msgstr "Inglês"
+
+#: apps/accounts/models.py:12 apps/content/models.py:64
+#: apps/content/models.py:179
+msgid "Francês"
+msgstr "Francês"
+
+#: apps/accounts/models.py:21 apps/accounts/models.py:29
+#: apps/orders/models.py:57
+#, fuzzy
+#| msgid "Produtos Utilizados"
+msgid "utilizador"
+msgstr "Produtos Utilizados"
+
+#: apps/accounts/models.py:22
+#, fuzzy
+#| msgid "Produtos Utilizados"
+msgid "utilizadores"
+msgstr "Produtos Utilizados"
+
+#: apps/accounts/models.py:30 apps/orders/models.py:62
+#: apps/website/models.py:57
+msgid "nome"
+msgstr "nome"
+
+#: apps/accounts/models.py:32 templates/orders/checkout.html:105
+msgid "Morada (cont.)"
+msgstr "Morada (cont.)"
+
+#: apps/accounts/models.py:34 templates/orders/checkout.html:115
+msgid "Código Postal"
+msgstr "Código Postal"
+
+#: apps/accounts/models.py:36
+msgid "morada predefinida"
+msgstr "morada predefinida"
+
+#: apps/accounts/models.py:40
+msgid "moradas"
+msgstr "moradas"
+
+#: apps/accounts/views.py:19
+msgid "Conta criada com sucesso!"
+msgstr "Conta criada com sucesso!"
+
+#: apps/accounts/views.py:33
+msgid "Perfil atualizado com sucesso."
+msgstr "Perfil atualizado com sucesso."
+
+#: apps/cart/apps.py:9 templates/cart/_cart_popup.html:4
+#: templates/cart/detail.html:4 templates/cart/detail.html:8
+#: templates/components/navbar_shop.html:26
+#: templates/components/navbar_shop.html:77
 msgid "Carrinho"
 msgstr "Carrinho"
 
-msgid "Total"
-msgstr "Total"
+#: apps/cart/models.py:28
+#, fuzzy
+#| msgid "Carrinho"
+msgid "carrinho"
+msgstr "Carrinho"
 
-msgid "Ver carrinho"
+#: apps/cart/models.py:29
+#, fuzzy
+#| msgid "Carrinho"
+msgid "carrinhos"
+msgstr "Carrinho"
+
+#: apps/cart/models.py:58
+#, fuzzy
+#| msgid "Ver carrinho"
+msgid "item do carrinho"
 msgstr "Ver carrinho"
 
-msgid "Total:"
-msgstr "Total:"
+#: apps/cart/models.py:59
+#, fuzzy
+#| msgid "Ver carrinho"
+msgid "itens do carrinho"
+msgstr "Ver carrinho"
 
-msgid "Finalizar encomenda"
-msgstr "Finalizar encomenda"
+#: apps/cart/views.py:133 apps/cart/views.py:138 apps/cart/views.py:163
+#: apps/cart/views.py:166
+msgid "Indique uma quantidade válida."
+msgstr "Indique uma quantidade válida."
 
-msgid "Produtos"
-msgstr "Produtos"
+#: apps/cart/views.py:144 apps/cart/views.py:171
+msgid "Este produto está esgotado."
+msgstr "Este produto está esgotado."
 
-msgid "Imagem em breve"
-msgstr "Imagem em breve"
+#: apps/cart/views.py:146 apps/cart/views.py:173
+msgid "A quantidade foi ajustada ao stock disponível."
+msgstr "A quantidade foi ajustada ao stock disponível."
 
-msgid "Nenhum produto nesta categoria."
-msgstr "Nenhum produto nesta categoria."
+#: apps/catalog/admin.py:41
+msgid "Pesquise por nome, morada, telefone ou email da loja."
+msgstr ""
 
+#: apps/catalog/admin.py:48 apps/catalog/admin.py:155 apps/payments/admin.py:53
+#: apps/website/admin.py:102
+#, fuzzy
+#| msgid "Preparação"
+msgid "Operação"
+msgstr "Prep"
+
+#: apps/catalog/admin.py:51
+#, fuzzy
+#| msgid "Contactos"
+msgid "Contacto e presença"
+msgstr "Contactos"
+
+#: apps/catalog/admin.py:65
+msgid "Lojas ativas"
+msgstr ""
+
+#: apps/catalog/admin.py:65
+msgid "Disponíveis no website e catálogo"
+msgstr ""
+
+#: apps/catalog/admin.py:66 apps/catalog/admin.py:609
+#: templates/catalog/product_detail.html:25
+#: templates/components/product_card.html:14
 msgid "Sem imagem"
 msgstr "Sem imagem"
 
-#| msgid "3. Preços"
-msgid "Preço"
-msgstr "Preço"
+#: apps/catalog/admin.py:66
+msgid "Página contactos incompleta"
+msgstr ""
 
-msgid "Envio disponível"
-msgstr "Envio disponível"
+#: apps/catalog/admin.py:67
+#, fuzzy
+#| msgid "Sem imagem"
+msgid "Sem mapa"
+msgstr "Sem imagem"
 
-#| msgid "Levantamento"
-msgid "Apenas levantamento"
-msgstr "Apenas levantamento"
+#: apps/catalog/admin.py:67
+msgid "Falta contexto visual"
+msgstr ""
 
-msgid "Adicionar ao carrinho"
-msgstr "Adicionar ao carrinho"
+#: apps/catalog/admin.py:68
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "Sem produtos ligados"
+msgstr "Produtos relacionados"
 
-msgid "Esgotado"
-msgstr "Esgotado"
+#: apps/catalog/admin.py:68
+msgid "Pickup sem catálogo associado"
+msgstr ""
 
-msgid "Em stock"
-msgstr "Em stock"
+#: apps/catalog/admin.py:76
+msgid "Produtos desta loja"
+msgstr "Produtos desta loja"
 
-msgid "De momento esgotado"
-msgstr "De momento esgotado"
+#: apps/catalog/admin.py:85
+msgid "Desativar loja"
+msgstr "Desativar loja"
 
+#: apps/catalog/admin.py:86
+msgid "Ativar loja"
+msgstr "Ativar loja"
+
+#: apps/catalog/admin.py:92
+msgid "Loja desativada."
+msgstr "Loja desativada."
+
+#: apps/catalog/admin.py:98
+msgid "Loja ativada."
+msgstr "Loja ativada."
+
+#: apps/catalog/admin.py:107 apps/catalog/admin.py:309
+#: apps/content/admin.py:291 templates/catalog/category_detail.html:9
+#: templates/catalog/product_detail.html:10
+#: templates/catalog/product_list.html:4 templates/catalog/product_list.html:8
+#: templates/components/footer_shop.html:70
+#: templates/components/navbar_shop.html:18
+#: templates/components/navbar_shop.html:76
+msgid "Produtos"
+msgstr "Produtos"
+
+#: apps/catalog/admin.py:111 apps/catalog/admin.py:313
+#: apps/catalog/admin.py:604 apps/content/admin.py:129
+#: apps/content/admin.py:282
+msgid "Prontidão"
+msgstr "Prontidão"
+
+#: apps/catalog/admin.py:114 apps/catalog/admin.py:127
+#: apps/catalog/admin.py:316 apps/catalog/admin.py:337
+msgid "Inativa"
+msgstr "Inativa"
+
+#: apps/catalog/admin.py:116
+msgid "Rever contactos"
+msgstr "Rever contactos"
+
+#: apps/catalog/admin.py:117 apps/catalog/admin.py:321
+#: apps/content/admin.py:289
+msgid "Pronta"
+msgstr "Pronta"
+
+#: apps/catalog/admin.py:119 apps/catalog/admin.py:209 apps/orders/admin.py:276
+msgid "Resumo operacional"
+msgstr "Resumo operacional"
+
+#: apps/catalog/admin.py:122
+msgid "Guarde a localização para ver o resumo operacional."
+msgstr "Guarde a localização para ver o resumo operacional."
+
+#: apps/catalog/admin.py:125
+msgid "Pickup e contactos"
+msgstr "Pickup e contactos"
+
+#: apps/catalog/admin.py:127 apps/catalog/admin.py:337
+msgid "Ativa"
+msgstr "Ativa"
+
+#: apps/catalog/admin.py:128
+msgid "Produtos ligados"
+msgstr "Produtos ligados"
+
+#: apps/catalog/admin.py:129 apps/orders/admin.py:299
+#: templates/accounts/profile.html:48 templates/accounts/register.html:42
+#: templates/orders/checkout.html:46
+msgid "Telefone"
+msgstr "Telefone"
+
+#: apps/catalog/admin.py:129 apps/catalog/admin.py:130
+#: apps/catalog/admin.py:131 apps/catalog/admin.py:219
+msgid "Por preencher"
+msgstr "Por preencher"
+
+#: apps/catalog/admin.py:130 templates/accounts/login.html:21
+#: templates/accounts/password_reset.html:20
+#: templates/accounts/register.html:38 templates/orders/checkout.html:36
+msgid "Email"
+msgstr "Email"
+
+#: apps/catalog/admin.py:131
+msgid "Horário"
+msgstr "Horário"
+
+#: apps/catalog/admin.py:132
+msgid "Mapa"
+msgstr "Mapa"
+
+#: apps/catalog/admin.py:132 apps/website/admin.py:164
+#: apps/website/admin.py:166 apps/website/admin.py:167
+#: apps/website/admin.py:168
+msgid "Configurado"
+msgstr "Configurado"
+
+#: apps/catalog/admin.py:132 apps/content/admin.py:133
+#: apps/content/admin.py:286
+msgid "Em falta"
+msgstr "Em falta"
+
+#: apps/catalog/admin.py:134
+msgid "Esta ficha alimenta a página de contactos e o contexto de levantamento em loja."
+msgstr "Esta ficha alimenta a página de contactos e o contexto de levantamento em loja."
+
+#: apps/catalog/admin.py:137 apps/content/admin.py:168
+#: apps/content/admin.py:340 apps/core/admin_helpers.py:89
+#: apps/website/admin.py:91
+msgid "Pré-visualização"
+msgstr "Pré-visualização"
+
+#: apps/catalog/admin.py:148
+msgid "Pesquise pelo nome ou descrição do método."
+msgstr "Pesquise pelo nome ou descrição do método."
+
+#: apps/catalog/admin.py:158 apps/catalog/admin.py:197
+#: apps/catalog/admin.py:219 templates/catalog/product_detail.html:103
 msgid "Descrição"
 msgstr "Descrição"
 
-msgid "Marca"
-msgstr "Marca"
+#: apps/catalog/admin.py:169 apps/catalog/admin.py:475
+msgid "Ativos"
+msgstr "Ativos"
 
-msgid "Alergénicos"
-msgstr "Alergénicos"
+#: apps/catalog/admin.py:169
+msgid "Disponíveis ao negócio"
+msgstr "Disponíveis ao negócio"
 
-#| msgid "Entidade"
-msgid "Quantidade"
-msgstr "Quantidade"
+#: apps/catalog/admin.py:170
+msgid "Inativos"
+msgstr "Inativos"
 
-msgid "Ingredientes"
+#: apps/catalog/admin.py:170
+msgid "Guardados para revisão"
+msgstr "Guardados para revisão"
+
+#: apps/catalog/admin.py:171
+msgid "Sem descrição"
+msgstr "Sem descrição"
+
+#: apps/catalog/admin.py:171
+msgid "Mensagem operacional incompleta"
+msgstr "Mensagem operacional incompleta"
+
+#: apps/catalog/admin.py:172 apps/payments/admin.py:162
+#: templates/cart/_cart_popup.html:25 templates/orders/checkout.html:167
+#: templates/orders/complete.html:51
+msgid "Total"
+msgstr "Total"
+
+#: apps/catalog/admin.py:172
+msgid "Configuração de entrega"
+msgstr "Configuração de entrega"
+
+#: apps/catalog/admin.py:179
+msgid "Desativar método"
+msgstr ""
+
+#: apps/catalog/admin.py:180
+msgid "Ativar método"
+msgstr "Ativar método"
+
+#: apps/catalog/admin.py:186
+msgid "Método desativado."
+msgstr "Método desativado."
+
+#: apps/catalog/admin.py:192
+msgid "Método ativado."
+msgstr "Método ativado."
+
+#: apps/catalog/admin.py:204 apps/catalog/admin.py:217
+#: apps/catalog/admin.py:648
+msgid "Inativo"
+msgstr "Inativo"
+
+#: apps/catalog/admin.py:206
+msgid "Completar descrição"
+msgstr "Completar descrição"
+
+#: apps/catalog/admin.py:207 apps/catalog/admin.py:610
+#: apps/content/admin.py:136
+msgid "Pronto"
+msgstr "Pronto"
+
+#: apps/catalog/admin.py:212
+msgid "Guarde o método para ver o resumo operacional."
+msgstr "Guarde o método para ver o resumo operacional."
+
+#: apps/catalog/admin.py:215
+msgid "Resumo do método"
+msgstr "Resumo do método"
+
+#: apps/catalog/admin.py:221
+msgid "Use esta ficha para manter a linguagem operacional consistente no backoffice."
+msgstr "Use esta ficha para manter a linguagem operacional consistente no backoffice."
+
+#: apps/catalog/admin.py:241
+msgid "Pesquise por slug ou nome traduzido da categoria."
+msgstr ""
+
+#: apps/catalog/admin.py:249 apps/content/admin.py:60 apps/content/admin.py:221
+msgid "Publicação"
+msgstr ""
+
+#: apps/catalog/admin.py:252 apps/website/admin.py:29
+#, fuzzy
+#| msgid "Sem imagem"
+msgid "Imagem"
+msgstr "Sem imagem"
+
+#: apps/catalog/admin.py:271
+msgid "Ativas"
+msgstr ""
+
+#: apps/catalog/admin.py:271
+#, fuzzy
+#| msgid "Ingredientes não disponíveis."
+msgid "Categorias visíveis"
+msgstr "Ingredientes não disponíveis."
+
+#: apps/catalog/admin.py:272 apps/catalog/admin.py:326
+#, fuzzy
+#| msgid "Produtos em destaque"
+msgid "Em destaque"
+msgstr "Produtos em destaque"
+
+#: apps/catalog/admin.py:272
+msgid "Merchandising da homepage"
+msgstr ""
+
+#: apps/catalog/admin.py:273 apps/catalog/admin.py:412 apps/content/admin.py:83
+msgid "Sem tradução PT"
+msgstr ""
+
+#: apps/catalog/admin.py:273
+#, fuzzy
+#| msgid "Última atualização"
+msgid "Bloqueia publicação base"
+msgstr "Última atualização"
+
+#: apps/catalog/admin.py:274 apps/catalog/admin.py:320
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "Sem produtos ativos"
+msgstr "Produtos relacionados"
+
+#: apps/catalog/admin.py:274
+msgid "Rever merchandising"
+msgstr ""
+
+#: apps/catalog/admin.py:282
+#, fuzzy
+#| msgid "Nenhum produto nesta categoria."
+msgid "Produtos da categoria"
+msgstr "Nenhum produto nesta categoria."
+
+#: apps/catalog/admin.py:291
+#, fuzzy
+#| msgid "Produtos em destaque"
+msgid "Remover destaque"
+msgstr "Produtos em destaque"
+
+#: apps/catalog/admin.py:292
+#, fuzzy
+#| msgid "As nossas categorias"
+msgid "Destacar categoria"
+msgstr "As nossas categorias"
+
+#: apps/catalog/admin.py:298
+#, fuzzy
+#| msgid "Categoria em Destaque"
+msgid "Categoria destacada."
+msgstr "Categoria em Destaque"
+
+#: apps/catalog/admin.py:304
+#, fuzzy
+#| msgid "Categoria em Destaque"
+msgid "Categoria retirada do destaque."
+msgstr "Categoria em Destaque"
+
+#: apps/catalog/admin.py:318 apps/catalog/admin.py:607
+#, fuzzy
+#| msgid "Sem OGM"
+msgid "Sem PT"
+msgstr "Sem OGM"
+
+#: apps/catalog/admin.py:323 apps/catalog/admin.py:338
+#, fuzzy
+#| msgid "Destaques"
+msgid "Destaque"
+msgstr "Destaques"
+
+#: apps/catalog/admin.py:327
+msgid "Normal"
+msgstr ""
+
+#: apps/catalog/admin.py:329
+#, fuzzy
+#| msgid "As nossas categorias"
+msgid "Checklist de categoria"
+msgstr "As nossas categorias"
+
+#: apps/catalog/admin.py:332
+msgid "Guarde a categoria para ver o checklist operacional."
+msgstr ""
+
+#: apps/catalog/admin.py:335
+#, fuzzy
+#| msgid "As nossas categorias"
+msgid "Checklist da categoria"
+msgstr "As nossas categorias"
+
+#: apps/catalog/admin.py:339 apps/catalog/admin.py:623
+#: apps/content/admin.py:150 apps/content/admin.py:313
+#, fuzzy
+#| msgid "Certificações"
+msgid "Traduções"
+msgstr "Certificações"
+
+#: apps/catalog/admin.py:340 apps/catalog/admin.py:624
+#: apps/content/admin.py:151 apps/content/admin.py:314
+msgid "Tradução PT"
+msgstr ""
+
+#: apps/catalog/admin.py:341
+#, fuzzy
+#| msgid "Produtos"
+msgid "Produtos totais"
+msgstr "Produtos"
+
+#: apps/catalog/admin.py:342
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "Produtos ativos"
+msgstr "Produtos relacionados"
+
+#: apps/catalog/admin.py:344
+msgid "Use o atalho superior para abrir o catálogo filtrado desta categoria."
+msgstr ""
+
+#: apps/catalog/admin.py:355
+msgid "O produto deve ter pelo menos uma designação, descrição, alergénicos e ingredientes."
+msgstr ""
+
+#: apps/catalog/admin.py:363
+msgid "O produto deve ter pelo menos uma foto."
+msgstr ""
+
+#: apps/catalog/admin.py:371
+msgid "tradução"
+msgstr ""
+
+#: apps/catalog/admin.py:372
+#, fuzzy
+#| msgid "Ver todos os produtos"
+msgid "Traduções do produto"
+msgstr "Ver todos os produtos"
+
+#: apps/catalog/admin.py:373
+msgid "Adicione apenas as traduções necessárias. Comece por Português para desbloquear a publicação."
+msgstr ""
+
+#: apps/catalog/admin.py:374
+msgid "Adicionar tradução"
+msgstr ""
+
+#: apps/catalog/admin.py:375
+#, fuzzy
+#| msgid "Nenhum produto encontrado."
+msgid "Nenhuma tradução adicionada"
+msgstr "Nenhum produto encontrado."
+
+#: apps/catalog/admin.py:376
+msgid "Crie primeiro a versão em Português. Depois adicione apenas os idiomas que a operação realmente precisa."
+msgstr ""
+
+#: apps/catalog/admin.py:391
+#, fuzzy
+#| msgid "Sem imagem"
+msgid "imagem"
+msgstr "Sem imagem"
+
+#: apps/catalog/admin.py:392 apps/catalog/admin.py:502
+#, fuzzy
+#| msgid "Ver todos os produtos"
+msgid "Imagens do produto"
+msgstr "Ver todos os produtos"
+
+#: apps/catalog/admin.py:393
+msgid "A galeria começa vazia. Adicione só as imagens finais e marque uma como principal."
+msgstr ""
+
+#: apps/catalog/admin.py:394
+#, fuzzy
+#| msgid "Adicionar %(name)s"
+msgid "Adicionar imagem"
+msgstr "Adicionar %(name)s"
+
+#: apps/catalog/admin.py:395
+msgid "Galeria vazia"
+msgstr ""
+
+#: apps/catalog/admin.py:396
+msgid "Adicione imagens finais do produto e defina uma como principal para a loja e o merchandising."
+msgstr ""
+
+#: apps/catalog/admin.py:404
+msgid "fila operacional"
+msgstr ""
+
+#: apps/catalog/admin.py:409 apps/catalog/admin.py:476
+#: apps/catalog/admin.py:589
+#, fuzzy
+#| msgid "Em stock"
+msgid "Sem stock"
+msgstr "Em stock"
+
+#: apps/catalog/admin.py:410 apps/catalog/admin.py:477
+#: apps/core/admin_dashboard.py:189
+#, fuzzy
+#| msgid "Em stock"
+msgid "Baixo stock"
+msgstr "Em stock"
+
+#: apps/catalog/admin.py:411 apps/catalog/admin.py:478
+#, fuzzy
+#| msgid "Sem imagem"
+msgid "Sem imagem principal"
+msgstr "Sem imagem"
+
+#: apps/catalog/admin.py:413
+msgid "Prontos para reativar"
+msgstr ""
+
+#: apps/catalog/admin.py:414
+#, fuzzy
+#| msgid "Ver Localizações"
+msgid "Sem localizações"
+msgstr "Ver Localizações"
+
+#: apps/catalog/admin.py:449
+msgid "Pesquise por slug, marca, código bio ou nome traduzido do produto."
+msgstr ""
+
+#: apps/catalog/admin.py:458
+msgid "Publicação e merchandising"
+msgstr "Publicação e merchandising"
+
+#: apps/catalog/admin.py:461
+msgid "Venda e disponibilidade"
+msgstr "Venda e disponibilidade"
+
+#: apps/catalog/admin.py:464 apps/content/admin.py:63 apps/content/admin.py:224
+msgid "Datas"
+msgstr ""
+
+#: apps/catalog/admin.py:475
+msgid "Catálogo visível"
+msgstr "Catálogo visível"
+
+#: apps/catalog/admin.py:476
+msgid "Rutura imediata"
+msgstr "Rutura imediata"
+
+#: apps/catalog/admin.py:477
+msgid "Reposição desta semana"
+msgstr "Reposição desta semana"
+
+#: apps/catalog/admin.py:478
+msgid "Bloqueia merchandising"
+msgstr "Bloqueia merchandising"
+
+#: apps/catalog/admin.py:479
+msgid "Prontos a reativar"
+msgstr "Prontos a reativar"
+
+#: apps/catalog/admin.py:479
+msgid "Stock já reposto"
+msgstr "Stock já reposto"
+
+#: apps/catalog/admin.py:508
+msgid "Abrir categoria"
+msgstr "Abrir categoria"
+
+#: apps/catalog/admin.py:514
+msgid "Fila de reposição"
+msgstr "Fila de reposição"
+
+#: apps/catalog/admin.py:524
+msgid "Desativar até reposição"
+msgstr "Desativar até reposição"
+
+#: apps/catalog/admin.py:526
+msgid "Reativar produto"
+msgstr "Reativar produto"
+
+#: apps/catalog/admin.py:533
+msgid "Produto desativado até reposição."
+msgstr "Produto desativado até reposição."
+
+#: apps/catalog/admin.py:539
+msgid "Produto reativado no catálogo."
+msgstr "Produto reativado no catálogo."
+
+#: apps/catalog/admin.py:586
+msgid "Stock"
+msgstr "Stock"
+
+#: apps/catalog/admin.py:591
+#, python-format
+msgid "Baixo (%(stock)s)"
+msgstr "Baixo (%(stock)s)"
+
+#: apps/catalog/admin.py:592
+#, python-format
+msgid "OK (%(stock)s)"
+msgstr "OK (%(stock)s)"
+
+#: apps/catalog/admin.py:594
+msgid "Reposição"
+msgstr "Reposição"
+
+#: apps/catalog/admin.py:597 apps/core/admin_dashboard.py:189
+msgid "Rutura"
+msgstr "Rutura"
+
+#: apps/catalog/admin.py:599
+msgid "Repor esta semana"
+msgstr "Repor esta semana"
+
+#: apps/catalog/admin.py:601
+msgid "Reativável"
+msgstr "Reativável"
+
+#: apps/catalog/admin.py:602
+msgid "Coberto"
+msgstr "Coberto"
+
+#: apps/catalog/admin.py:612 apps/catalog/admin.py:620
+msgid "Checklist de publicação"
+msgstr "Checklist de publicação"
+
+#: apps/catalog/admin.py:614
+#, python-format
+msgid "%(count)s tradução(ões)"
+msgstr "%(count)s tradução(ões)"
+
+#: apps/catalog/admin.py:618
+msgid "Sem localizações atribuídas"
+msgstr "Sem localizações atribuídas"
+
+#: apps/catalog/admin.py:622
+msgid "Slug final"
+msgstr "Slug final"
+
+#: apps/catalog/admin.py:622
+msgid "A gerar"
+msgstr "A gerar"
+
+#: apps/catalog/admin.py:625
+msgid "Imagens"
+msgstr "Imagens"
+
+#: apps/catalog/admin.py:626
+msgid "Imagem principal"
+msgstr "Imagem principal"
+
+#: apps/catalog/admin.py:627 apps/catalog/admin.py:652
+msgid "Localizações"
+msgstr "Localizações"
+
+#: apps/catalog/admin.py:629
+msgid "Antes de publicar, confirme imagem principal, tradução PT e stock disponível."
+msgstr "Antes de publicar, confirme imagem principal, tradução PT e stock disponível."
+
+#: apps/catalog/admin.py:632 apps/catalog/admin.py:646
+msgid "Plano de reposição"
+msgstr "Plano de reposição"
+
+#: apps/catalog/admin.py:636
+msgid "Desativar ou repor imediatamente."
+msgstr "Desativar ou repor imediatamente."
+
+#: apps/catalog/admin.py:636
+msgid "Aguardar reposição antes de reativar."
+msgstr "Aguardar reposição antes de reativar."
+
+#: apps/catalog/admin.py:638
+msgid "Repor nesta semana para evitar rutura."
+msgstr "Repor nesta semana para evitar rutura."
+
+#: apps/catalog/admin.py:640
+msgid "Cobertura confortável para operação diária."
+msgstr "Cobertura confortável para operação diária."
+
+#: apps/catalog/admin.py:643
+msgid "Produto pronto para regressar ao catálogo."
+msgstr "Produto pronto para regressar ao catálogo."
+
+#: apps/catalog/admin.py:648
+msgid "Estado de catálogo"
+msgstr "Estado de catálogo"
+
+#: apps/catalog/admin.py:649
+#, fuzzy
+#| msgid "Estado"
+msgid "Stock atual"
+msgstr "Estado"
+
+#: apps/catalog/admin.py:650
+msgid "Nível operacional"
+msgstr ""
+
+#: apps/catalog/admin.py:651 templates/catalog/product_detail.html:58
+#: templates/catalog/product_detail.html:64
+#: templates/components/product_card.html:42
+#: templates/components/product_card.html:48
+msgid "Envio disponível"
+msgstr "Envio disponível"
+
+#: apps/catalog/admin.py:651 templates/catalog/product_detail.html:58
+#: templates/catalog/product_detail.html:64
+#: templates/components/product_card.html:42
+#: templates/components/product_card.html:48
+msgid "Apenas levantamento"
+msgstr "Apenas levantamento"
+
+#: apps/catalog/admin.py:653
+#, fuzzy
+#| msgid "Próximo evento"
+msgid "Próximo passo"
+msgstr "Próximo evento"
+
+#: apps/catalog/admin.py:655
+msgid "Use os atalhos laterais para abrir a categoria ou a fila de reposição sem sair deste contexto."
+msgstr ""
+
+#: apps/catalog/apps.py:9
+msgid "Catálogo"
+msgstr ""
+
+#: apps/catalog/forms.py:11
+msgid "Gerado automaticamente a partir do nome em Português e da quantidade, mas pode ser ajustado manualmente."
+msgstr ""
+
+#: apps/catalog/forms.py:24
+#, fuzzy
+#| msgid "Biobrassica"
+msgid "Ex: Biobrassica"
+msgstr "Biobrassica"
+
+#: apps/catalog/forms.py:25
+msgid "Ex: 500 g ou 6 x 330 ml"
+msgstr ""
+
+#: apps/catalog/forms.py:26
+msgid "Ex: PT-BIO-03"
+msgstr ""
+
+#: apps/catalog/forms.py:27
+msgid "Gerado automaticamente se deixar vazio"
+msgstr ""
+
+#: apps/catalog/forms.py:32
+#, fuzzy
+#| msgid "Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+msgid "Escolha os pontos de venda onde o produto está disponível para levantamento."
+msgstr "Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+
+#: apps/catalog/forms.py:33
+msgid "Atualize o stock real para evitar encomendas impossíveis de cumprir."
+msgstr ""
+
+#: apps/catalog/forms.py:47
+msgid "Adicione apenas os idiomas realmente necessários. Português primeiro."
+msgstr ""
+
+#: apps/catalog/forms.py:48
+msgid "Ex: Massa integral bio"
+msgstr ""
+
+#: apps/catalog/forms.py:50
+msgid "Descrição comercial curta e clara do produto."
+msgstr ""
+
+#: apps/catalog/forms.py:51
+msgid "Ex: Contém glúten"
+msgstr ""
+
+#: apps/catalog/forms.py:53
+#, fuzzy
+#| msgid "Comprar Ingredientes"
+msgid "Lista completa de ingredientes."
+msgstr "Comprar Ingredientes"
+
+#: apps/catalog/forms.py:64
+msgid "Descrição curta para acessibilidade e SEO"
+msgstr ""
+
+#: apps/catalog/forms.py:65
+msgid "Use a ordem para controlar a sequência da galeria."
+msgstr ""
+
+#: apps/content/admin.py:49
+msgid "Pesquise por slug ou título traduzido do artigo."
+msgstr ""
+
+#: apps/content/admin.py:80 apps/content/admin.py:242
+msgid "Rascunhos"
+msgstr ""
+
+#: apps/content/admin.py:80
+msgid "Artigos por lançar"
+msgstr ""
+
+#: apps/content/admin.py:81
+msgid "Publicados"
+msgstr ""
+
+#: apps/content/admin.py:81
+msgid "Conteúdo visível"
+msgstr ""
+
+#: apps/content/admin.py:82 apps/content/admin.py:244
+msgid "Sem capa"
+msgstr ""
+
+#: apps/content/admin.py:82
+msgid "Impacto visual incompleto"
+msgstr ""
+
+#: apps/content/admin.py:83
+msgid "Bloqueia revisão editorial"
+msgstr ""
+
+#: apps/content/admin.py:97 apps/content/admin.py:252
+#, fuzzy
+#| msgid "Última atualização"
+msgid "Retirar publicação"
+msgstr "Última atualização"
+
+#: apps/content/admin.py:98
+msgid "Publicar artigo"
+msgstr ""
+
+#: apps/content/admin.py:105 apps/content/admin.py:260
+#, fuzzy
+#| msgid "Não foi possível validar os dados da encomenda."
+msgid "Não foi possível publicar: "
+msgstr "Não foi possível validar os dados da encomenda."
+
+#: apps/content/admin.py:110
+msgid "Artigo publicado."
+msgstr ""
+
+#: apps/content/admin.py:118
+msgid "Artigo retirado de publicação."
+msgstr ""
+
+#: apps/content/admin.py:126 apps/content/admin.py:148 apps/website/admin.py:84
+msgid "Publicado"
+msgstr ""
+
+#: apps/content/admin.py:127 apps/content/admin.py:148
+#: apps/content/admin.py:280 apps/content/admin.py:312
+#: apps/core/admin_dashboard.py:199 apps/core/admin_dashboard.py:207
+msgid "Rascunho"
+msgstr ""
+
+#: apps/content/admin.py:135
+msgid "Rever autor"
+msgstr ""
+
+#: apps/content/admin.py:138 apps/content/admin.py:146
+#: apps/content/admin.py:299 apps/content/admin.py:310
+msgid "Checklist editorial"
+msgstr ""
+
+#: apps/content/admin.py:141
+msgid "Guarde o artigo para ver o checklist editorial."
+msgstr ""
+
+#: apps/content/admin.py:144 apps/content/admin.py:308
+msgid "Bloqueadores: "
+msgstr ""
+
+#: apps/content/admin.py:144
+msgid "Artigo pronto para publicação. Confirme apenas o autor e o momento de publicação."
+msgstr ""
+
+#: apps/content/admin.py:149
+msgid "Autor"
+msgstr ""
+
+#: apps/content/admin.py:149
+msgid "Sem autor atribuído"
+msgstr ""
+
+#: apps/content/admin.py:152 apps/content/admin.py:317
+#, fuzzy
+#| msgid "Imagem em breve"
+msgid "Imagem de capa"
+msgstr "Imagem em breve"
+
+#: apps/content/admin.py:153 apps/content/admin.py:319
+#: apps/content/forms.py:137 apps/content/forms.py:149
+msgid "Tags"
+msgstr ""
+
+#: apps/content/admin.py:153 apps/content/admin.py:319
+#, fuzzy
+#| msgid "Sem imagem"
+msgid "Sem tags"
+msgstr "Sem imagem"
+
+#: apps/content/admin.py:154
+msgid "Publicado em"
+msgstr ""
+
+#: apps/content/admin.py:154
+#, fuzzy
+#| msgid "Ainda não tem conta?"
+msgid "Ainda não publicado"
+msgstr "Ainda não tem conta?"
+
+#: apps/content/admin.py:163 apps/content/admin.py:330
+msgid "adicionar tradução PT"
+msgstr ""
+
+#: apps/content/admin.py:165 apps/content/admin.py:337
+msgid "carregar imagem de capa"
+msgstr ""
+
+#: apps/content/admin.py:203
+msgid "Pesquise por slug ou título traduzido da receita."
+msgstr ""
+
+#: apps/content/admin.py:215
+msgid "Detalhes"
+msgstr ""
+
+#: apps/content/admin.py:218
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "Produtos Relacionados"
+msgstr "Produtos relacionados"
+
+#: apps/content/admin.py:242
+msgid "Receitas por validar"
+msgstr ""
+
+#: apps/content/admin.py:243
+msgid "Publicadas"
+msgstr ""
+
+#: apps/content/admin.py:243
+#, fuzzy
+#| msgid "Ingredientes não disponíveis."
+msgid "Receitas disponíveis"
+msgstr "Ingredientes não disponíveis."
+
+#: apps/content/admin.py:244
+msgid "Visual incompleto"
+msgstr ""
+
+#: apps/content/admin.py:245
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "Sem produtos relacionados"
+msgstr "Produtos relacionados"
+
+#: apps/content/admin.py:245
+msgid "Oportunidade de cross-sell"
+msgstr ""
+
+#: apps/content/admin.py:253
+#, fuzzy
+#| msgid "Ver receita"
+msgid "Publicar receita"
+msgstr "Ver receita"
+
+#: apps/content/admin.py:264
+msgid "Receita publicada."
+msgstr ""
+
+#: apps/content/admin.py:271
+msgid "Receita retirada de publicação."
+msgstr ""
+
+#: apps/content/admin.py:279 apps/content/admin.py:312
+msgid "Publicada"
+msgstr ""
+
+#: apps/content/admin.py:288
+msgid "Sem cross-sell"
+msgstr ""
+
+#: apps/content/admin.py:295
+#, fuzzy
+#| msgid "Total"
+msgid "Tempo total"
+msgstr "Total"
+
+#: apps/content/admin.py:302
+msgid "Guarde a receita para ver o checklist editorial."
+msgstr ""
+
+#: apps/content/admin.py:308
+msgid "Receita pronta. Considere apenas relacionar produtos para reforçar conversão."
+msgstr ""
+
+#: apps/content/admin.py:315
+#, fuzzy
+#| msgid "Ingredientes"
+msgid "Ingredientes PT"
 msgstr "Ingredientes"
 
-msgid "Código Bio"
-msgstr "Código Bio"
+#: apps/content/admin.py:316
+msgid "Passos PT"
+msgstr ""
 
+#: apps/content/admin.py:318 templates/catalog/product_detail.html:139
 msgid "Produtos relacionados"
 msgstr "Produtos relacionados"
 
+#: apps/content/admin.py:333
+#, fuzzy
+#| msgid "Comprar Ingredientes"
+msgid "preencher ingredientes PT"
+msgstr "Comprar Ingredientes"
+
+#: apps/content/admin.py:335
+msgid "preencher passos PT"
+msgstr ""
+
+#: apps/content/apps.py:8
+msgid "Conteúdo"
+msgstr ""
+
+#: apps/content/forms.py:138
+msgid "Adicione tags para categorizar este artigo."
+msgstr ""
+
+#: apps/content/forms.py:150
+msgid "Adicione tags para categorizar esta receita."
+msgstr ""
+
+#: apps/content/forms.py:161 templates/catalog/product_detail.html:123
+#: templates/content/recipe_detail.html:84
+msgid "Ingredientes"
+msgstr "Ingredientes"
+
+#: apps/content/forms.py:162
+msgid "Adicione os ingredientes necessários para esta receita (ex: \"200g farinha espelta\")."
+msgstr ""
+
+#: apps/content/forms.py:166 templates/content/recipe_detail.html:104
+msgid "Preparação"
+msgstr "Prep"
+
+#: apps/content/forms.py:167
+msgid "Adicione cada passo de preparação. O sistema numera automaticamente."
+msgstr ""
+
+#: apps/content/models.py:12 apps/content/models.py:98
+msgid "slug"
+msgstr ""
+
+#: apps/content/models.py:19
+msgid "autor"
+msgstr ""
+
+#: apps/content/models.py:21 apps/content/models.py:99
+msgid "imagem de capa"
+msgstr ""
+
+#: apps/content/models.py:22 apps/content/models.py:112
+msgid "publicado"
+msgstr ""
+
+#: apps/content/models.py:23
+msgid "publicado em"
+msgstr ""
+
+#: apps/content/models.py:24 apps/content/models.py:111
+msgid "etiquetas"
+msgstr ""
+
+#: apps/content/models.py:24
+msgid "Lista de tags, ex: [\"receitas\", \"bio\"]"
+msgstr ""
+
+#: apps/content/models.py:25 apps/content/models.py:113
+#: apps/orders/models.py:79
+msgid "criado em"
+msgstr ""
+
+#: apps/content/models.py:26 apps/content/models.py:114
+#: apps/orders/models.py:80 apps/website/models.py:109
+#, fuzzy
+#| msgid "Atualizar estado"
+msgid "atualizado em"
+msgstr "Atualizar estado"
+
+#: apps/content/models.py:30 apps/content/models.py:63
+msgid "artigo do blog"
+msgstr ""
+
+#: apps/content/models.py:31
+msgid "artigos do blog"
+msgstr ""
+
+#: apps/content/models.py:64 apps/content/models.py:179
+#: apps/orders/models.py:75
+#, fuzzy
+#| msgid "Idioma"
+msgid "idioma"
+msgstr "Idioma"
+
+#: apps/content/models.py:65 apps/content/models.py:180
+msgid "título"
+msgstr ""
+
+#: apps/content/models.py:66
+#, fuzzy
+#| msgid "Resumo"
+msgid "resumo"
+msgstr "Resumo"
+
+#: apps/content/models.py:66
+msgid "Resumo curto para listagens"
+msgstr ""
+
+#: apps/content/models.py:67
+msgid "conteúdo"
+msgstr ""
+
+#: apps/content/models.py:67
+msgid "Conteúdo do artigo (HTML)"
+msgstr ""
+
+#: apps/content/models.py:68 apps/content/models.py:192
+#, fuzzy
+#| msgid "Descrição"
+msgid "meta descrição"
+msgstr "Descrição"
+
+#: apps/content/models.py:71
+msgid "tradução de artigo"
+msgstr ""
+
+#: apps/content/models.py:72
+msgid "traduções de artigo"
+msgstr ""
+
+#: apps/content/models.py:94
+msgid "Fácil"
+msgstr ""
+
+#: apps/content/models.py:95
+msgid "Médio"
+msgstr ""
+
+#: apps/content/models.py:96
+msgid "Difícil"
+msgstr ""
+
+#: apps/content/models.py:100
+#, fuzzy
+#| msgid "Preparação"
+msgid "tempo de preparação"
+msgstr "Prep"
+
+#: apps/content/models.py:100
+msgid "Tempo de preparação em minutos"
+msgstr ""
+
+#: apps/content/models.py:101
+#, fuzzy
+#| msgid "cozedura"
+msgid "tempo de cozedura"
+msgstr "cozedura"
+
+#: apps/content/models.py:101
+msgid "Tempo de cozedura em minutos"
+msgstr ""
+
+#: apps/content/models.py:102 templates/content/recipe_detail.html:33
+msgid "doses"
+msgstr "Doses"
+
+#: apps/content/models.py:103
+msgid "dificuldade"
+msgstr ""
+
+#: apps/content/models.py:108
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "produtos relacionados"
+msgstr "Produtos relacionados"
+
+#: apps/content/models.py:109
+#, fuzzy
+#| msgid "Produtos relacionados"
+msgid "Produtos relacionados (comprar ingredientes)"
+msgstr "Produtos relacionados"
+
+#: apps/content/models.py:111
+msgid "Tags para filtragem, ex: [\"vegetariano\", \"sem glúten\"]"
+msgstr ""
+
+#: apps/content/models.py:118 apps/content/models.py:178
+#, fuzzy
+#| msgid "Receita"
+msgid "receita"
+msgstr "Receita"
+
+#: apps/content/models.py:119
+#, fuzzy
+#| msgid "Receitas"
+msgid "receitas"
+msgstr "Receitas"
+
+#: apps/content/models.py:181
+#, fuzzy
+#| msgid "Descrição"
+msgid "descrição"
+msgstr "Descrição"
+
+#: apps/content/models.py:181
+#, fuzzy
+#| msgid "Descrição"
+msgid "Descrição curta"
+msgstr "Descrição"
+
+#: apps/content/models.py:183
+#, fuzzy
+#| msgid "Ingredientes"
+msgid "ingredientes"
+msgstr "Ingredientes"
+
+#: apps/content/models.py:185
+msgid "Lista de ingredientes: [\"200g farinha\", \"2 ovos\", ...]"
+msgstr ""
+
+#: apps/content/models.py:188
+msgid "instruções"
+msgstr ""
+
+#: apps/content/models.py:190
+msgid "Lista de passos de preparação: [\"Pré-aquecer o forno...\", \"Misturar...\"]"
+msgstr ""
+
+#: apps/content/models.py:195
+msgid "tradução de receita"
+msgstr ""
+
+#: apps/content/models.py:196
+msgid "traduções de receita"
+msgstr ""
+
+#: apps/content/widgets.py:107
+msgid "ex: 200g farinha espelta"
+msgstr ""
+
+#: apps/content/widgets.py:117
+#, fuzzy
+#| msgid "Comprar Ingredientes"
+msgid "Adicionar ingrediente"
+msgstr "Comprar Ingredientes"
+
+#: apps/content/widgets.py:151
+msgid "Descreva este passo…"
+msgstr ""
+
+#: apps/content/widgets.py:161
+#, fuzzy
+#| msgid "Adicionar %(name)s"
+msgid "Adicionar passo"
+msgstr "Adicionar %(name)s"
+
+#: apps/core/admin_dashboard.py:55
+msgid "Contas ativas"
+msgstr "Contas ativas"
+
+#: apps/core/admin_dashboard.py:57
+msgid "Clientes e equipa com acesso ativo"
+msgstr "Clientes e equipa com acesso ativo"
+
+#: apps/core/admin_dashboard.py:62
+msgid "Encomendas pagas"
+msgstr "Encomendas pagas"
+
+#: apps/core/admin_dashboard.py:64
+msgid "Pedidos já convertidos em receita"
+msgstr "Pedidos já convertidos em receita"
+
+#: apps/core/admin_dashboard.py:69
+msgid "Volume transacionado"
+msgstr "Volume transacionado"
+
+#: apps/core/admin_dashboard.py:71
+msgid "Total confirmado em pagamentos pagos"
+msgstr "Total confirmado em pagamentos pagos"
+
+#: apps/core/admin_dashboard.py:76
+msgid "Ticket médio"
+msgstr "Ticket médio"
+
+#: apps/core/admin_dashboard.py:78
+msgid "Valor médio por encomenda paga"
+msgstr "Valor médio por encomenda paga"
+
+#: apps/core/admin_dashboard.py:83
+msgid "A cobrar"
+msgstr "A cobrar"
+
+#: apps/core/admin_dashboard.py:85
+msgid "Encomendas à espera de pagamento confirmado"
+msgstr "Encomendas à espera de pagamento confirmado"
+
+#: apps/core/admin_dashboard.py:90
+msgid "Conteúdo em rascunho"
+msgstr "Conteúdo em rascunho"
+
+#: apps/core/admin_dashboard.py:92
+msgid "Blog e receitas por publicar"
+msgstr "Blog e receitas por publicar"
+
+#: apps/core/admin_dashboard.py:97 apps/core/admin_dashboard.py:229
+msgid "Reposição urgente"
+msgstr "Reposição urgente"
+
+#: apps/core/admin_dashboard.py:99
+msgid "Produtos ativos em rutura"
+msgstr "Produtos ativos em rutura"
+
+#: apps/core/admin_dashboard.py:104
+msgid "Stock baixo"
+msgstr "Stock baixo"
+
+#: apps/core/admin_dashboard.py:106
+msgid "Cobertura curta para a semana"
+msgstr "Cobertura curta para a semana"
+
+#: apps/core/admin_dashboard.py:111
+msgid "Produtos com lacunas"
+msgstr "Produtos com lacunas"
+
+#: apps/core/admin_dashboard.py:113
+msgid "Sem tradução PT ou sem imagem principal"
+msgstr "Sem tradução PT ou sem imagem principal"
+
+#: apps/core/admin_dashboard.py:136
+msgid "Telefone OK"
+msgstr "Telefone OK"
+
+#: apps/core/admin_dashboard.py:137
+msgid "Morada pronta"
+msgstr "Morada pronta"
+
+#: apps/core/admin_dashboard.py:141
+msgid "Acompanhar"
+msgstr "Acompanhar"
+
+#: apps/core/admin_dashboard.py:161
+msgid "Recuperar"
+msgstr "Recuperar"
+
+#: apps/core/admin_dashboard.py:171
+msgid "Hoje"
+msgstr "Hoje"
+
+#: apps/core/admin_dashboard.py:185
+#, python-format
+msgid "%(count)s localizações"
+msgstr "%(count)s localizações"
+
+#: apps/core/admin_dashboard.py:198 templates/components/footer_website.html:71
+#: templates/components/navbar_website.html:23
+#: templates/components/navbar_website.html:65
+#: templates/content/blog_list.html:4 templates/content/blog_list.html:12
+msgid "Blog"
+msgstr "Blog"
+
+#: apps/core/admin_dashboard.py:206
+msgid "Receita"
+msgstr "Receita"
+
+#: apps/core/admin_dashboard.py:215
+msgid "Fila operacional"
+msgstr "Fila operacional"
+
+#: apps/core/admin_dashboard.py:216
+msgid "Pedidos que exigem decisão nas próximas horas."
+msgstr "Pedidos que exigem decisão nas próximas horas."
+
+#: apps/core/admin_dashboard.py:218
+msgid "Sem encomendas recentes."
+msgstr "Sem encomendas recentes."
+
+#: apps/core/admin_dashboard.py:222
+msgid "Levantamentos de hoje"
+msgstr "Levantamentos de hoje"
+
+#: apps/core/admin_dashboard.py:223
+msgid "Pedidos pickup com atividade prevista para hoje."
+msgstr "Pedidos pickup com atividade prevista para hoje."
+
+#: apps/core/admin_dashboard.py:225
+msgid "Sem levantamentos planeados para hoje."
+msgstr "Sem levantamentos planeados para hoje."
+
+#: apps/core/admin_dashboard.py:230
+msgid "Produtos com rutura ou cobertura curta para a semana."
+msgstr "Produtos com rutura ou cobertura curta para a semana."
+
+#: apps/core/admin_dashboard.py:232
+msgid "Sem alertas de reposição neste momento."
+msgstr "Sem alertas de reposição neste momento."
+
+#: apps/core/admin_dashboard.py:236
+msgid "Clientes a acompanhar"
+msgstr "Clientes a acompanhar"
+
+#: apps/core/admin_dashboard.py:237
+msgid "Perfis ativos com dados incompletos para suporte ou checkout."
+msgstr "Perfis ativos com dados incompletos para suporte ou checkout."
+
+#: apps/core/admin_dashboard.py:239
+msgid "Todos os clientes ativos têm a base de dados completa."
+msgstr "Todos os clientes ativos têm a base de dados completa."
+
+#: apps/core/admin_dashboard.py:243
+msgid "Pagamentos recentes"
+msgstr "Pagamentos recentes"
+
+#: apps/core/admin_dashboard.py:244
+msgid "Estado dos últimos pagamentos gerados."
+msgstr "Estado dos últimos pagamentos gerados."
+
+#: apps/core/admin_dashboard.py:246
+msgid "Sem pagamentos registados."
+msgstr "Sem pagamentos registados."
+
+#: apps/core/admin_dashboard.py:250
+msgid "Recuperação de pagamentos"
+msgstr "Recuperação de pagamentos"
+
+#: apps/core/admin_dashboard.py:251
+msgid "Cobranças expiradas ou falhadas a recuperar pelo suporte."
+msgstr "Cobranças expiradas ou falhadas a recuperar pelo suporte."
+
+#: apps/core/admin_dashboard.py:253
+msgid "Sem pagamentos falhados para recuperar."
+msgstr "Sem pagamentos falhados para recuperar."
+
+#: apps/core/admin_dashboard.py:257
+msgid "Conteúdo por publicar"
+msgstr "Conteúdo por publicar"
+
+#: apps/core/admin_dashboard.py:258
+msgid "Rascunhos mais recentes à espera de revisão."
+msgstr "Rascunhos mais recentes à espera de revisão."
+
+#: apps/core/admin_dashboard.py:260
+msgid "Não há rascunhos urgentes neste momento."
+msgstr "Não há rascunhos urgentes neste momento."
+
+#: apps/core/admin_helpers.py:42
+msgid "Abrir"
+msgstr ""
+
+#: apps/core/admin_helpers.py:57
+msgid "Mover para cima"
+msgstr ""
+
+#: apps/core/admin_helpers.py:58
+#, fuzzy
+#| msgid "Ir para a Loja"
+msgid "Mover para baixo"
+msgstr "Ir para a Loja"
+
+#: apps/core/apps.py:9
+#, fuzzy
+#| msgid "System"
+msgid "Sistema"
+msgstr "Sistema"
+
+#: apps/orders/admin.py:43
+msgid "Pesquise por número de encomenda, email, nome ou telefone."
+msgstr ""
+
+#: apps/orders/admin.py:82
+msgid "Encomenda marcada como em preparação."
+msgstr ""
+
+#: apps/orders/admin.py:83
+msgid "Encomenda marcada como pronta para levantamento."
+msgstr ""
+
+#: apps/orders/admin.py:84
+msgid "Encomenda marcada como entregue."
+msgstr ""
+
+#: apps/orders/admin.py:147
+#, fuzzy
+#| msgid "Preparação"
+msgid "Marcar em preparação"
+msgstr "Prep"
+
+#: apps/orders/admin.py:148 apps/orders/admin.py:215
+#, fuzzy
+#| msgid "Criar conta"
+msgid "Marcar pronta"
+msgstr "Criar conta"
+
+#: apps/orders/admin.py:149
+msgid "Marcar entregue"
+msgstr ""
+
+#: apps/orders/admin.py:161
+#, fuzzy
+#| msgid "Continuar pagamento"
+msgid "Abrir pagamento"
+msgstr "Continuar pagamento"
+
+#: apps/orders/admin.py:175
+msgid "Cancelar não paga"
+msgstr ""
+
+#: apps/orders/admin.py:185
+#, fuzzy
+#| msgid "Encomenda Confirmada"
+msgid "Encomenda não encontrada."
+msgstr "Encomenda Confirmada"
+
+#: apps/orders/admin.py:194
+msgid "Encomenda cancelada e stock reposto."
+msgstr ""
+
+#: apps/orders/admin.py:206 apps/orders/admin.py:286
+msgid "Itens"
+msgstr ""
+
+#: apps/orders/admin.py:210
+#, fuzzy
+#| msgid "Preparação"
+msgid "Próxima ação"
+msgstr "Prep"
+
+#: apps/orders/admin.py:213
+#, fuzzy
+#| msgid "Preparação"
+msgid "Iniciar preparação"
+msgstr "Prep"
+
+#: apps/orders/admin.py:217
+#, fuzzy
+#| msgid "Entrar"
+msgid "Entregar"
+msgstr "Entrar"
+
+#: apps/orders/admin.py:219
+#, fuzzy
+#| msgid "Continuar pagamento"
+msgid "Confirmar pagamento"
+msgstr "Continuar pagamento"
+
+#: apps/orders/admin.py:221
+msgid "Fluxo concluído"
+msgstr ""
+
+#: apps/orders/admin.py:222
+msgid "Validar dados"
+msgstr ""
+
+#: apps/orders/admin.py:224
+msgid "Há"
+msgstr ""
+
+#: apps/orders/admin.py:239 apps/orders/admin.py:265
+#: templates/orders/complete.html:21 templates/orders/payment_select.html:4
+#: templates/orders/payment_select.html:8
+msgid "Pagamento"
+msgstr "Pagamento"
+
+#: apps/orders/admin.py:254
+#, fuzzy
+#| msgid "Métodos de pagamento:"
+msgid "Método pag."
+msgstr "Métodos de pagamento:"
+
+#: apps/orders/admin.py:259
+#, fuzzy
+#| msgid "Estado do Pagamento"
+msgid "Resumo do pagamento"
+msgstr "Estado do Pagamento"
+
+#: apps/orders/admin.py:263
+#, fuzzy
+#| msgid "De momento esgotado"
+msgid "Sem pagamento associado."
+msgstr "De momento esgotado"
+
+#: apps/orders/admin.py:268 apps/orders/admin.py:309 apps/payments/admin.py:126
+#: templates/orders/complete.html:24
+msgid "Método"
+msgstr ""
+
+#: apps/orders/admin.py:269 apps/payments/admin.py:130
+msgid "Sessão Stripe"
+msgstr ""
+
+#: apps/orders/admin.py:270
+msgid "Payment Intent"
+msgstr ""
+
+#: apps/orders/admin.py:271 templates/orders/complete.html:32
+#: templates/orders/payment_status.html:28
+msgid "Valor"
+msgstr "Valor"
+
+#: apps/orders/admin.py:273
+msgid "Os pagamentos confirmados libertam automaticamente as próximas ações do fluxo."
+msgstr ""
+
+#: apps/orders/admin.py:280
+#, fuzzy
+#| msgid "Instruções não disponíveis."
+msgid "Sem transições disponíveis"
+msgstr "Instruções não disponíveis."
+
+#: apps/orders/admin.py:282
+#, fuzzy
+#| msgid "Detalhes da encomenda"
+msgid "Fluxo da encomenda"
+msgstr "Detalhes da encomenda"
+
+#: apps/orders/admin.py:284
+#, fuzzy
+#| msgid "Estado"
+msgid "Estado atual"
+msgstr "Estado"
+
+#: apps/orders/admin.py:285
+msgid "Próximas transições"
+msgstr ""
+
+#: apps/orders/admin.py:287
+#, fuzzy
+#| msgid "Atualizar estado"
+msgid "Atualizada"
+msgstr "Atualizar estado"
+
+#: apps/orders/admin.py:289
+msgid "Use os botões inferiores para avançar o fluxo quando a operação estiver concluída."
+msgstr ""
+
+#: apps/orders/admin.py:292
+msgid "Ficha do cliente"
+msgstr ""
+
+#: apps/orders/admin.py:300 templates/components/navbar_shop.html:79
+msgid "Conta"
+msgstr "Conta"
+
+#: apps/orders/admin.py:300
+msgid "Associada"
+msgstr ""
+
+#: apps/orders/admin.py:300
+#, fuzzy
+#| msgid "Novidades"
+msgid "Convidado"
+msgstr "Novidades"
+
+#: apps/orders/admin.py:304
+#, fuzzy
+#| msgid "Apenas levantamento"
+msgid "Entrega / levantamento"
+msgstr "Apenas levantamento"
+
+#: apps/orders/admin.py:307
+msgid "Cumprimento"
+msgstr ""
+
+#: apps/orders/admin.py:310 templates/orders/checkout.html:63
+msgid "Levantamento"
+msgstr "Levantamento"
+
+#: apps/orders/admin.py:312 templates/components/navbar_shop.html:53
+msgid "Idioma"
+msgstr "Idioma"
+
+#: apps/orders/admin.py:330
+msgid "{} encomenda(s) atualizada(s)."
+msgstr ""
+
+#: apps/orders/admin.py:332
+msgid "{} encomenda(s) rejeitada(s) por transição inválida."
+msgstr ""
+
+#: apps/orders/admin.py:334
+msgid "Marcar como em preparação"
+msgstr ""
+
+#: apps/orders/admin.py:338
+#, fuzzy
+#| msgid "Criar conta"
+msgid "Marcar como pronta"
+msgstr "Criar conta"
+
+#: apps/orders/admin.py:342
+msgid "Marcar como entregue"
+msgstr ""
+
+#: apps/orders/admin.py:346
+msgid "Cancelar encomendas não pagas"
+msgstr ""
+
+#: apps/orders/admin.py:359
+msgid "{} encomenda(s) cancelada(s)."
+msgstr ""
+
+#: apps/orders/admin.py:361
+msgid "{} encomenda(s) não puderam ser cancelada(s)."
+msgstr ""
+
+#: apps/orders/forms.py:15
+#, fuzzy
+#| msgid "Selecione um método de pagamento válido."
+msgid "Selecione um método de entrega válido."
+msgstr "Selecione um método de pagamento válido."
+
+#: apps/orders/forms.py:57 templates/orders/checkout.html:75
+msgid "Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+msgstr "Este carrinho contém produtos disponíveis apenas para levantamento em loja."
+
+#: apps/orders/forms.py:66
+msgid "Preencha a morada de envio completa."
+msgstr "Preencha a morada de envio completa."
+
+#: apps/orders/forms.py:70 apps/orders/models.py:131
+msgid "Use o formato 1234-123."
+msgstr "Use o formato 1234-123."
+
+#: apps/orders/forms.py:74 apps/orders/models.py:122
+msgid "Selecione um local de levantamento."
+msgstr "Selecione um local de levantamento."
+
+#: apps/orders/forms.py:82 apps/orders/forms.py:89
+msgid "Selecione um método de pagamento válido."
+msgstr "Selecione um método de pagamento válido."
+
+#: apps/orders/models.py:35
+#, fuzzy
+#| msgid "Ingredientes"
+msgid "Pendente"
+msgstr "Ingredientes"
+
+#: apps/orders/models.py:36
+#, fuzzy
+#| msgid "Pagamento"
+msgid "Aguarda Pagamento"
+msgstr "Pagamento"
+
+#: apps/orders/models.py:37
+msgid "Pago"
+msgstr ""
+
+#: apps/orders/models.py:38
+#, fuzzy
+#| msgid "Preparação"
+msgid "Em Preparação"
+msgstr "Prep"
+
+#: apps/orders/models.py:39
+#, fuzzy
+#| msgid "Levantamento"
+msgid "Pronto para Levantamento"
+msgstr "Levantamento"
+
+#: apps/orders/models.py:40
+#, fuzzy
+#| msgid "6. Entregas"
+msgid "Entregue"
+msgstr "6. Entregas"
+
+#: apps/orders/models.py:41
+msgid "Cancelado"
+msgstr ""
+
+#: apps/orders/models.py:44
+msgid "Loja Braga"
+msgstr ""
+
+#: apps/orders/models.py:45
+#, fuzzy
+#| msgid "Guimarães"
+msgid "Loja Guimarães"
+msgstr "Guimarães"
+
+#: apps/orders/models.py:48 templates/catalog/shop_home.html:59
+#: templates/core/home.html:53
+msgid "Levantamento na loja"
+msgstr "Levantamento na loja"
+
+#: apps/orders/models.py:49
+#, fuzzy
+#| msgid "Envio disponível"
+msgid "Envio ao domicílio"
+msgstr "Envio disponível"
+
+#: apps/orders/models.py:63
+#, fuzzy
+#| msgid "Estado"
+msgid "estado"
+msgstr "Estado"
+
+#: apps/orders/models.py:65
+#, fuzzy
+#| msgid "Método de entrega"
+msgid "método de entrega"
+msgstr "Método de entrega"
+
+#: apps/orders/models.py:70
+#, fuzzy
+#| msgid "Local de levantamento"
+msgid "local de levantamento"
+msgstr "Local de levantamento"
+
+#: apps/orders/models.py:72
+#, fuzzy
+#| msgid "Morada (cont.)"
+msgid "morada (cont.)"
+msgstr "Morada (cont.)"
+
+#: apps/orders/models.py:73
+#, fuzzy
+#| msgid "Cidade"
+msgid "cidade"
+msgstr "Cidade"
+
+#: apps/orders/models.py:74
+#, fuzzy
+#| msgid "Código Postal"
+msgid "código postal"
+msgstr "Código Postal"
+
+#: apps/orders/models.py:76
+#, fuzzy
+#| msgid "Total"
+msgid "subtotal"
+msgstr "Total"
+
+#: apps/orders/models.py:77
+#, fuzzy
+#| msgid "Total"
+msgid "total"
+msgstr "Total"
+
+#: apps/orders/models.py:78
+#, fuzzy
+#| msgid "Notas"
+msgid "notas"
+msgstr "Notas"
+
+#: apps/orders/models.py:84 apps/orders/models.py:187
+#, fuzzy
+#| msgid "Encomenda"
+msgid "encomenda"
+msgstr "Encomenda"
+
+#: apps/orders/models.py:85
+#, fuzzy
+#| msgid "Encomendas"
+msgid "encomendas"
+msgstr "Encomendas"
+
+#: apps/orders/models.py:118
+#, fuzzy
+#| msgid "Comunicação relativa ao estado das encomendas"
+msgid "Transição de estado inválida para a encomenda."
+msgstr "Comunicação relativa ao estado das encomendas"
+
+#: apps/orders/models.py:127
+msgid "Este campo é obrigatório para envio."
+msgstr ""
+
+#: apps/orders/models.py:141
+msgid "A encomenda só pode avançar após pagamento confirmado."
+msgstr ""
+
+#: apps/orders/models.py:144
+msgid "As encomendas pagas não podem ser canceladas por este fluxo."
+msgstr ""
+
+#: apps/orders/models.py:192
+#, fuzzy
+#| msgid "Produtos"
+msgid "produto"
+msgstr "Produtos"
+
+#: apps/orders/models.py:194
+#, fuzzy
+#| msgid "Ver produtos"
+msgid "nome do produto"
+msgstr "Ver produtos"
+
+#: apps/orders/models.py:195
+#, fuzzy
+#| msgid "Preço"
+msgid "preço"
+msgstr "Preço"
+
+#: apps/orders/models.py:196
+#, fuzzy
+#| msgid "Quantidade"
+msgid "quantidade"
+msgstr "Quantidade"
+
+#: apps/orders/models.py:199
+#, fuzzy
+#| msgid "Detalhes da encomenda"
+msgid "item da encomenda"
+msgstr "Detalhes da encomenda"
+
+#: apps/orders/models.py:200
+#, fuzzy
+#| msgid "Detalhes da encomenda"
+msgid "itens da encomenda"
+msgstr "Detalhes da encomenda"
+
+#: apps/orders/views.py:75 templates/cart/_cart_items.html:12
+#: templates/cart/_cart_popup.html:29
+msgid "O seu carrinho está vazio."
+msgstr "O seu carrinho está vazio."
+
+#: apps/orders/views.py:194
+msgid "Não foi possível iniciar o pagamento. Tente novamente."
+msgstr "Não foi possível iniciar o pagamento. Tente novamente."
+
+#: apps/orders/views.py:203
+msgid "Ainda não existe um pagamento associado a esta encomenda."
+msgstr "Ainda não existe um pagamento associado a esta encomenda."
+
+#: apps/orders/views.py:217
+msgid "Pagamento confirmado com sucesso."
+msgstr "Pagamento confirmado com sucesso."
+
+#: apps/orders/views.py:223
+#, fuzzy
+#| msgid "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
+msgid "A sessão de pagamento expirou. Pode iniciar novamente."
+msgstr "O pedido de pagamento expirou. Pode iniciar um novo pedido MB WAY."
+
+#: apps/payments/admin.py:23 apps/payments/admin.py:192
+#, fuzzy
+#| msgid "Navegação"
+msgid "Validação"
+msgstr "Navegação"
+
+#: apps/payments/admin.py:26 apps/payments/admin.py:195
+msgid "Válido"
+msgstr ""
+
+#: apps/payments/admin.py:26 apps/payments/admin.py:195
+msgid "Inválido"
+msgstr ""
+
+#: apps/payments/admin.py:29 apps/payments/admin.py:204
+msgid "IP"
+msgstr ""
+
+#: apps/payments/admin.py:33
+msgid "Payload"
+msgstr ""
+
+#: apps/payments/admin.py:44
+msgid "Pesquise por encomenda ou identificadores Stripe."
+msgstr ""
+
+#: apps/payments/admin.py:56
+#, fuzzy
+#| msgid "Estado do Pagamento"
+msgid "Dados do pagamento"
+msgstr "Estado do Pagamento"
+
+#: apps/payments/admin.py:59
+msgid "Auditoria"
+msgstr ""
+
+#: apps/payments/admin.py:70
+#, fuzzy
+#| msgid "Ingredientes"
+msgid "Pendentes"
+msgstr "Ingredientes"
+
+#: apps/payments/admin.py:70
+msgid "Acompanhar cobranças"
+msgstr ""
+
+#: apps/payments/admin.py:71
+msgid "Expirados"
+msgstr ""
+
+#: apps/payments/admin.py:71
+#, fuzzy
+#| msgid "Enviar link de recuperação"
+msgid "Verificar recuperação"
+msgstr "Enviar link de recuperação"
+
+#: apps/payments/admin.py:72
+msgid "Falhados"
+msgstr ""
+
+#: apps/payments/admin.py:72
+msgid "Rever erros"
+msgstr ""
+
+#: apps/payments/admin.py:73
+msgid "Callbacks inválidos"
+msgstr ""
+
+#: apps/payments/admin.py:73
+msgid "Requer investigação"
+msgstr ""
+
+#: apps/payments/admin.py:98
+#, fuzzy
+#| msgid "Finalizar encomenda"
+msgid "Abrir encomenda"
+msgstr "Finalizar encomenda"
+
+#: apps/payments/admin.py:104
+msgid "Ver callbacks"
+msgstr ""
+
+#: apps/payments/admin.py:112
+#, fuzzy
+#| msgid "Checkout"
+msgid "Abrir checkout"
+msgstr "Checkout"
+
+#: apps/payments/admin.py:134
+msgid "Payment Intent Stripe"
+msgstr ""
+
+#: apps/payments/admin.py:138
+msgid "ID Stripe"
+msgstr ""
+
+#: apps/payments/admin.py:142
+msgid "Callbacks"
+msgstr ""
+
+#: apps/payments/admin.py:146
+msgid "{} inválido(s)"
+msgstr ""
+
+#: apps/payments/admin.py:149
+msgid "{} recebido(s)"
+msgstr ""
+
+#: apps/payments/admin.py:150
+msgid "Sem callbacks"
+msgstr ""
+
+#: apps/payments/admin.py:152
+#, fuzzy
+#| msgid "Detalhes da encomenda"
+msgid "Resumo da encomenda"
+msgstr "Detalhes da encomenda"
+
+#: apps/payments/admin.py:156
+#, fuzzy
+#| msgid "Encomenda Confirmada"
+msgid "Encomenda associada"
+msgstr "Encomenda Confirmada"
+
+#: apps/payments/admin.py:158 templates/accounts/order_history.html:27
+#: templates/orders/payment_select.html:9
+#: templates/orders/payment_status.html:11
+msgid "Encomenda"
+msgstr "Encomenda"
+
+#: apps/payments/admin.py:161
+#, fuzzy
+#| msgid "6. Entregas"
+msgid "Entrega"
+msgstr "6. Entregas"
+
+#: apps/payments/admin.py:166
+msgid "Saúde de callback"
+msgstr ""
+
+#: apps/payments/admin.py:172
+msgid "Callbacks do provedor"
+msgstr ""
+
+#: apps/payments/admin.py:174
+#, fuzzy
+#| msgid "Receitas"
+msgid "Recebidos"
+msgstr "Receitas"
+
+#: apps/payments/admin.py:175
+msgid "Inválidos"
+msgstr ""
+
+#: apps/payments/admin.py:176
+msgid "Último callback"
+msgstr ""
+
+#: apps/payments/admin.py:177
+msgid "Último motivo"
+msgstr ""
+
+#: apps/payments/admin.py:179
+msgid "Use o atalho superior para abrir a lista filtrada de callbacks desta cobrança."
+msgstr ""
+
+#: apps/payments/admin.py:208
+msgid "Payload sanitizado"
+msgstr ""
+
+#: apps/payments/apps.py:9
+#, fuzzy
+#| msgid "Pagamento"
+msgid "Pagamentos"
+msgstr "Pagamento"
+
+#: apps/payments/models.py:100
+msgid "Transição de estado inválida para o pagamento."
+msgstr ""
+
+#: apps/payments/models.py:103
+msgid "Defina a data de pagamento quando o pagamento está confirmado."
+msgstr ""
+
+#: apps/payments/models.py:106
+msgid "A data de pagamento só pode estar preenchida em pagamentos pagos."
+msgstr ""
+
+#: apps/website/admin.py:20
+msgid "Pesquise por nome ou função na equipa."
+msgstr ""
+
+#: apps/website/admin.py:26 apps/website/admin.py:80
+msgid "Presença pública"
+msgstr "Presença pública"
+
+#: apps/website/admin.py:40
+msgid "Equipa ativa"
+msgstr "Equipa ativa"
+
+#: apps/website/admin.py:40
+msgid "Visível na página pública"
+msgstr "Visível na página pública"
+
+#: apps/website/admin.py:41
+msgid "Ocultos"
+msgstr "Ocultos"
+
+#: apps/website/admin.py:41
+msgid "Fora da página pública"
+msgstr "Fora da página pública"
+
+#: apps/website/admin.py:42
+msgid "Primeiros quatro"
+msgstr "Primeiros quatro"
+
+#: apps/website/admin.py:42
+msgid "Topo da grelha pública"
+msgstr "Topo da grelha pública"
+
+#: apps/website/admin.py:43
+msgid "Total gerido"
+msgstr "Total gerido"
+
+#: apps/website/admin.py:43
+msgid "Backoffice do website"
+msgstr "Backoffice do website"
+
+#: apps/website/admin.py:50
+msgid "Ocultar da equipa"
+msgstr ""
+
+#: apps/website/admin.py:51
+msgid "Mostrar na equipa"
+msgstr ""
+
+#: apps/website/admin.py:57
+msgid "Membro ocultado da página pública."
+msgstr ""
+
+#: apps/website/admin.py:63
+msgid "Membro publicado na página pública."
+msgstr ""
+
+#: apps/website/admin.py:71
+msgid "No website"
+msgstr ""
+
+#: apps/website/admin.py:72 apps/website/admin.py:84
+msgid "Oculto"
+msgstr ""
+
+#: apps/website/admin.py:74
+msgid "Resumo da presença"
+msgstr ""
+
+#: apps/website/admin.py:77
+msgid "Guarde o membro para ver o resumo de presença pública."
+msgstr ""
+
+#: apps/website/admin.py:83
+msgid "Função"
+msgstr ""
+
+#: apps/website/admin.py:85
+msgid "Ordem"
+msgstr ""
+
+#: apps/website/admin.py:86 templates/components/pagination.html:11
+msgid "Página"
+msgstr "Página"
+
+#: apps/website/admin.py:86 apps/website/admin.py:112 apps/website/admin.py:166
+#: templates/components/footer_website.html:69
+#: templates/components/navbar_website.html:13
+#: templates/components/navbar_website.html:63 templates/website/about.html:4
+msgid "Quem Somos"
+msgstr "Quem Somos"
+
+#: apps/website/admin.py:88
+msgid "A página pública usa a ordem configurada aqui para apresentar a equipa."
+msgstr "A página pública usa a ordem configurada aqui para apresentar a equipa."
+
+#: apps/website/admin.py:105
+msgid "Home"
+msgstr "Home"
+
+#: apps/website/admin.py:121 apps/website/admin.py:167
+msgid "Agricultura"
+msgstr "Agricultura"
+
+#: apps/website/admin.py:127 apps/website/admin.py:168
+#: templates/components/footer_website.html:74
+#: templates/components/navbar_website.html:33
+#: templates/components/navbar_website.html:67
+#: templates/website/contacts.html:4
+msgid "Contactos"
+msgstr "Contactos"
+
+#: apps/website/admin.py:143
+msgid "Gerir equipa"
+msgstr "Gerir equipa"
+
+#: apps/website/admin.py:149
+msgid "Gerir lojas"
+msgstr "Gerir lojas"
+
+#: apps/website/admin.py:156
+msgid "Resumo do website"
+msgstr "Resumo do website"
+
+#: apps/website/admin.py:159
+msgid "Guarde o conteúdo para centralizar a gestão editorial do website."
+msgstr "Guarde o conteúdo para centralizar a gestão editorial do website."
+
+#: apps/website/admin.py:162
+msgid "Operação editorial"
+msgstr ""
+
+#: apps/website/admin.py:164
+msgid "Home hero"
+msgstr ""
+
+#: apps/website/admin.py:164 apps/website/admin.py:165
+#: apps/website/admin.py:166 apps/website/admin.py:167
+#: apps/website/admin.py:168 apps/website/admin.py:169
+msgid "Usa fallback"
+msgstr ""
+
+#: apps/website/admin.py:165
+msgid "Citação home"
+msgstr ""
+
+#: apps/website/admin.py:165
+msgid "Configurada"
+msgstr ""
+
+#: apps/website/admin.py:169
+msgid "WhatsApp"
+msgstr ""
+
+#: apps/website/admin.py:171
+msgid "Este registo centraliza os principais blocos estáticos do website para manutenção no backoffice."
+msgstr ""
+
+#: apps/website/apps.py:8
+msgid "Site"
+msgstr ""
+
+#: apps/website/models.py:57
+msgid "Nome do membro da equipa"
+msgstr ""
+
+#: apps/website/models.py:58
+msgid "função"
+msgstr ""
+
+#: apps/website/models.py:58
+msgid "Cargo / Função"
+msgstr ""
+
+#: apps/website/models.py:59
+msgid "foto"
+msgstr ""
+
+#: apps/website/models.py:59
+msgid "Foto do membro"
+msgstr ""
+
+#: apps/website/models.py:60
+msgid "ordem"
+msgstr ""
+
+#: apps/website/models.py:61
+msgid "ativo"
+msgstr ""
+
+#: apps/website/models.py:65
+#, fuzzy
+#| msgid "Membros da equipa Biobrassica"
+msgid "membro da equipa"
+msgstr "Membros da equipa Biobrassica"
+
+#: apps/website/models.py:66
+#, fuzzy
+#| msgid "Membros da equipa Biobrassica"
+msgid "membros da equipa"
+msgstr "Membros da equipa Biobrassica"
+
+#: apps/website/models.py:73
+msgid "imagem hero home"
+msgstr ""
+
+#: apps/website/models.py:74
+msgid "título home linha 1"
+msgstr ""
+
+#: apps/website/models.py:75
+msgid "título home linha 2"
+msgstr ""
+
+#: apps/website/models.py:76
+msgid "subtítulo home"
+msgstr ""
+
+#: apps/website/models.py:77
+msgid "citação home"
+msgstr ""
+
+#: apps/website/models.py:78
+msgid "autor da citação"
+msgstr ""
+
+#: apps/website/models.py:79
+msgid "função do autor"
+msgstr ""
+
+#: apps/website/models.py:80
+#, fuzzy
+#| msgid "Última atualização"
+msgid "imagem da citação"
+msgstr "Última atualização"
+
+#: apps/website/models.py:81
+msgid "título CTA loja"
+msgstr ""
+
+#: apps/website/models.py:82
+msgid "texto CTA loja"
+msgstr ""
+
+#: apps/website/models.py:84
+msgid "imagem hero quem somos"
+msgstr ""
+
+#: apps/website/models.py:85
+msgid "título hero quem somos"
+msgstr ""
+
+#: apps/website/models.py:86
+msgid "subtítulo hero quem somos"
+msgstr ""
+
+#: apps/website/models.py:87
+msgid "título bloco significado"
+msgstr ""
+
+#: apps/website/models.py:88
+msgid "texto bloco significado"
+msgstr ""
+
+#: apps/website/models.py:89
+msgid "imagem bloco significado"
+msgstr ""
+
+#: apps/website/models.py:90
+msgid "título bloco seleção"
+msgstr ""
+
+#: apps/website/models.py:91
+msgid "texto bloco seleção"
+msgstr ""
+
+#: apps/website/models.py:92
+msgid "imagem bloco seleção"
+msgstr ""
+
+#: apps/website/models.py:93
+msgid "título bloco quinta"
+msgstr ""
+
+#: apps/website/models.py:94
+msgid "texto bloco quinta"
+msgstr ""
+
+#: apps/website/models.py:95
+msgid "imagem bloco quinta"
+msgstr ""
+
+#: apps/website/models.py:96
+msgid "título vídeo quem somos"
+msgstr ""
+
+#: apps/website/models.py:97
+msgid "texto vídeo quem somos"
+msgstr ""
+
+#: apps/website/models.py:99
+msgid "imagem hero agricultura"
+msgstr ""
+
+#: apps/website/models.py:100
+#, fuzzy
+#| msgid "Produção biológica"
+msgid "introdução agricultura"
+msgstr "Produção biológica"
+
+#: apps/website/models.py:101
+#, fuzzy
+#| msgid "Porquê biológico?"
+msgid "título porquê biológico"
+msgstr "Porquê biológico?"
+
+#: apps/website/models.py:102
+#, fuzzy
+#| msgid "Porquê biológico?"
+msgid "texto porquê biológico"
+msgstr "Porquê biológico?"
+
+#: apps/website/models.py:103
+#, fuzzy
+#| msgid "Porquê biológico?"
+msgid "imagem porquê biológico"
+msgstr "Porquê biológico?"
+
+#: apps/website/models.py:105
+#, fuzzy
+#| msgid "Contactos"
+msgid "título contactos"
+msgstr "Contactos"
+
+#: apps/website/models.py:106
+#, fuzzy
+#| msgid "Contactos"
+msgid "texto contactos"
+msgstr "Contactos"
+
+#: apps/website/models.py:107
+msgid "número WhatsApp"
+msgstr ""
+
+#: apps/website/models.py:112 apps/website/models.py:113
+msgid "conteúdo do website"
+msgstr ""
+
+#: templates/accounts/login.html:4 templates/accounts/login.html:8
+#: templates/accounts/login.html:34
+#: templates/accounts/password_reset_complete.html:10
+#: templates/accounts/register.html:64 templates/components/navbar_shop.html:48
+#: templates/components/navbar_shop.html:81
+msgid "Entrar"
+msgstr "Entrar"
+
+#: templates/accounts/login.html:15
+msgid "Email ou password incorretos."
+msgstr "Email ou palavra-passe incorretos."
+
+#: templates/accounts/login.html:26 templates/accounts/register.html:46
+msgid "Password"
+msgstr "Palavra-passe"
+
+#: templates/accounts/login.html:41
+msgid "Esqueceu a password?"
+msgstr "Esqueceu-se da palavra-passe?"
+
+#: templates/accounts/login.html:45
+msgid "Ainda não tem conta?"
+msgstr "Ainda não tem conta?"
+
+#: templates/accounts/login.html:47 templates/accounts/register.html:4
+msgid "Registar"
+msgstr "Registar"
+
+#: templates/accounts/order_history.html:4
+#: templates/accounts/order_history.html:8
+msgid "As minhas encomendas"
+msgstr "As minhas encomendas"
+
+#: templates/accounts/order_history.html:46
+msgid "Envio:"
+msgstr "Envio:"
+
+#: templates/accounts/order_history.html:48
+msgid "Levantamento:"
+msgstr "Levantamento:"
+
+#: templates/accounts/order_history.html:57
+msgid "Ainda não fez nenhuma encomenda."
+msgstr "Ainda não fez nenhuma encomenda."
+
+#: templates/accounts/order_history.html:60 templates/cart/_cart_items.html:15
+#: templates/core/home.html:16
+msgid "Ver produtos"
+msgstr "Ver produtos"
+
+#: templates/accounts/password_reset.html:4
+#: templates/accounts/password_reset.html:8
+msgid "Recuperar password"
+msgstr "Recuperar palavra-passe"
+
+#: templates/accounts/password_reset.html:31
+msgid "Enviar link de recuperação"
+msgstr "Enviar link de recuperação"
+
+#: templates/accounts/password_reset_complete.html:6
+msgid "Password alterada"
+msgstr "Palavra-passe alterada"
+
+#: templates/accounts/password_reset_complete.html:7
+msgid "A sua password foi redefinida com sucesso."
+msgstr "A sua palavra-passe foi redefinida com sucesso."
+
+#: templates/accounts/password_reset_confirm.html:4
+#: templates/accounts/password_reset_confirm.html:8
+#: templates/accounts/password_reset_confirm.html:21
+msgid "Nova password"
+msgstr "Nova palavra-passe"
+
+#: templates/accounts/password_reset_confirm.html:29
+#: templates/accounts/register.html:50
+msgid "Confirmar password"
+msgstr "Confirmar palavra-passe"
+
+#: templates/accounts/password_reset_confirm.html:40
+msgid "Redefinir password"
+msgstr "Redefinir palavra-passe"
+
+#: templates/accounts/password_reset_done.html:6
+msgid "Email enviado"
+msgstr "Email enviado"
+
+#: templates/accounts/password_reset_done.html:7
+msgid "Se o email que indicou estiver registado, receberá um link para redefinir a sua password."
+msgstr "Se o email que indicou estiver registado, receberá um link para redefinir a sua palavra-passe."
+
+#: templates/accounts/profile.html:8
+msgid "O meu perfil"
+msgstr "O meu perfil"
+
+#: templates/accounts/profile.html:40 templates/accounts/register.html:33
+msgid "Apelido"
+msgstr "Apelido"
+
+#: templates/accounts/profile.html:72
+msgid "Guardar"
+msgstr "Guardar"
+
+#: templates/accounts/profile.html:77
+msgid "Sair"
+msgstr "Sair"
+
+#: templates/accounts/register.html:8 templates/accounts/register.html:57
+msgid "Criar conta"
+msgstr "Criar conta"
+
+#: templates/accounts/register.html:62
+msgid "Já tem conta?"
+msgstr "Já tem conta?"
+
+#: templates/admin/change_form_object_tools.html:7
+msgid "Histórico"
+msgstr "Histórico"
+
+#: templates/admin/change_form_object_tools.html:11
+msgid "Ver no site"
+msgstr "Ver no site"
+
+#: templates/admin/index.html:5
+msgid "Django site admin"
+msgstr "Administração do site Django"
+
+#: templates/admin/index.html:29
+msgid "Atualizado em"
+msgstr "Atualizado em"
+
+#: templates/admin/index.html:42
+msgid "Abrir fila"
+msgstr "Abrir fila"
+
+#: templates/admin/search_form.html:8
+msgid "Pesquisar"
+msgstr "Pesquisar"
+
+#: templates/admin/search_form.html:18
+msgid "Escreva para pesquisar"
+msgstr "Escreva para pesquisar"
+
+#: templates/base.html:9
+msgid "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
+msgstr "Loja online Biobrassica — produtos biológicos de Braga e Guimarães."
+
+#: templates/base_website.html:9
+msgid "Biobrassica — produtos biológicos selecionados com cuidado no coração do Minho."
+msgstr "Biobrassica — produtos biológicos selecionados com cuidado no coração do Minho."
+
+#: templates/cart/_cart_popup.html:5
+#, fuzzy
+#| msgid "Adicionar ao carrinho"
+msgid "Fechar resumo do carrinho"
+msgstr "Adicionar ao carrinho"
+
+#: templates/cart/_cart_popup.html:34
+msgid "Ver carrinho"
+msgstr "Ver carrinho"
+
+#: templates/cart/_cart_summary.html:7
+msgid "Total:"
+msgstr "Total:"
+
+#: templates/cart/_cart_summary.html:14
+msgid "Finalizar encomenda"
+msgstr "Finalizar encomenda"
+
+#: templates/catalog/category_detail.html:19
+msgid "Imagem em breve"
+msgstr "Imagem em breve"
+
+#: templates/catalog/category_detail.html:34
+msgid "Nenhum produto nesta categoria."
+msgstr "Nenhum produto nesta categoria."
+
+#: templates/catalog/product_detail.html:45
+msgid "Preço"
+msgstr "Preço"
+
+#: templates/catalog/product_detail.html:89
+#: templates/components/product_card.html:76
+msgid "Adicionar ao carrinho"
+msgstr "Adicionar ao carrinho"
+
+#: templates/catalog/product_detail.html:89
+#: templates/components/product_card.html:76
+msgid "Esgotado"
+msgstr "Esgotado"
+
+#: templates/catalog/product_detail.html:94
+msgid "Em stock"
+msgstr "Em stock"
+
+#: templates/catalog/product_detail.html:96
+msgid "De momento esgotado"
+msgstr "De momento esgotado"
+
+#: templates/catalog/product_detail.html:111
+msgid "Marca"
+msgstr "Marca"
+
+#: templates/catalog/product_detail.html:115
+msgid "Alergénicos"
+msgstr "Alergénicos"
+
+#: templates/catalog/product_detail.html:119
+msgid "Quantidade"
+msgstr "Quantidade"
+
+#: templates/catalog/product_detail.html:128
+msgid "Código Bio"
+msgstr "Código Bio"
+
+#: templates/catalog/product_list.html:9
 msgid "A nossa montra digital. Encomende online, levante na loja."
 msgstr "A nossa montra digital. Encomende online, levante na loja."
 
+#: templates/catalog/product_list.html:16
 msgid "Pesquisar produtos..."
 msgstr "Pesquisar produtos..."
 
+#: templates/catalog/product_list.html:62
 msgid "Nenhum produto encontrado."
 msgstr "Nenhum produto encontrado."
 
+#: templates/catalog/shop_home.html:15
 msgid "Loja Online Biobrassica"
 msgstr "Loja Online Biobrassica"
 
+#: templates/catalog/shop_home.html:17
 msgid "Produtos biológicos, entregues com cuidado"
 msgstr "Produtos biológicos, entregues com cuidado"
 
-msgid ""
-"Do campo para a sua porta. Encomende online e receba em casa ou levante nas "
-"nossas lojas em Braga e Guimarães."
-msgstr ""
-"Do campo para a sua porta. Encomende online e receba em casa ou levante nas "
-"nossas lojas em Braga e Guimarães."
+#: templates/catalog/shop_home.html:20
+msgid "Do campo para a sua porta. Encomende online e receba em casa ou levante nas nossas lojas em Braga e Guimarães."
+msgstr "Do campo para a sua porta. Encomende online e receba em casa ou levante nas nossas lojas em Braga e Guimarães."
 
+#: templates/catalog/shop_home.html:24
 msgid "Ver Produtos"
 msgstr "Ver Produtos"
 
+#: templates/catalog/shop_home.html:29
 msgid "Equipa Biobrassica"
 msgstr "Equipa Biobrassica"
 
+#: templates/catalog/shop_home.html:47 templates/core/home.html:43
 #, python-format
 msgid "100%% Biológico"
 msgstr "100%% Biológico"
 
+#: templates/catalog/shop_home.html:48
 msgid "Certificado Certiplanet"
 msgstr "Certificado Certiplanet"
 
-msgid "Levantamento na loja"
-msgstr "Levantamento na loja"
-
+#: templates/catalog/shop_home.html:60 templates/core/home.html:54
 msgid "Braga ou Guimarães"
 msgstr "Braga ou Guimarães"
 
+#: templates/catalog/shop_home.html:70 templates/core/home.html:62
 msgid "Pagamento seguro"
 msgstr "Pagamento seguro"
 
+#: templates/catalog/shop_home.html:82
 msgid "Seleção especial"
 msgstr "Seleção especial"
 
+#: templates/catalog/shop_home.html:83
 msgid "Produtos em destaque"
 msgstr "Produtos em destaque"
 
+#: templates/catalog/shop_home.html:93
 msgid "Ver todos os produtos"
 msgstr "Ver todos os produtos"
 
+#: templates/catalog/shop_home.html:104
 msgid "Explore"
 msgstr "Explore"
 
+#: templates/catalog/shop_home.html:105
 msgid "As nossas categorias"
 msgstr "As nossas categorias"
 
-#| msgid "Receita em Destaque"
+#: templates/catalog/shop_home.html:135
 msgid "Categoria em Destaque"
 msgstr "Categoria em Destaque"
 
-#| msgid "Explore"
+#: templates/catalog/shop_home.html:141
 msgid "Explorar"
 msgstr "Explorar"
 
+#: templates/catalog/shop_home.html:179
 msgid "Novidades"
 msgstr "Novidades"
 
+#: templates/catalog/shop_home.html:180
 msgid "Adicionados recentemente"
 msgstr "Adicionados recentemente"
 
+#: templates/catalog/shop_home.html:193
 msgid "Visite-nos"
 msgstr "Visite-nos"
 
-msgid ""
-"Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e "
-"Guimarães. Teremos todo o gosto em recebê-lo."
-msgstr ""
-"Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e "
-"Guimarães. Teremos todo o gosto em recebê-lo."
+#: templates/catalog/shop_home.html:195
+msgid "Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e Guimarães. Teremos todo o gosto em recebê-lo."
+msgstr "Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e Guimarães. Teremos todo o gosto em recebê-lo."
 
+#: templates/catalog/shop_home.html:200 templates/website/about.html:120
 msgid "Ver Localizações"
 msgstr "Ver Localizações"
 
+#: templates/components/footer_shop.html:11
 msgid "Produtos biológicos selecionados com cuidado no coração do Minho."
 msgstr "Produtos biológicos selecionados com cuidado no coração do Minho."
 
-msgid "Lojas"
-msgstr "Lojas"
-
-msgid "Links"
-msgstr "Links"
-
-msgid "A minha conta"
-msgstr "A minha conta"
-
-msgid "© 2026 Biobrassica. Todos os direitos reservados."
-msgstr "© 2026 Biobrassica. Todos os direitos reservados."
-
-msgid "Métodos de pagamento:"
-msgstr "Métodos de pagamento:"
-
+#: templates/components/footer_shop.html:36
+#: templates/components/footer_website.html:36
 msgid "Certificações"
 msgstr "Certificações"
 
+#: templates/components/footer_shop.html:46
+msgid "Lojas"
+msgstr "Lojas"
+
+#: templates/components/footer_shop.html:67
+msgid "Links"
+msgstr "Links"
+
+#: templates/components/footer_shop.html:71
+msgid "A minha conta"
+msgstr "A minha conta"
+
+#: templates/components/footer_shop.html:72
+#: templates/components/footer_website.html:83 templates/website/privacy.html:4
+#: templates/website/privacy.html:10
 msgid "Política de Privacidade"
 msgstr "Política de Privacidade"
 
+#: templates/components/footer_shop.html:73
+#: templates/components/footer_website.html:84 templates/website/terms.html:4
+#: templates/website/terms.html:10
 msgid "Termos e Condições"
 msgstr "Termos e Condições"
 
+#: templates/components/footer_shop.html:79
+#: templates/components/footer_website.html:81
 msgid "Todos os direitos reservados."
 msgstr "Todos os direitos reservados."
 
-msgid ""
-"Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
-msgstr ""
-"Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
+#: templates/components/footer_shop.html:81
+msgid "Métodos de pagamento:"
+msgstr "Métodos de pagamento:"
 
+#: templates/components/footer_website.html:11
+msgid "Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
+msgstr "Produtos biológicos frescos, selecionados com cuidado no coração do Minho."
+
+#: templates/components/footer_website.html:46
 msgid "As Nossas Lojas"
 msgstr "As Nossas Lojas"
 
+#: templates/components/footer_website.html:67
 msgid "Navegação"
 msgstr "Navegação"
 
-msgid "Quem Somos"
-msgstr "Quem Somos"
-
+#: templates/components/footer_website.html:70
+#: templates/components/navbar_website.html:18
+#: templates/components/navbar_website.html:64
 msgid "Agricultura Bio"
 msgstr "Agricultura Bio"
 
-msgid "Blog"
-msgstr "Blog"
-
+#: templates/components/footer_website.html:72
+#: templates/components/navbar_website.html:28
+#: templates/components/navbar_website.html:66
+#: templates/content/recipe_list.html:4 templates/content/recipe_list.html:12
 msgid "Receitas"
 msgstr "Receitas"
 
+#: templates/components/footer_website.html:73
+#: templates/components/navbar_website.html:42
+#: templates/components/navbar_website.html:71 templates/website/home.html:72
 msgid "Loja Online"
 msgstr "Loja Online"
 
-msgid "Contactos"
-msgstr "Contactos"
-
+#: templates/components/navbar_shop.html:13
+#: templates/components/navbar_shop.html:75
 msgid "Início"
 msgstr "Início"
 
+#: templates/components/navbar_shop.html:36
 msgid "Menu de conta e idioma"
 msgstr "Menu de conta e idioma"
 
-msgid "Idioma"
-msgstr "Idioma"
+#: templates/components/navbar_shop.html:64
+#: templates/components/navbar_website.html:52
+msgid "Alternar menu"
+msgstr "Alternar menu"
 
-msgid "Conta"
-msgstr "Conta"
+#: templates/components/pagination.html:3
+msgid "Paginação"
+msgstr "Paginação"
 
+#: templates/components/pagination.html:7
 msgid "Anterior"
 msgstr "Anterior"
 
-msgid "Página"
-msgstr "Página"
-
+#: templates/components/pagination.html:11
 msgid "de"
 msgstr "de"
 
+#: templates/components/pagination.html:16
 msgid "Seguinte"
 msgstr "Seguinte"
 
+#: templates/content/blog_detail.html:54
 msgid "Voltar ao Blog"
 msgstr "Voltar ao Blog"
 
+#: templates/content/blog_list.html:5 templates/content/blog_list.html:13
 msgid "Artigos sobre alimentação biológica, sustentabilidade e vida saudável."
 msgstr "Artigos sobre alimentação biológica, sustentabilidade e vida saudável."
 
+#: templates/content/blog_list.html:11
 msgid "Notícias & Artigos"
 msgstr "Notícias & Artigos"
 
+#: templates/content/blog_list.html:58
 msgid "Ainda não há artigos publicados. Volte em breve!"
 msgstr "Ainda não há artigos publicados. Volte em breve!"
 
+#: templates/content/recipe_detail.html:25
 msgid "Prep"
 msgstr "Prep"
 
+#: templates/content/recipe_detail.html:29
 msgid "Cozedura"
 msgstr "Cozedura"
 
-msgid "doses"
-msgstr "Doses"
-
+#: templates/content/recipe_detail.html:96
 msgid "Ingredientes não disponíveis."
 msgstr "Ingredientes não disponíveis."
 
-msgid "Preparação"
-msgstr "Prep"
-
-#| msgid "Ingredientes não disponíveis."
+#: templates/content/recipe_detail.html:118
 msgid "Instruções não disponíveis."
 msgstr "Instruções não disponíveis."
 
-#| msgid "Ingredientes"
+#: templates/content/recipe_detail.html:131
 msgid "Comprar Ingredientes"
 msgstr "Comprar Ingredientes"
 
+#: templates/content/recipe_detail.html:134
 msgid "Encontre estes produtos na nossa loja online."
 msgstr "Encontre estes produtos na nossa loja online."
 
+#: templates/content/recipe_detail.html:148
 msgid "sem imagem"
 msgstr "Sem imagem"
 
+#: templates/content/recipe_detail.html:175
 msgid "Voltar às Receitas"
 msgstr "Voltar às Receitas"
 
-msgid ""
-"Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha "
-"com produtos Biobrassica."
-msgstr ""
-"Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha "
-"com produtos Biobrassica."
+#: templates/content/recipe_list.html:5
+msgid "Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha com produtos Biobrassica."
+msgstr "Receitas saudáveis e biológicas para toda a família. Inspire-se na cozinha com produtos Biobrassica."
 
+#: templates/content/recipe_list.html:11
 msgid "Inspiração"
 msgstr "Inspiração"
 
+#: templates/content/recipe_list.html:13
 msgid "Receitas saudáveis e biológicas para toda a família."
 msgstr "Receitas saudáveis e biológicas para toda a família."
 
+#: templates/content/recipe_list.html:39
 msgid "prep"
 msgstr "prep"
 
+#: templates/content/recipe_list.html:42
 msgid "cozedura"
 msgstr "cozedura"
 
+#: templates/content/recipe_list.html:61
 msgid "Ainda não há receitas publicadas. Volte em breve!"
 msgstr "Ainda não há receitas publicadas. Volte em breve!"
 
+#: templates/core/home.html:10
 msgid "A nossa loja online"
 msgstr "A nossa loja online"
 
-msgid ""
-"Produtos biológicos selecionados no Minho. Encomende online e levante na "
-"nossa loja de Braga ou Guimarães."
-msgstr ""
-"Produtos biológicos selecionados no Minho. Encomende online e levante na "
-"nossa loja de Braga ou Guimarães."
+#: templates/core/home.html:12
+msgid "Produtos biológicos selecionados no Minho. Encomende online e levante na nossa loja de Braga ou Guimarães."
+msgstr "Produtos biológicos selecionados no Minho. Encomende online e levante na nossa loja de Braga ou Guimarães."
 
+#: templates/core/home.html:24
 msgid "Destaques"
 msgstr "Destaques"
 
+#: templates/core/home.html:44
 msgid "Certificado pela Certiplanet"
 msgstr "Certificado pela Certiplanet"
 
+#: templates/orders/checkout.html:4
 msgid "Checkout"
 msgstr "Checkout"
 
+#: templates/orders/checkout.html:8
 msgid "Finalizar Encomenda"
 msgstr "Finalizar Encomenda"
 
-#| msgid "Métodos de pagamento:"
+#: templates/orders/checkout.html:56
 msgid "Método de entrega"
 msgstr "Método de entrega"
 
-msgid "Levantamento"
-msgstr "Levantamento"
-
+#: templates/orders/checkout.html:64
 msgid "Recolha numa das lojas disponíveis."
 msgstr "Recolha numa das lojas disponíveis."
 
+#: templates/orders/checkout.html:69
 msgid "Envio"
 msgstr "Envio"
 
+#: templates/orders/checkout.html:70
 msgid "Entrega ao domicílio em Portugal continental."
 msgstr "Entrega ao domicílio em Portugal continental."
 
+#: templates/orders/checkout.html:80
 msgid "Local de levantamento"
 msgstr "Local de levantamento"
 
+#: templates/orders/checkout.html:83
 msgid "Selecione..."
 msgstr "Selecione..."
 
-msgid "Morada"
-msgstr "Morada"
-
-#| msgid "Morada"
-msgid "Morada (cont.)"
-msgstr "Morada (cont.)"
-
-msgid "Código Postal"
-msgstr "Código Postal"
-
-#| msgid "Comunidade"
-msgid "Cidade"
-msgstr "Cidade"
-
+#: templates/orders/checkout.html:137
 msgid "Notas"
 msgstr "Notas"
 
+#: templates/orders/checkout.html:140
 msgid "Alguma observação sobre a sua encomenda..."
 msgstr "Alguma observação sobre a sua encomenda..."
 
+#: templates/orders/checkout.html:149 templates/orders/payment_select.html:41
 msgid "Continuar para pagamento"
 msgstr "Continuar para pagamento"
 
-msgid "Resumo"
-msgstr "Resumo"
-
+#: templates/orders/complete.html:4
 msgid "Encomenda Confirmada"
 msgstr "Encomenda Confirmada"
 
+#: templates/orders/complete.html:14
 msgid "Obrigado!"
 msgstr "Obrigado!"
 
-#| msgid "A sua encomenda"
+#: templates/orders/complete.html:16
 msgid "O pagamento da sua encomenda"
 msgstr "O pagamento da sua encomenda"
 
+#: templates/orders/complete.html:16
 msgid "foi confirmado."
 msgstr "foi confirmado."
 
-msgid "Dados para pagamento Multibanco"
-msgstr "Dados para pagamento Multibanco"
+#: templates/orders/complete.html:28 templates/orders/payment_status.html:32
+msgid "Sessão"
+msgstr ""
 
-msgid "Entidade"
-msgstr "Entidade"
-
-msgid "Referência"
-msgstr "Referência"
-
-msgid "Valor"
-msgstr "Valor"
-
+#: templates/orders/complete.html:40
 msgid "Detalhes da encomenda"
 msgstr "Detalhes da encomenda"
 
-msgid "Estado"
-msgstr "Estado"
-
+#: templates/orders/complete.html:58
 msgid "Enviámos um email de confirmação para"
 msgstr "Enviámos um email de confirmação para"
 
+#: templates/orders/complete.html:63
 msgid "Continuar a comprar"
 msgstr "Continuar a comprar"
 
-msgid "Pagamento"
-msgstr "Pagamento"
+#: templates/orders/payment_select.html:10
+msgid "O pagamento é processado de forma segura pela Stripe."
+msgstr ""
 
-msgid "De momento, o pagamento está disponível apenas por MB WAY."
-msgstr "De momento, o pagamento está disponível apenas por MB WAY."
+#: templates/orders/payment_select.html:35
+msgid "Pagamento por cartão numa página segura hospedada pela Stripe"
+msgstr ""
 
-msgid "Pagamento instantâneo via telemóvel"
-msgstr "Pagamento instantâneo via telemóvel"
-
-msgid "Número de telemóvel"
-msgstr "Número de telemóvel"
-
-msgid "Pagar com MB WAY"
-msgstr "Pagar com MB WAY"
-
-#| msgid "Voltar ao Blog"
+#: templates/orders/payment_select.html:51
 msgid "Voltar ao checkout"
 msgstr "Voltar ao checkout"
 
-#| msgid "Métodos de pagamento:"
+#: templates/orders/payment_status.html:4
+#: templates/orders/payment_status.html:10
 msgid "Estado do Pagamento"
 msgstr "Estado do Pagamento"
 
-#| msgid "Referência"
-msgid "Referência Multibanco"
-msgstr "Referência Multibanco"
-
-msgid ""
-"Utilize os dados abaixo para concluir o pagamento. A encomenda só fica "
-"confirmada após validação automática."
+#: templates/orders/payment_status.html:21
+msgid "Conclua o pagamento na página segura da Stripe. Depois de terminar, esta página é atualizada automaticamente pela confirmação do pagamento."
 msgstr ""
-"Utilize os dados abaixo para concluir o pagamento. A encomenda só fica"
-" confirmada após validação automática."
 
-msgid ""
-"O pedido de pagamento foi enviado para o telemóvel indicado. Depois de "
-"autorizar no MB WAY, atualize esta página."
+#: templates/orders/payment_status.html:24
+msgid "Abrir checkout seguro"
 msgstr ""
-"O pedido de pagamento foi enviado para o telemóvel indicado. Depois de"
-" autorizar no MB WAY, atualize esta página."
 
-msgid "Telemóvel"
-msgstr "Telemóvel"
-
-msgid "Cartão de Crédito"
-msgstr "Cartão de Crédito"
-
-msgid ""
-"Se o pagamento ainda não estiver concluído, reabra a página segura do "
-"operador para finalizar a transação."
-msgstr ""
-"Se o pagamento ainda não estiver concluído, reabra a página segura do"
-" operador para finalizar a transação."
-
-#| msgid "Continuar para pagamento"
-msgid "Continuar pagamento"
-msgstr "Continuar pagamento"
-
+#: templates/orders/payment_status.html:48
 msgid "Atualizar estado"
 msgstr "Atualizar estado"
 
-msgid "Escolher outro método"
-msgstr "Escolher outro método"
+#: templates/orders/payment_status.html:52
+#, fuzzy
+#| msgid "Continuar pagamento"
+msgid "Reiniciar pagamento"
+msgstr "Continuar pagamento"
 
+#: templates/unfold/helpers/add_link.html:5
+#: templates/unfold/helpers/add_link.html:8
+#: templates/unfold/helpers/empty_results.html:4
 #, python-format
 msgid "Adicionar %(name)s"
 msgstr "Adicionar %(name)s"
 
-msgid ""
-"Conheça a história da Biobrassica, uma empresa familiar dedicada à "
-"agricultura biológica no Minho."
-msgstr ""
-"Conheça a história da Biobrassica, uma empresa familiar dedicada à "
-"agricultura biológica no Minho."
+#: templates/unfold/widgets/related_widget_wrapper.html:16
+msgid "Alterar item selecionado"
+msgstr "Alterar item selecionado"
 
+#: templates/unfold/widgets/related_widget_wrapper.html:26
+msgid "Adicionar item relacionado"
+msgstr "Adicionar item relacionado"
+
+#: templates/unfold/widgets/related_widget_wrapper.html:35
+msgid "Ver item selecionado"
+msgstr "Ver item selecionado"
+
+#: templates/unfold/widgets/related_widget_wrapper.html:45
+msgid "Eliminar item selecionado"
+msgstr "Eliminar item selecionado"
+
+#: templates/website/about.html:5
+msgid "Conheça a história da Biobrassica, uma empresa familiar dedicada à agricultura biológica no Minho."
+msgstr "Conheça a história da Biobrassica, uma empresa familiar dedicada à agricultura biológica no Minho."
+
+#: templates/website/about.html:15 templates/website/about.html:82
 msgid "A equipa Biobrassica"
 msgstr "A equipa Biobrassica"
 
+#: templates/website/about.html:18
 msgid "Do campo à sua mesa, com quem conhece a terra"
 msgstr "Do campo à sua mesa, com quem conhece a terra"
 
+#: templates/website/about.html:19 templates/website/about.html:83
 msgid "Pessoas reais, produtos de confiança"
 msgstr "Pessoas reais, produtos de confiança"
 
+#: templates/website/about.html:31
 msgid "O que significa \"Biobrassica\""
 msgstr "O que significa \"Biobrassica\""
 
-msgid ""
-"O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: "
-"Bio, pela agricultura biológica e por um modo de produção responsável, e "
-"brassica, em homenagem à família de hortícolas que simboliza a origem "
-"agrícola da nossa região."
-msgstr ""
-"O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: "
-"Bio, pela agricultura biológica e por um modo de produção responsável, e "
-"brassica, em homenagem à família de hortícolas que simboliza a origem "
-"agrícola da nossa região."
+#: templates/website/about.html:33
+msgid "O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região."
+msgstr "O nome \"Biobrassica\" junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região."
 
+#: templates/website/about.html:37
 msgid "Produtos biológicos Biobrassica"
 msgstr "Produtos biológicos Biobrassica"
 
+#: templates/website/about.html:47
 msgid "Como escolhemos os produtos"
 msgstr "Como escolhemos os produtos"
 
-msgid ""
-"Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em "
-"frescura, origem e consistência, trabalhando com fornecedores e produtores "
-"de confiança alinhados com os nossos valores. A qualidade é acompanhada "
-"diariamente em loja, desde a receção ao acondicionamento e à exposição, para "
-"garantir produtos frescos, seguros e com origem clara para os nossos "
-"clientes."
-msgstr ""
-"Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em "
-"frescura, origem e consistência, trabalhando com fornecedores e produtores "
-"de confiança alinhados com os nossos valores. A qualidade é acompanhada "
-"diariamente em loja, desde a receção ao acondicionamento e à exposição, para "
-"garantir produtos frescos, seguros e com origem clara para os nossos "
-"clientes."
+#: templates/website/about.html:49
+msgid "Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em frescura, origem e consistência, trabalhando com fornecedores e produtores de confiança alinhados com os nossos valores. A qualidade é acompanhada diariamente em loja, desde a receção ao acondicionamento e à exposição, para garantir produtos frescos, seguros e com origem clara para os nossos clientes."
+msgstr "Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em frescura, origem e consistência, trabalhando com fornecedores e produtores de confiança alinhados com os nossos valores. A qualidade é acompanhada diariamente em loja, desde a receção ao acondicionamento e à exposição, para garantir produtos frescos, seguros e com origem clara para os nossos clientes."
 
+#: templates/website/about.html:53
 msgid "Produção biológica"
 msgstr "Produção biológica"
 
+#: templates/website/about.html:66
 msgid "A nossa quinta biológica"
 msgstr "A nossa quinta biológica"
 
-msgid ""
-"A nossa quinta biológica é um projeto complementar, em pequena escala, que "
-"apoia a atividade da loja. Serve para reforçar alguns produtos e manter "
-"ligação direta à terra, sem substituir a nossa atividade principal: "
-"selecionar e disponibilizar, em loja, produtos de qualidade para a "
-"comunidade."
-msgstr ""
-"A nossa quinta biológica é um projeto complementar, em pequena escala, que "
-"apoia a atividade da loja. Serve para reforçar alguns produtos e manter "
-"ligação direta à terra, sem substituir a nossa atividade principal: "
-"selecionar e disponibilizar, em loja, produtos de qualidade para a "
-"comunidade."
+#: templates/website/about.html:68
+msgid "A nossa quinta biológica é um projeto complementar, em pequena escala, que apoia a atividade da loja. Serve para reforçar alguns produtos e manter ligação direta à terra, sem substituir a nossa atividade principal: selecionar e disponibilizar, em loja, produtos de qualidade para a comunidade."
+msgstr "A nossa quinta biológica é um projeto complementar, em pequena escala, que apoia a atividade da loja. Serve para reforçar alguns produtos e manter ligação direta à terra, sem substituir a nossa atividade principal: selecionar e disponibilizar, em loja, produtos de qualidade para a comunidade."
 
+#: templates/website/about.html:72
 msgid "Quinta biológica da Biobrassica"
 msgstr "Quinta biológica da Biobrassica"
 
-msgid ""
-"Conheça a equipa que acompanha diariamente o atendimento, o aprovisionamento "
-"e a curadoria da loja."
-msgstr ""
-"Conheça a equipa que acompanha diariamente o atendimento, o"
-" aprovisionamento e a curadoria da loja."
+#: templates/website/about.html:84
+msgid "Conheça a equipa que acompanha diariamente o atendimento, o aprovisionamento e a curadoria da loja."
+msgstr "Conheça a equipa que acompanha diariamente o atendimento, o aprovisionamento e a curadoria da loja."
 
+#: templates/website/about.html:108
 msgid "As nossas lojas"
 msgstr "As nossas lojas"
 
+#: templates/website/about.html:109
 msgid "Conheça os nossos espaços"
 msgstr "Conheça os nossos espaços"
 
+#: templates/website/about.html:113
 msgid "O seu navegador não suporta vídeo."
 msgstr "O seu navegador não suporta vídeo."
 
-msgid ""
-"Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos "
-"e a nossa equipa."
-msgstr ""
-"Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos "
-"e a nossa equipa."
+#: templates/website/about.html:117
+msgid "Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa."
+msgstr "Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa."
 
+#: templates/website/agriculture.html:4 templates/website/agriculture.html:18
 msgid "Agricultura Biológica"
 msgstr "Agricultura Biológica"
 
-msgid ""
-"Saiba como praticamos agricultura biológica certificada no Minho, com "
-"respeito pela biodiversidade e pelos ciclos naturais."
-msgstr ""
-"Saiba como praticamos agricultura biológica certificada no Minho, com "
-"respeito pela biodiversidade e pelos ciclos naturais."
+#: templates/website/agriculture.html:5
+msgid "Saiba como praticamos agricultura biológica certificada no Minho, com respeito pela biodiversidade e pelos ciclos naturais."
+msgstr "Saiba como praticamos agricultura biológica certificada no Minho, com respeito pela biodiversidade e pelos ciclos naturais."
 
+#: templates/website/agriculture.html:13
 msgid "Campo de agricultura biológica"
 msgstr "Campo de agricultura biológica"
 
-msgid ""
-"A agricultura biológica é um sistema de produção que respeita os ciclos "
-"naturais, promove a biodiversidade e proíbe o uso de pesticidas e "
-"fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o "
-"coração de tudo o que fazemos."
-msgstr ""
-"A agricultura biológica é um sistema de produção que respeita os ciclos "
-"naturais, promove a biodiversidade e proíbe o uso de pesticidas e "
-"fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o "
-"coração de tudo o que fazemos."
+#: templates/website/agriculture.html:20
+msgid "A agricultura biológica é um sistema de produção que respeita os ciclos naturais, promove a biodiversidade e proíbe o uso de pesticidas e fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o coração de tudo o que fazemos."
+msgstr "A agricultura biológica é um sistema de produção que respeita os ciclos naturais, promove a biodiversidade e proíbe o uso de pesticidas e fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o coração de tudo o que fazemos."
 
+#: templates/website/agriculture.html:30
 msgid "Os Princípios da Agricultura Bio"
 msgstr "Os Princípios da Agricultura Bio"
 
+#: templates/website/agriculture.html:39
 msgid "Sem pesticidas sintéticos"
 msgstr "Sem pesticidas sintéticos"
 
-msgid ""
-"Utilizamos apenas métodos naturais de controlo de pragas: insetos "
-"auxiliares, rotação de culturas e preparados biológicos."
-msgstr ""
-"Utilizamos apenas métodos naturais de controlo de pragas: insetos "
-"auxiliares, rotação de culturas e preparados biológicos."
+#: templates/website/agriculture.html:40
+msgid "Utilizamos apenas métodos naturais de controlo de pragas: insetos auxiliares, rotação de culturas e preparados biológicos."
+msgstr "Utilizamos apenas métodos naturais de controlo de pragas: insetos auxiliares, rotação de culturas e preparados biológicos."
 
+#: templates/website/agriculture.html:48
 msgid "Solo vivo"
 msgstr "Solo vivo"
 
-msgid ""
-"Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e "
-"coberturas vegetais mantêm a vida microbiana do solo."
-msgstr ""
-"Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e "
-"coberturas vegetais mantêm a vida microbiana do solo."
+#: templates/website/agriculture.html:49
+msgid "Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e coberturas vegetais mantêm a vida microbiana do solo."
+msgstr "Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e coberturas vegetais mantêm a vida microbiana do solo."
 
+#: templates/website/agriculture.html:57
 msgid "Sem OGM"
 msgstr "Sem OGM"
 
-msgid ""
-"Não utilizamos organismos geneticamente modificados em nenhuma fase da "
-"produção."
-msgstr ""
-"Não utilizamos organismos geneticamente modificados em nenhuma fase da "
-"produção."
+#: templates/website/agriculture.html:58
+msgid "Não utilizamos organismos geneticamente modificados em nenhuma fase da produção."
+msgstr "Não utilizamos organismos geneticamente modificados em nenhuma fase da produção."
 
+#: templates/website/agriculture.html:66
 msgid "Biodiversidade"
 msgstr "Biodiversidade"
 
-msgid ""
-"Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas "
-"resilientes e equilibrados."
-msgstr ""
-"Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas "
-"resilientes e equilibrados."
+#: templates/website/agriculture.html:67
+msgid "Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas resilientes e equilibrados."
+msgstr "Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas resilientes e equilibrados."
 
+#: templates/website/agriculture.html:77
 msgid "As Nossas Certificações"
 msgstr "As Nossas Certificações"
 
+#: templates/website/agriculture.html:82
 #, python-format
-msgid ""
-"O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos "
-"ingredientes agrícolas são de produção biológica certificada, seguindo "
-"regulamentos rigorosos da UE."
-msgstr ""
-"O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos "
-"ingredientes agrícolas são de produção biológica certificada, seguindo "
-"regulamentos rigorosos da UE."
+msgid "O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos ingredientes agrícolas são de produção biológica certificada, seguindo regulamentos rigorosos da UE."
+msgstr "O logótipo europeu de agricultura biológica garante que pelo menos 95%% dos ingredientes agrícolas são de produção biológica certificada, seguindo regulamentos rigorosos da UE."
 
-msgid ""
-"Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet "
-"verifica e atesta que os nossos métodos de produção cumprem todas as normas "
-"de agricultura biológica."
-msgstr ""
-"Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet "
-"verifica e atesta que os nossos métodos de produção cumprem todas as normas "
-"de agricultura biológica."
+#: templates/website/agriculture.html:87
+msgid "Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet verifica e atesta que os nossos métodos de produção cumprem todas as normas de agricultura biológica."
+msgstr "Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet verifica e atesta que os nossos métodos de produção cumprem todas as normas de agricultura biológica."
 
+#: templates/website/agriculture.html:97
 msgid "Da Terra"
 msgstr "Da Terra"
 
+#: templates/website/agriculture.html:98
 msgid "Calendário Sazonal"
 msgstr "Calendário Sazonal"
 
+#: templates/website/agriculture.html:99
 msgid "Respeitamos as estações do ano. Cada época traz os seus sabores únicos."
-msgstr ""
-"Respeitamos as estações do ano. Cada época traz os seus sabores únicos."
+msgstr "Respeitamos as estações do ano. Cada época traz os seus sabores únicos."
 
+#: templates/website/agriculture.html:104
 msgid "Primavera"
 msgstr "Primavera"
 
+#: templates/website/agriculture.html:105
 msgid "Ervilhas, favas, alfaces, morangos, ervas aromáticas"
 msgstr "Ervilhas, favas, alfaces, morangos, ervas aromáticas"
 
+#: templates/website/agriculture.html:109
 msgid "Verão"
 msgstr "Verão"
 
+#: templates/website/agriculture.html:110
 msgid "Tomates, pepinos, pimentos, beringelas, melancia"
 msgstr "Tomates, pepinos, pimentos, beringelas, melancia"
 
+#: templates/website/agriculture.html:114
 msgid "Outono"
 msgstr "Outono"
 
+#: templates/website/agriculture.html:115
 msgid "Abóboras, couves, brócolos, castanhas, cogumelos"
 msgstr "Abóboras, couves, brócolos, castanhas, cogumelos"
 
+#: templates/website/agriculture.html:119
 msgid "Inverno"
 msgstr "Inverno"
 
+#: templates/website/agriculture.html:120
 msgid "Nabiças, grelos, couves, laranjas, tangerinas"
 msgstr "Nabiças, grelos, couves, laranjas, tangerinas"
 
+#: templates/website/agriculture.html:132
 msgid "Porquê biológico?"
 msgstr "Porquê biológico?"
 
+#: templates/website/agriculture.html:134
 msgid ""
-"A agricultura biológica não é apenas uma forma de produzir alimentos — é uma "
-"filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao "
-"evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a "
-"qualidade da água e a saúde do solo.\n"
+"A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo.\n"
 "\n"
-"Para o consumidor, os alimentos biológicos significam mais sabor, mais "
-"nutrientes e a garantia de que cada mordida está livre de resíduos químicos. "
-"É uma escolha consciente para a saúde da família e do planeta.\n"
+"Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta.\n"
 "\n"
-"Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
-"ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
-"variedade de produtos ao longo do ano."
+"Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano."
 msgstr ""
-"A agricultura biológica não é apenas uma forma de produzir alimentos"
-" — é uma filosofia de vida que respeita o equilíbrio natural dos"
-" ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos"
-" a biodiversidade, a qualidade da água e a saúde do solo.\n"
+"A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo.\n"
 "\n"
-"Para o consumidor, os alimentos biológicos significam mais sabor, mais"
-" nutrientes e a garantia de que cada mordida está livre de resíduos"
-" químicos. É uma escolha consciente para a saúde da família e do"
-" planeta.\n"
+"Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta.\n"
 "\n"
-"Na região do Minho, a riqueza do solo e o clima atlântico criam condições"
-" ideais para a agricultura biológica, permitindo-nos cultivar uma enorme"
-" variedade de produtos ao longo do ano."
+"Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano."
 
+#: templates/website/agriculture.html:140
 msgid "Solo saudável e plantas biológicas"
 msgstr "Solo saudável e plantas biológicas"
 
+#: templates/website/agriculture.html:164
 msgid "Prove a diferença do biológico"
 msgstr "Prove a diferença do biológico"
 
+#: templates/website/agriculture.html:165
 msgid "Visite a nossa loja online ou passe por uma das nossas lojas físicas."
 msgstr "Visite a nossa loja online ou passe por uma das nossas lojas físicas."
 
+#: templates/website/agriculture.html:168
 msgid "Visitar Loja"
 msgstr "Visitar Loja"
 
-msgid ""
-"Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-"
-"nos por telefone e email."
-msgstr ""
-"Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-"
-"nos por telefone e email."
+#: templates/website/contacts.html:5
+msgid "Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-nos por telefone e email."
+msgstr "Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-nos por telefone e email."
 
+#: templates/website/contacts.html:12
 msgid "Biobrassica"
 msgstr "Biobrassica"
 
+#: templates/website/contacts.html:13
 msgid "Encontre-nos"
 msgstr "Encontre-nos"
 
+#: templates/website/contacts.html:14
 msgid "Visite-nos nas nossas lojas ou entre em contacto por telefone e email."
 msgstr "Visite-nos nas nossas lojas ou entre em contacto por telefone e email."
 
-msgid ""
-"As localizações serão apresentadas aqui assim que forem configuradas no "
-"backoffice."
+#: templates/website/contacts.html:64
+msgid "As localizações serão apresentadas aqui assim que forem configuradas no backoffice."
 msgstr "As localizações serão apresentadas aqui assim que forem configuradas no backoffice."
 
+#: templates/website/contacts.html:72
 msgid "Prefere enviar mensagem?"
 msgstr "Prefere enviar mensagem?"
 
+#: templates/website/contacts.html:73
 msgid "Fale connosco pelo WhatsApp para encomendas, dúvidas ou informações."
 msgstr "Fale connosco pelo WhatsApp para encomendas, dúvidas ou informações."
 
+#: templates/website/contacts.html:79
 msgid "Enviar Mensagem"
 msgstr "Enviar Mensagem"
 
+#: templates/website/home.html:19
 msgid "Tudo que precisa para uma"
 msgstr "Tudo que precisa para uma"
 
+#: templates/website/home.html:20
 msgid "alimentação saudável"
 msgstr "alimentação saudável"
 
+#: templates/website/home.html:23
 msgid "Produtos biológicos, saudáveis para si, bons para o ambiente."
 msgstr "Produtos biológicos, saudáveis para si, bons para o ambiente."
 
+#: templates/website/home.html:37 templates/website/home.html:46
 msgid "Engª Ângela Pereira"
 msgstr "Engª Ângela Pereira"
 
-msgid ""
-"Temos conseguido ao longo destes anos oferecer cada vez mais produtos "
-"frescos, colhidos no próprio dia, vindos das mãos de produtores que se "
-"levantam às 5h da manhã num esforço último de transmitir a vitalidade e "
-"qualidade das suas terras aos consumidores que já se haviam esquecido do "
-"sabor e do cheiro dos legumes acabados de colher!"
-msgstr ""
-"Temos conseguido ao longo destes anos oferecer cada vez mais produtos "
-"frescos, colhidos no próprio dia, vindos das mãos de produtores que se "
-"levantam às 5h da manhã num esforço último de transmitir a vitalidade e "
-"qualidade das suas terras aos consumidores que já se haviam esquecido do "
-"sabor e do cheiro dos legumes acabados de colher!"
+#: templates/website/home.html:44
+msgid "Temos conseguido ao longo destes anos oferecer cada vez mais produtos frescos, colhidos no próprio dia, vindos das mãos de produtores que se levantam às 5h da manhã num esforço último de transmitir a vitalidade e qualidade das suas terras aos consumidores que já se haviam esquecido do sabor e do cheiro dos legumes acabados de colher!"
+msgstr "Temos conseguido ao longo destes anos oferecer cada vez mais produtos frescos, colhidos no próprio dia, vindos das mãos de produtores que se levantam às 5h da manhã num esforço último de transmitir a vitalidade e qualidade das suas terras aos consumidores que já se haviam esquecido do sabor e do cheiro dos legumes acabados de colher!"
 
+#: templates/website/home.html:47
 msgid "Fundadora"
 msgstr "Fundadora"
 
+#: templates/website/home.html:73
 msgid "Descubra os nossos produtos"
 msgstr "Descubra os nossos produtos"
 
-msgid ""
-"Entrega em todo o Portugal continental ou levantamento nas nossas lojas em "
-"Braga e Guimarães."
-msgstr ""
-"Entrega em todo o Portugal continental ou levantamento nas nossas lojas em "
-"Braga e Guimarães."
+#: templates/website/home.html:75
+msgid "Entrega em todo o Portugal continental ou levantamento nas nossas lojas em Braga e Guimarães."
+msgstr "Entrega em todo o Portugal continental ou levantamento nas nossas lojas em Braga e Guimarães."
 
+#: templates/website/home.html:79
 msgid "Ir para a Loja"
 msgstr "Ir para a Loja"
 
+#: templates/website/privacy.html:5
 msgid "Política de privacidade e proteção de dados da Biobrassica."
 msgstr "Política de privacidade e proteção de dados da Biobrassica."
 
+#: templates/website/privacy.html:16 templates/website/terms.html:16
 msgid "Última atualização"
 msgstr "Última atualização"
 
+#: templates/website/privacy.html:18
 msgid "1. Responsável pelo Tratamento"
 msgstr "1. Responsável pelo Tratamento"
 
-msgid ""
-"A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a "
-"entidade responsável pelo tratamento dos seus dados pessoais."
-msgstr ""
-"A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a "
-"entidade responsável pelo tratamento dos seus dados pessoais."
+#: templates/website/privacy.html:19
+msgid "A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a entidade responsável pelo tratamento dos seus dados pessoais."
+msgstr "A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a entidade responsável pelo tratamento dos seus dados pessoais."
 
+#: templates/website/privacy.html:21
 msgid "2. Dados Recolhidos"
 msgstr "2. Dados Recolhidos"
 
+#: templates/website/privacy.html:22
 msgid "Recolhemos apenas os dados necessários para:"
 msgstr "Recolhemos apenas os dados necessários para:"
 
-msgid ""
-"Processar as suas encomendas na loja online (nome, email, morada, telefone)"
-msgstr ""
-"Processar as suas encomendas na loja online (nome, email, morada, telefone)"
+#: templates/website/privacy.html:24
+msgid "Processar as suas encomendas na loja online (nome, email, morada, telefone)"
+msgstr "Processar as suas encomendas na loja online (nome, email, morada, telefone)"
 
+#: templates/website/privacy.html:25
 msgid "Gerir a sua conta de cliente"
 msgstr "Gerir a sua conta de cliente"
 
+#: templates/website/privacy.html:26
 msgid "Enviar comunicações relacionadas com as suas encomendas"
 msgstr "Enviar comunicações relacionadas com as suas encomendas"
 
+#: templates/website/privacy.html:29
 msgid "3. Finalidade do Tratamento"
 msgstr "3. Finalidade do Tratamento"
 
+#: templates/website/privacy.html:30
 msgid "Os seus dados são utilizados exclusivamente para:"
 msgstr "Os seus dados são utilizados exclusivamente para:"
 
+#: templates/website/privacy.html:32
 msgid "Cumprimento de contratos de compra e venda"
 msgstr "Cumprimento de contratos de compra e venda"
 
+#: templates/website/privacy.html:33
 msgid "Cumprimento de obrigações legais e fiscais"
 msgstr "Cumprimento de obrigações legais e fiscais"
 
+#: templates/website/privacy.html:34
 msgid "Comunicação relativa ao estado das encomendas"
 msgstr "Comunicação relativa ao estado das encomendas"
 
+#: templates/website/privacy.html:37
 msgid "4. Partilha de Dados"
 msgstr "4. Partilha de Dados"
 
+#: templates/website/privacy.html:38
 msgid "Os seus dados podem ser partilhados com:"
 msgstr "Os seus dados podem ser partilhados com:"
 
-msgid "Processadores de pagamento (ifthenpay) — para efetuar o pagamento"
-msgstr "Processadores de pagamento (ifthenpay) — para efetuar o pagamento"
+#: templates/website/privacy.html:40
+msgid "Processadores de pagamento (Stripe) — para efetuar o pagamento"
+msgstr "Processadores de pagamento (Stripe) — para efetuar o pagamento"
 
+#: templates/website/privacy.html:41
 msgid "Transportadoras (CTT) — para entrega de encomendas"
 msgstr "Transportadoras (CTT) — para entrega de encomendas"
 
+#: templates/website/privacy.html:44
 msgid "5. Conservação dos Dados"
 msgstr "5. Conservação dos Dados"
 
-msgid ""
-"Os seus dados pessoais são conservados pelo período necessário ao "
-"cumprimento das finalidades e obrigações legais aplicáveis."
-msgstr ""
-"Os seus dados pessoais são conservados pelo período necessário ao "
-"cumprimento das finalidades e obrigações legais aplicáveis."
+#: templates/website/privacy.html:45
+msgid "Os seus dados pessoais são conservados pelo período necessário ao cumprimento das finalidades e obrigações legais aplicáveis."
+msgstr "Os seus dados pessoais são conservados pelo período necessário ao cumprimento das finalidades e obrigações legais aplicáveis."
 
-msgid ""
-"Os registos técnicos de callbacks de pagamento são minimizados, com IP "
-"anonimizado e retenção interna limitada ao período operacional estritamente "
-"necessário."
-msgstr ""
-"Os registos técnicos de callbacks de pagamento são minimizados, com IP"
-" anonimizado e retenção interna limitada ao período operacional"
-" estritamente necessário."
+#: templates/website/privacy.html:46
+msgid "Os registos técnicos de callbacks de pagamento são minimizados, com IP anonimizado e retenção interna limitada ao período operacional estritamente necessário."
+msgstr "Os registos técnicos de callbacks de pagamento são minimizados, com IP anonimizado e retenção interna limitada ao período operacional estritamente necessário."
 
+#: templates/website/privacy.html:48
 msgid "6. Os Seus Direitos"
 msgstr "6. Os Seus Direitos"
 
+#: templates/website/privacy.html:49
 msgid "Nos termos do RGPD, tem direito a:"
 msgstr "Nos termos do RGPD, tem direito a:"
 
+#: templates/website/privacy.html:51
 msgid "Aceder aos seus dados pessoais"
 msgstr "Aceder aos seus dados pessoais"
 
+#: templates/website/privacy.html:52
 msgid "Retificar dados incorretos"
 msgstr "Retificar dados incorretos"
 
+#: templates/website/privacy.html:53
 msgid "Solicitar a eliminação dos seus dados"
 msgstr "Solicitar a eliminação dos seus dados"
 
+#: templates/website/privacy.html:54
 msgid "Solicitar a portabilidade dos seus dados"
 msgstr "Solicitar a portabilidade dos seus dados"
 
+#: templates/website/privacy.html:55
 msgid "Opor-se ao tratamento dos seus dados"
 msgstr "Opor-se ao tratamento dos seus dados"
 
+#: templates/website/privacy.html:57
 msgid "Para exercer os seus direitos, contacte-nos em"
 msgstr "Para exercer os seus direitos, contacte-nos em"
 
+#: templates/website/privacy.html:59
 msgid "7. Cookies"
 msgstr "7. Cookies"
 
-msgid ""
-"Este website utiliza cookies essenciais para o funcionamento da sessão e do "
-"carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
-msgstr ""
-"Este website utiliza cookies essenciais para o funcionamento da sessão e do "
-"carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
+#: templates/website/privacy.html:60
+msgid "Este website utiliza cookies essenciais para o funcionamento da sessão e do carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
+msgstr "Este website utiliza cookies essenciais para o funcionamento da sessão e do carrinho de compras. Não utilizamos cookies de rastreamento de terceiros."
 
+#: templates/website/privacy.html:62
 msgid "8. Contacto"
 msgstr "8. Contacto"
 
+#: templates/website/privacy.html:63
 msgid "Para questões relacionadas com a proteção de dados:"
 msgstr "Para questões relacionadas com a proteção de dados:"
 
+#: templates/website/terms.html:5
 msgid "Termos e condições de utilização da loja online Biobrassica."
 msgstr "Termos e condições de utilização da loja online Biobrassica."
 
+#: templates/website/terms.html:18
 msgid "1. Identificação"
 msgstr "1. Identificação"
 
-msgid ""
-"O presente website e loja online são propriedade da Biobrassica, Lda., com "
-"sede na R. dos Capelistas 121, 4700-215 Braga."
-msgstr ""
-"O presente website e loja online são propriedade da Biobrassica, Lda., com "
-"sede na R. dos Capelistas 121, 4700-215 Braga."
+#: templates/website/terms.html:19
+msgid "O presente website e loja online são propriedade da Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga."
+msgstr "O presente website e loja online são propriedade da Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga."
 
+#: templates/website/terms.html:21
 msgid "2. Produtos"
 msgstr "2. Produtos"
 
-msgid ""
-"Os produtos apresentados na loja online estão sujeitos a disponibilidade. "
-"Todas as descrições e imagens são tão fiéis quanto possível, podendo existir "
-"ligeiras variações."
-msgstr ""
-"Os produtos apresentados na loja online estão sujeitos a disponibilidade. "
-"Todas as descrições e imagens são tão fiéis quanto possível, podendo existir "
-"ligeiras variações."
+#: templates/website/terms.html:22
+msgid "Os produtos apresentados na loja online estão sujeitos a disponibilidade. Todas as descrições e imagens são tão fiéis quanto possível, podendo existir ligeiras variações."
+msgstr "Os produtos apresentados na loja online estão sujeitos a disponibilidade. Todas as descrições e imagens são tão fiéis quanto possível, podendo existir ligeiras variações."
 
+#: templates/website/terms.html:24
 msgid "3. Preços"
 msgstr "Preço"
 
-msgid ""
-"Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser "
-"alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da "
-"encomenda."
-msgstr ""
-"Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser "
-"alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da "
-"encomenda."
+#: templates/website/terms.html:25
+msgid "Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da encomenda."
+msgstr "Todos os preços incluem IVA à taxa legal em vigor. Os preços podem ser alterados sem aviso prévio, sendo aplicado o preço em vigor no momento da encomenda."
 
+#: templates/website/terms.html:27
 msgid "4. Encomendas"
 msgstr "4. Encomendas"
 
-msgid ""
-"Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou "
-"autorização do representante legal. A encomenda constitui uma proposta de "
-"compra, que será confirmada por email."
-msgstr ""
-"Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou "
-"autorização do representante legal. A encomenda constitui uma proposta de "
-"compra, que será confirmada por email."
+#: templates/website/terms.html:28
+msgid "Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou autorização do representante legal. A encomenda constitui uma proposta de compra, que será confirmada por email."
+msgstr "Ao efetuar uma encomenda, o cliente declara ter mais de 18 anos ou autorização do representante legal. A encomenda constitui uma proposta de compra, que será confirmada por email."
 
+#: templates/website/terms.html:30
 msgid "5. Pagamento"
 msgstr "5. Pagamento"
 
+#: templates/website/terms.html:31
 msgid "Os métodos de pagamento disponíveis são:"
 msgstr "Os métodos de pagamento disponíveis são:"
 
+#: templates/website/terms.html:33
 msgid "MB WAY"
 msgstr "MB WAY"
 
+#: templates/website/terms.html:36
 msgid "6. Entregas"
 msgstr "6. Entregas"
 
+#: templates/website/terms.html:37
 msgid "Disponibilizamos as seguintes opções de entrega:"
 msgstr "Disponibilizamos as seguintes opções de entrega:"
 
+#: templates/website/terms.html:39
 msgid "Levantamento em loja (Braga ou Guimarães) — gratuito"
 msgstr "Levantamento em loja (Braga ou Guimarães) — gratuito"
 
+#: templates/website/terms.html:40
 msgid "Entrega ao domicílio via CTT — custos de envio aplicáveis"
 msgstr "Entrega ao domicílio via CTT — custos de envio aplicáveis"
 
-msgid ""
-"O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
-msgstr ""
-"O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
+#: templates/website/terms.html:42
+msgid "O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
+msgstr "O prazo estimado de entrega é de 2 a 5 dias úteis para Portugal continental."
 
+#: templates/website/terms.html:44
 msgid "7. Devoluções"
 msgstr "7. Devoluções"
 
-msgid ""
-"O cliente tem direito a devolver o produto no prazo de 14 dias após a "
-"receção, desde que o produto esteja nas condições originais. Produtos "
-"alimentares perecíveis não são elegíveis para devolução."
-msgstr ""
-"O cliente tem direito a devolver o produto no prazo de 14 dias após a "
-"receção, desde que o produto esteja nas condições originais. Produtos "
-"alimentares perecíveis não são elegíveis para devolução."
+#: templates/website/terms.html:45
+msgid "O cliente tem direito a devolver o produto no prazo de 14 dias após a receção, desde que o produto esteja nas condições originais. Produtos alimentares perecíveis não são elegíveis para devolução."
+msgstr "O cliente tem direito a devolver o produto no prazo de 14 dias após a receção, desde que o produto esteja nas condições originais. Produtos alimentares perecíveis não são elegíveis para devolução."
 
+#: templates/website/terms.html:47
 msgid "8. Garantias"
 msgstr "8. Garantias"
 
-msgid ""
-"Todos os produtos biológicos comercializados pela Biobrassica são "
-"certificados e cumprem a legislação europeia e nacional em vigor."
-msgstr ""
-"Todos os produtos biológicos comercializados pela Biobrassica são "
-"certificados e cumprem a legislação europeia e nacional em vigor."
+#: templates/website/terms.html:48
+msgid "Todos os produtos biológicos comercializados pela Biobrassica são certificados e cumprem a legislação europeia e nacional em vigor."
+msgstr "Todos os produtos biológicos comercializados pela Biobrassica são certificados e cumprem a legislação europeia e nacional em vigor."
 
+#: templates/website/terms.html:50
 msgid "9. Resolução de Litígios"
 msgstr "9. Resolução de Litígios"
 
-msgid ""
-"Em caso de litígio, o consumidor pode recorrer às entidades de resolução "
-"alternativa de litígios. Mais informações em"
-msgstr ""
-"Em caso de litígio, o consumidor pode recorrer às entidades de resolução "
-"alternativa de litígios. Mais informações em"
+#: templates/website/terms.html:51
+msgid "Em caso de litígio, o consumidor pode recorrer às entidades de resolução alternativa de litígios. Mais informações em"
+msgstr "Em caso de litígio, o consumidor pode recorrer às entidades de resolução alternativa de litígios. Mais informações em"
 
+#: templates/website/terms.html:53
 msgid "10. Lei Aplicável"
 msgstr "10. Lei Aplicável"
 
+#: templates/website/terms.html:54
 msgid "Os presentes termos regem-se pela legislação portuguesa."
 msgstr "Os presentes termos regem-se pela legislação portuguesa."
+
+#~ msgid "Referência"
+#~ msgstr "Referência"
+
+#, fuzzy
+#~| msgid "Telefone"
+#~ msgid "Telefone MB WAY"
+#~ msgstr "Telefone"
+
+#~| msgid "Número de telemóvel"
+#~ msgid "Indique o número de telemóvel para MB WAY."
+#~ msgstr "Indique o número de telemóvel para MB WAY."
+
+#~ msgid "Nenhum produto do seu carrinho tem stock disponível."
+#~ msgstr "Nenhum produto do seu carrinho tem stock disponível."
+
+#~ msgid "Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos abaixo e tente novamente."
+#~ msgstr "Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos abaixo e tente novamente."
+
+#, python-format
+#~ msgid "%(product)s: reduzido de %(requested)d para %(available)d unidades."
+#~ msgstr "%(product)s: reduzido de %(requested)d para %(available)d unidades."
+
+#, python-format
+#~ msgid "%(product)s: removido (sem stock disponível)."
+#~ msgstr "%(product)s: removido (sem stock disponível)."
+
+#~ msgid "Por favor preencha todos os campos obrigatórios."
+#~ msgstr "Por favor preencha todos os campos obrigatórios."
+
+#~ msgid "Alguns produtos já não têm stock suficiente. Revise o carrinho e tente novamente."
+#~ msgstr "Alguns produtos já não têm stock suficiente. Revise o carrinho e tente novamente."
+
+#~ msgid "Não foi possível criar a encomenda. Verifique os dados e tente novamente."
+#~ msgstr "Não foi possível criar a encomenda. Verifique os dados e tente novamente."
+
+#~ msgid "Não foi possível preparar o pagamento. Tente novamente."
+#~ msgstr "Não foi possível preparar o pagamento. Tente novamente."
+
+#~ msgid "Não foi possível atualizar o estado do pagamento. Tente novamente."
+#~ msgstr "Não foi possível atualizar o estado do pagamento. Tente novamente."
+
+#~ msgid "O pagamento MB WAY não foi confirmado. Pode tentar novamente."
+#~ msgstr "foi confirmado."
+
+#~ msgid "© 2026 Biobrassica. Todos os direitos reservados."
+#~ msgstr "© 2026 Biobrassica. Todos os direitos reservados."
+
+#~ msgid "Dados para pagamento Multibanco"
+#~ msgstr "Dados para pagamento Multibanco"
+
+#~ msgid "Entidade"
+#~ msgstr "Entidade"
+
+#~ msgid "De momento, o pagamento está disponível apenas por MB WAY."
+#~ msgstr "De momento, o pagamento está disponível apenas por MB WAY."
+
+#~ msgid "Pagamento instantâneo via telemóvel"
+#~ msgstr "Pagamento instantâneo via telemóvel"
+
+#~ msgid "Número de telemóvel"
+#~ msgstr "Número de telemóvel"
+
+#~ msgid "Pagar com MB WAY"
+#~ msgstr "Pagar com MB WAY"
+
+#~| msgid "Referência"
+#~ msgid "Referência Multibanco"
+#~ msgstr "Referência Multibanco"
+
+#~ msgid "Utilize os dados abaixo para concluir o pagamento. A encomenda só fica confirmada após validação automática."
+#~ msgstr "Utilize os dados abaixo para concluir o pagamento. A encomenda só fica confirmada após validação automática."
+
+#~ msgid "O pedido de pagamento foi enviado para o telemóvel indicado. Depois de autorizar no MB WAY, atualize esta página."
+#~ msgstr "O pedido de pagamento foi enviado para o telemóvel indicado. Depois de autorizar no MB WAY, atualize esta página."
+
+#~ msgid "Telemóvel"
+#~ msgstr "Telemóvel"
+
+#~ msgid "Cartão de Crédito"
+#~ msgstr "Cartão de Crédito"
+
+#~ msgid "Se o pagamento ainda não estiver concluído, reabra a página segura do operador para finalizar a transação."
+#~ msgstr "Se o pagamento ainda não estiver concluído, reabra a página segura do operador para finalizar a transação."
+
+#~ msgid "Escolher outro método"
+#~ msgstr "Escolher outro método"
 
 #~ msgid "Show all"
 #~ msgstr "Mostrar tudo"
 
-#~ msgid ""
-#~ "A agricultura biológica não é apenas uma forma de produzir alimentos — é "
-#~ "uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. "
-#~ "Ao evitar pesticidas e fertilizantes químicos, protegemos a "
-#~ "biodiversidade, a qualidade da água e a saúde do solo."
-#~ msgstr ""
-#~ "A agricultura biológica não é apenas uma forma de produzir alimentos — é "
-#~ "uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. "
-#~ "Ao evitar pesticidas e fertilizantes químicos, protegemos a "
-#~ "biodiversidade, a qualidade da água e a saúde do solo."
+#~ msgid "A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo."
+#~ msgstr "A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo."
 
-#~ msgid ""
-#~ "Para o consumidor, os alimentos biológicos significam mais sabor, mais "
-#~ "nutrientes e a garantia de que cada mordida está livre de resíduos "
-#~ "químicos. É uma escolha consciente para a saúde da família e do planeta."
-#~ msgstr ""
-#~ "Para o consumidor, os alimentos biológicos significam mais sabor, mais "
-#~ "nutrientes e a garantia de que cada mordida está livre de resíduos "
-#~ "químicos. É uma escolha consciente para a saúde da família e do planeta."
+#~ msgid "Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta."
+#~ msgstr "Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta."
 
-#~ msgid ""
-#~ "Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
-#~ "ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
-#~ "variedade de produtos ao longo do ano."
-#~ msgstr ""
-#~ "Na região do Minho, a riqueza do solo e o clima atlântico criam condições "
-#~ "ideais para a agricultura biológica, permitindo-nos cultivar uma enorme "
-#~ "variedade de produtos ao longo do ano."
+#~ msgid "Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano."
+#~ msgstr "Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano."
 
 #~ msgid "Segunda a Sábado"
 #~ msgstr "Segunda a Sábado"
@@ -1318,17 +4278,8 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Mapa da loja Biobrassica em Braga"
 #~ msgstr "Mapa da loja Biobrassica em Braga"
 
-#~ msgid "Guimarães"
-#~ msgstr "Guimarães"
-
 #~ msgid "Mapa da loja Biobrassica em Guimarães"
 #~ msgstr "Mapa da loja Biobrassica em Guimarães"
-
-#~ msgid "Receita"
-#~ msgstr "Receita"
-
-#~ msgid "Produtos Utilizados"
-#~ msgstr "Produtos Utilizados"
 
 #~ msgid "foi recebida."
 #~ msgstr "foi recebida."
@@ -1342,9 +4293,6 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Equipa Biobrassica em loja"
 #~ msgstr "Equipa Biobrassica em loja"
 
-#~ msgid "Membros da equipa Biobrassica"
-#~ msgstr "Membros da equipa Biobrassica"
-
 #~ msgid "Venha conhecer-nos"
 #~ msgstr "Venha conhecer-nos"
 
@@ -1354,58 +4302,35 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Evento anterior"
 #~ msgstr "Evento anterior"
 
-#~ msgid "Próximo evento"
-#~ msgstr "Próximo evento"
-
 #~ msgid "A Semente"
 #~ msgstr "A Semente"
 
-#~ msgid ""
-#~ "Nascemos em Braga com a vontade de trazer produtos biológicos de "
-#~ "qualidade à comunidade, movidos pela paixão pela alimentação saudável."
-#~ msgstr ""
-#~ "Nascemos em Braga com a vontade de trazer produtos biológicos de "
-#~ "qualidade à comunidade, movidos pela paixão pela alimentação saudável."
+#~ msgid "Nascemos em Braga com a vontade de trazer produtos biológicos de qualidade à comunidade, movidos pela paixão pela alimentação saudável."
+#~ msgstr "Nascemos em Braga com a vontade de trazer produtos biológicos de qualidade à comunidade, movidos pela paixão pela alimentação saudável."
 
 #~ msgid "Certificação Biológica"
 #~ msgstr "Certificação Biológica"
 
-#~ msgid ""
-#~ "Recebemos a certificação biológica da Certiplanet, validando o nosso "
-#~ "compromisso com práticas agrícolas sustentáveis."
-#~ msgstr ""
-#~ "Recebemos a certificação biológica da Certiplanet, validando o nosso "
-#~ "compromisso com práticas agrícolas sustentáveis."
+#~ msgid "Recebemos a certificação biológica da Certiplanet, validando o nosso compromisso com práticas agrícolas sustentáveis."
+#~ msgstr "Recebemos a certificação biológica da Certiplanet, validando o nosso compromisso com práticas agrícolas sustentáveis."
 
 #~ msgid "Abertura em Braga"
 #~ msgstr "Abertura em Braga"
 
-#~ msgid ""
-#~ "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os "
-#~ "frescos de produtores locais diretamente ao consumidor."
-#~ msgstr ""
-#~ "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os "
-#~ "frescos de produtores locais diretamente ao consumidor."
+#~ msgid "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os frescos de produtores locais diretamente ao consumidor."
+#~ msgstr "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os frescos de produtores locais diretamente ao consumidor."
 
 #~ msgid "Expansão para Guimarães"
 #~ msgstr "Expansão para Guimarães"
 
-#~ msgid ""
-#~ "Com a crescente procura, abrimos a segunda loja em Guimarães, "
-#~ "fortalecendo a nossa presença no Minho."
-#~ msgstr ""
-#~ "Com a crescente procura, abrimos a segunda loja em Guimarães, "
-#~ "fortalecendo a nossa presença no Minho."
+#~ msgid "Com a crescente procura, abrimos a segunda loja em Guimarães, fortalecendo a nossa presença no Minho."
+#~ msgstr "Com a crescente procura, abrimos a segunda loja em Guimarães, fortalecendo a nossa presença no Minho."
 
 #~ msgid "O Futuro é Bio"
 #~ msgstr "O Futuro é Bio"
 
-#~ msgid ""
-#~ "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias "
-#~ "com produtores locais da região."
-#~ msgstr ""
-#~ "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias "
-#~ "com produtores locais da região."
+#~ msgid "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias com produtores locais da região."
+#~ msgstr "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias com produtores locais da região."
 
 #~ msgid "Conhecer para valorizar."
 #~ msgstr "Conhecer para valorizar."
@@ -1419,37 +4344,20 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Terra"
 #~ msgstr "Terra"
 
-#~ msgid ""
-#~ "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que "
-#~ "utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada "
-#~ "estação."
-#~ msgstr ""
-#~ "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que "
-#~ "utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada "
-#~ "estação."
+#~ msgid "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada estação."
+#~ msgstr "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada estação."
 
-#~ msgid ""
-#~ "Acreditamos no comércio local e na criação de laços fortes com as "
-#~ "famílias de Braga e Guimarães."
-#~ msgstr ""
-#~ "Acreditamos no comércio local e na criação de laços fortes com as "
-#~ "famílias de Braga e Guimarães."
+#~ msgid "Acreditamos no comércio local e na criação de laços fortes com as famílias de Braga e Guimarães."
+#~ msgstr "Acreditamos no comércio local e na criação de laços fortes com as famílias de Braga e Guimarães."
 
 #~ msgid "Saúde"
 #~ msgstr "Saúde"
 
-#~ msgid ""
-#~ "Cada produto que selecionamos é livre de químicos, pensado para nutrir o "
-#~ "corpo e a alma de quem o consome."
-#~ msgstr ""
-#~ "Cada produto que selecionamos é livre de químicos, pensado para nutrir o "
-#~ "corpo e a alma de quem o consome."
+#~ msgid "Cada produto que selecionamos é livre de químicos, pensado para nutrir o corpo e a alma de quem o consome."
+#~ msgstr "Cada produto que selecionamos é livre de químicos, pensado para nutrir o corpo e a alma de quem o consome."
 
 #~ msgid "Saber mais"
 #~ msgstr "Saber mais"
-
-#~ msgid "Ver receita"
-#~ msgstr "Ver receita"
 
 #~ msgid "Brevemente — siga-nos no Instagram @biobrassica"
 #~ msgstr "Brevemente — siga-nos no Instagram @biobrassica"
@@ -1468,9 +4376,6 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 
 #~ msgid "Dark"
 #~ msgstr "Escuro"
-
-#~ msgid "System"
-#~ msgstr "Sistema"
 
 #~ msgid "Add row"
 #~ msgstr "Adicionar linha"
@@ -1492,9 +4397,6 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 
 #~ msgid "History"
 #~ msgstr "Histórico"
-
-#~ msgid "View on site"
-#~ msgstr "Ver no site"
 
 #~ msgid "Type to search"
 #~ msgstr "Escreva para pesquisar"
@@ -1565,10 +4467,8 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Select %s to view"
 #~ msgstr "Selecionar %s para ver"
 
-#~ msgid ""
-#~ "After you've created a user, you’ll be able to edit more user options."
-#~ msgstr ""
-#~ "Depois de criar um utilizador, poderá editar mais opções do utilizador."
+#~ msgid "After you've created a user, you’ll be able to edit more user options."
+#~ msgstr "Depois de criar um utilizador, poderá editar mais opções do utilizador."
 
 #~ msgid "Change password"
 #~ msgstr "Alterar palavra-passe"
@@ -1621,9 +4521,6 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Select all %(total_count)s %(module_name)s"
 #~ msgstr "Selecionar todos os %(total_count)s %(module_name)s"
 
-#~ msgid "Clear selection"
-#~ msgstr "Limpar seleção"
-
 #~ msgid "Select all objects on this page for an action"
 #~ msgstr "Selecionar todos os objetos desta página para uma ação"
 
@@ -1657,12 +4554,8 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "No results found"
 #~ msgstr "Nenhum resultado encontrado"
 
-#~ msgid ""
-#~ "This page yielded into no results. Create a new item or reset your "
-#~ "filters."
-#~ msgstr ""
-#~ "Esta página não devolveu resultados. Crie um novo item ou limpe os "
-#~ "filtros."
+#~ msgid "This page yielded into no results. Create a new item or reset your filters."
+#~ msgstr "Esta página não devolveu resultados. Crie um novo item ou limpe os filtros."
 
 #~ msgid "Reset filters"
 #~ msgstr "Limpar filtros"
@@ -1691,29 +4584,20 @@ msgstr "Os presentes termos regem-se pela legislação portuguesa."
 #~ msgid "Chosen %s"
 #~ msgstr "Selecionados: %s"
 
-#~ msgid ""
-#~ "Choose %s by selecting them and then select the \"Choose\" arrow button."
-#~ msgstr ""
-#~ "Escolha %s selecionando-os e depois carregando na seta \"Escolher\"."
+#~ msgid "Choose %s by selecting them and then select the \"Choose\" arrow button."
+#~ msgstr "Escolha %s selecionando-os e depois carregando na seta \"Escolher\"."
 
-#~ msgid ""
-#~ "Remove %s by selecting them and then select the \"Remove\" arrow button."
+#~ msgid "Remove %s by selecting them and then select the \"Remove\" arrow button."
 #~ msgstr "Remova %s selecionando-os e depois carregando na seta \"Remover\"."
 
 #~ msgid "(click to clear)"
 #~ msgstr "(clique para limpar)"
 
 #~ msgid "Hold down “Control”, or “Command” on a Mac, to select more than one."
-#~ msgstr ""
-#~ "Mantenha premida a tecla “Control”, ou “Command” num Mac, para selecionar "
-#~ "mais do que um."
+#~ msgstr "Mantenha premida a tecla “Control”, ou “Command” num Mac, para selecionar mais do que um."
 
-#~ msgid ""
-#~ "Produtos biológicos frescos, cultivados de forma sustentável no coração "
-#~ "do Minho."
-#~ msgstr ""
-#~ "Produtos biológicos frescos, cultivados de forma sustentável no coração "
-#~ "do Minho."
+#~ msgid "Produtos biológicos frescos, cultivados de forma sustentável no coração do Minho."
+#~ msgstr "Produtos biológicos frescos, cultivados de forma sustentável no coração do Minho."
 
 #~ msgid "Couves biológicas"
 #~ msgstr "Couves biológicas"

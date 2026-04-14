@@ -6,8 +6,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl gettext libatomic1 && rm -rf /var/lib/apt/lists/*
 
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
 COPY requirements.txt requirements-dev.txt ./
 RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN python -m playwright install --with-deps chromium
 
 COPY . .
 
@@ -24,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl libpq-dev gettext && rm -rf /var/lib/apt/lists/*
 
 # Install Tailwind standalone CLI
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.8/tailwindcss-linux-x64 \
+RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.2.2/tailwindcss-linux-x64 \
     && chmod +x tailwindcss-linux-x64 \
     && mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 

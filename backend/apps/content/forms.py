@@ -5,6 +5,7 @@ with user-friendly dynamic list widgets.
 import json
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.content.models import BlogPost, Recipe, RecipeTranslation
 from apps.content.widgets import IngredientListWidget, StepListWidget, TagListWidget
@@ -133,8 +134,8 @@ class StepListField(forms.Field):
 class BlogPostAdminForm(forms.ModelForm):
     tags = TagListField(
         required=False,
-        label='Tags',
-        help_text='Adicione tags para categorizar este artigo.',
+        label=_('Tags'),
+        help_text=_('Adicione tags para categorizar este artigo.'),
     )
 
     class Meta:
@@ -145,8 +146,8 @@ class BlogPostAdminForm(forms.ModelForm):
 class RecipeAdminForm(forms.ModelForm):
     tags = TagListField(
         required=False,
-        label='Tags',
-        help_text='Adicione tags para categorizar esta receita.',
+        label=_('Tags'),
+        help_text=_('Adicione tags para categorizar esta receita.'),
     )
 
     class Meta:
@@ -157,13 +158,13 @@ class RecipeAdminForm(forms.ModelForm):
 class RecipeTranslationAdminForm(forms.ModelForm):
     ingredients = IngredientListField(
         required=False,
-        label='Ingredientes',
-        help_text='Adicione os ingredientes necessários para esta receita (ex: "200g farinha espelta").',
+        label=_('Ingredientes'),
+        help_text=_('Adicione os ingredientes necessários para esta receita (ex: "200g farinha espelta").'),
     )
     instructions = StepListField(
         required=False,
-        label='Preparação',
-        help_text='Adicione cada passo de preparação. O sistema numera automaticamente.',
+        label=_('Preparação'),
+        help_text=_('Adicione cada passo de preparação. O sistema numera automaticamente.'),
     )
 
     class Meta:

@@ -6,23 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Loja | Biobrassica{% endblock %}</title>
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/brand/favicon_green.png' %}" />
-  <meta name="description" content="{% block meta_description %}{% trans "Loja online Biobrassica — produtos biológicos de Braga e Guimarães." %}{% endblock %}" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <meta name="description" content="{% block meta_description %}{{ website_defaults.shop_meta_description }}{% endblock %}" />
   <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
   {% block head_extra %}{% endblock %}
 </head>
 <body class="min-h-screen flex flex-col bg-paper text-forest font-sans font-light">
 
   {% include "components/navbar_shop.html" %}
 
+  {% include "components/site_messages.html" %}
+
   <main class="flex-1 pt-20">
     {% block content %}{% endblock %}
   </main>
 
   {% include "components/footer_shop.html" %}
+
+  <script src="{% static 'js/navbar.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
 
 </body>
 </html>

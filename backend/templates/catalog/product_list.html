@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Produtos" %} | Biobrassica{% endblock %}
 
@@ -65,15 +65,10 @@
   </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
 {% if current_category %}
-<script>
-  // Scroll to product grid when a category is selected
-  document.addEventListener('DOMContentLoaded', function() {
-    const grid = document.getElementById('product-grid');
-    if (grid) {
-      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-</script>
+<script src="{% static 'js/product_list.js' %}" defer></script>
 {% endif %}
 {% endblock %}

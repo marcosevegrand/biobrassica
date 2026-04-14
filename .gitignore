@@ -17,7 +17,7 @@ node_modules/
 
 # Environment
 .env*
-!.env.example
+!*.example
 
 # OS
 .DS_Store

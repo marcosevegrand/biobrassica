@@ -8,6 +8,7 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
+from django.utils.translation import gettext_lazy as _
 
 
 def move_orderable(model, pk, direction, order_field='order'):
@@ -37,7 +38,8 @@ def move_orderable(model, pk, direction, order_field='order'):
         sibling.save(update_fields=[order_field])
 
 
-def render_edit_link(opts, obj, title='Abrir'):
+def render_edit_link(opts, obj, title=None):
+    title = title or _('Abrir')
     url = reverse(f'admin:{opts.app_label}_{opts.model_name}_change', args=[obj.pk])
     return format_html(
         '<a href="{}" title="{}" aria-label="{}" '
@@ -51,7 +53,9 @@ def render_edit_link(opts, obj, title='Abrir'):
     )
 
 
-def render_order_controls(opts, obj, title_up='Mover para cima', title_down='Mover para baixo'):
+def render_order_controls(opts, obj, title_up=None, title_down=None):
+    title_up = title_up or _('Mover para cima')
+    title_down = title_down or _('Mover para baixo')
     up_url = reverse(f'admin:{opts.app_label}_{opts.model_name}_move_up', args=[obj.pk])
     down_url = reverse(f'admin:{opts.app_label}_{opts.model_name}_move_down', args=[obj.pk])
     return format_html(
@@ -79,9 +83,10 @@ def render_image_preview(image_field, width=56, height=56):
         return '—'
 
     return format_html(
-        '<img src="{}" alt="Pré-visualização" '
+        '<img src="{}" alt="{}" '
         'style="width:{}px;height:{}px;object-fit:cover;border-radius:0.5rem;border:1px solid rgba(15,23,42,0.08);" />',
         image_field.url,
+        _('Pré-visualização'),
         width,
         height,
     )

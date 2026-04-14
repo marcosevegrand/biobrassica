@@ -17,7 +17,7 @@
           {% trans "Produtos biológicos, entregues com cuidado" %}
         </h1>
         <p class="text-paper/70 text-lg leading-relaxed mb-10 max-w-lg">
-          {% trans "Do campo para a sua porta. Encomende online e receba em casa ou levante nas nossas lojas em Braga e Guimarães." %}
+          {{ website_defaults.shop_home_hero_body }}
         </p>
         <a href="{% url 'catalog:product_list' %}"
            class="inline-block px-8 py-3.5 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">
@@ -57,7 +57,7 @@
         </div>
         <div class="text-left">
           <p class="text-sm font-medium text-forest">{% trans "Levantamento na loja" %}</p>
-          <p class="text-xs text-muted">{% trans "Braga ou Guimarães" %}</p>
+          <p class="text-xs text-muted">{{ website_defaults.pickup_locations_label }}</p>
         </div>
       </div>
       <div class="flex items-center justify-center gap-3">
@@ -192,16 +192,16 @@
   <div class="max-w-3xl mx-auto px-6 sm:px-8 text-center">
     <h2 class="text-2xl md:text-3xl font-serif italic mb-5">{% trans "Visite-nos" %}</h2>
     <p class="text-paper/60 mb-8 leading-relaxed">
-      {% trans "Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e Guimarães. Teremos todo o gosto em recebê-lo." %}
+      {{ website_defaults.shop_visit_cta_body }}
     </p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a href="https://biobrassica.pt/pt/contactos/"
+      <a href="{{ website_defaults.website_contacts_url }}"
          class="inline-block px-8 py-3.5 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">
         {% trans "Ver Localizações" %}
       </a>
-      <a href="https://biobrassica.pt"
+      <a href="{{ website_defaults.website_base_url }}"
          class="inline-block px-8 py-3.5 border border-paper/40 text-paper text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/10 transition-colors">
-        biobrassica.pt
+        {{ website_defaults.website_base_url|cut:'https://'|cut:'http://' }}
       </a>
     </div>
   </div>

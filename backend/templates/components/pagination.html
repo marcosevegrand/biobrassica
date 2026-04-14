@@ -1,6 +1,6 @@
 {% load i18n %}
 {% if is_paginated %}
-<nav class="mt-16 flex items-center justify-center gap-2" aria-label="Pagination">
+<nav class="mt-16 flex items-center justify-center gap-2" aria-label="{% trans 'Paginação' %}">
   {% if page_obj.has_previous %}
   <a href="?{% if pagination_query %}{{ pagination_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}"
      class="px-4 py-2 border border-forest/20 text-forest text-sm rounded-sm hover:bg-forest hover:text-paper transition-colors">

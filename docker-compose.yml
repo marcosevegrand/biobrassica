@@ -17,12 +17,10 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
-      - IFTHENPAY_BACKOFFICE_KEY=${IFTHENPAY_BACKOFFICE_KEY:-}
-      - IFTHENPAY_MBWAY_KEY=${IFTHENPAY_MBWAY_KEY:-}
-      - IFTHENPAY_MB_ENTITY=${IFTHENPAY_MB_ENTITY:-}
-      - IFTHENPAY_MB_SUBENTITY=${IFTHENPAY_MB_SUBENTITY:-}
-      - IFTHENPAY_CCARD_KEY=${IFTHENPAY_CCARD_KEY:-}
-      - IFTHENPAY_ANTI_PHISHING_KEY=${IFTHENPAY_ANTI_PHISHING_KEY:-}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - STRIPE_CURRENCY=${STRIPE_CURRENCY:-eur}
       - EMAIL_HOST=${EMAIL_HOST:-}
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
@@ -38,7 +36,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "-H", "X-Forwarded-Proto: https", "http://localhost:8000/_health/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/_health/"]
       interval: 30s
       timeout: 10s
       retries: 3

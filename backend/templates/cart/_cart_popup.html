@@ -2,7 +2,7 @@
 <div id="cart-popup" {% if oob|default:False %}hx-swap-oob="outerHTML"{% endif %} class="absolute right-0 top-full mt-3 w-96 bg-paper border border-stone/30 rounded-sm shadow-sm z-50 {% if open|default:False %}block{% else %}hidden{% endif %}">
   <div class="p-4 border-b border-stone/20 flex items-center justify-between">
     <h3 class="font-serif italic text-lg text-forest">{% trans "Carrinho" %}</h3>
-    <button id="cart-popup-close" type="button" class="text-muted hover:text-forest" aria-label="Close cart popup">×</button>
+    <button id="cart-popup-close" type="button" class="text-muted hover:text-forest" aria-label="{% trans 'Fechar resumo do carrinho' %}">×</button>
   </div>
 
   {% if cart_preview_items %}

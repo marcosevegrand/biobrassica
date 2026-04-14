@@ -1,11 +1,15 @@
 from django.test import TestCase, override_settings
+from django.test.client import RequestFactory
 from django.urls import reverse
 from typing import cast
+from decimal import Decimal
+from django.contrib import admin
 
 from apps.accounts.models import Address, User as AccountUser
 from apps.cart.models import Cart, CartItem
 from apps.catalog.models import Category, CategoryTranslation, Product, ProductTranslation
 from apps.orders.models import Order, OrderItem
+from apps.payments.models import Payment
 
 
 User = AccountUser
@@ -165,6 +169,26 @@ class ProfileViewTests(TestCase):
 		self.assertEqual(self.user.preferred_language, 'en')
 		self.assertEqual(self.user.nif, '123456789')
 
+	def test_profile_post_shows_field_errors(self):
+		self.client.force_login(self.user)
+
+		response = self.client.post(
+			reverse('accounts:profile'),
+			{
+				'first_name': 'Marco',
+				'last_name': 'Silva',
+				'phone': '912345678',
+				'preferred_language': 'en',
+				'nif': '1234567890',
+			},
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'no máximo 9 caracteres')
+		self.user = cast(AccountUser, User.objects.get(pk=self.user.pk))
+		self.assertEqual(self.user.nif, '')
+
 	def test_order_history_lists_only_current_user_orders(self):
 		other_user = User.objects.create_user(
 			email='outra@biobrassica.pt',
@@ -283,3 +307,44 @@ class AccountsAdminWorkflowTests(TestCase):
 		self.assertContains(response, 'Resumo da morada')
 		self.assertContains(response, 'Abrir cliente')
 		self.assertContains(response, 'Histórico de encomendas')
+
+	def test_user_admin_lifetime_revenue_excludes_refunded_orders(self):
+		paid_order = Order.objects.create(
+			user=self.customer,
+			name='Cliente Ativo',
+			email=self.customer.email,
+			fulfillment_method=Order.FulfillmentMethod.PICKUP,
+			pickup_location=Order.PickupLocation.BRAGA,
+			subtotal='20.00',
+			total='20.00',
+			status=Order.Status.PAID,
+		)
+		Payment.objects.create(
+			order=paid_order,
+			method=Payment.Method.STRIPE,
+			status=Payment.Status.PAID,
+			amount='20.00',
+		)
+		refunded_order = Order.objects.create(
+			user=self.customer,
+			name='Cliente Ativo',
+			email=self.customer.email,
+			fulfillment_method=Order.FulfillmentMethod.PICKUP,
+			pickup_location=Order.PickupLocation.BRAGA,
+			subtotal='10.00',
+			total='10.00',
+			status=Order.Status.CANCELLED,
+		)
+		Payment.objects.create(
+			order=refunded_order,
+			method=Payment.Method.STRIPE,
+			status=Payment.Status.REFUNDED,
+			amount='10.00',
+		)
+
+		request = RequestFactory().get(reverse('admin:accounts_user_changelist'), HTTP_HOST='admin.lvh.me')
+		request.user = self.admin_user
+		user_admin = admin.site._registry[User]
+		customer = user_admin.get_queryset(request).get(pk=self.customer.pk)
+
+		self.assertEqual(customer.lifetime_revenue, Decimal('20.00'))

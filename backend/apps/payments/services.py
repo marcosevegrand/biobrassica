@@ -1,29 +1,28 @@
 import ipaddress
 import logging
 import re
-from datetime import timedelta
-from decimal import Decimal, InvalidOperation
+from datetime import datetime, timedelta, timezone as dt_timezone
+from decimal import Decimal
 
-import requests
+import stripe
 from django.conf import settings
-from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import transaction
-from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from apps.orders.models import Order
-from apps.orders.services import transition_order_status
+from apps.orders.services import cancel_unpaid_order, transition_order_status
 from apps.payments.models import Payment
 
 logger = logging.getLogger(__name__)
 
-PAYMENT_SUCCESS_STATUSES = {'paid', 'success', 'completed', 'ok'}
 PAYMENT_FAILURE_STATUSES = {'failed', 'error', 'cancelled', 'canceled', 'declined', 'refused', 'expired'}
+STRIPE_CHECKOUT_EXPIRY_WINDOW = timedelta(hours=1)
 
 EMAIL_RE = re.compile(r'([A-Z0-9._%+-]+)@([A-Z0-9.-]+\.[A-Z]{2,})', re.IGNORECASE)
 PHONE_RE = re.compile(r'(?<!\d)(\+?\d[\d\s-]{6,}\d)(?!\d)')
-SENSITIVE_KEY_RE = re.compile(r'(secret|token|password|anti[_-]?phishing|key)', re.IGNORECASE)
+SENSITIVE_KEY_RE = re.compile(r'(secret|token|password|key)', re.IGNORECASE)
 
 
 class PaymentProcessingError(Exception):
@@ -56,6 +55,11 @@ def sanitize_callback_payload(payload):
 
         if isinstance(current_value, list):
             current_value = [_redact_free_text(item) for item in current_value]
+        elif isinstance(current_value, dict):
+            current_value = {
+                nested_key: '[redacted]' if SENSITIVE_KEY_RE.search(str(nested_key)) else _redact_free_text(nested_value)
+                for nested_key, nested_value in current_value.items()
+            }
         elif SENSITIVE_KEY_RE.search(str(key)):
             current_value = '[redacted]'
         elif 'phone' in str(key).lower() or 'mobile' in str(key).lower():
@@ -84,30 +88,6 @@ def anonymize_ip_address(ip_address):
 
     network = ipaddress.IPv6Network(f'{parsed}/64', strict=False)
     return str(network.network_address)
-
-
-def normalize_provider_status(value: str | None) -> str:
-    return (value or '').strip().lower().replace(' ', '_')
-
-
-def parse_provider_amount(value) -> Decimal | None:
-    if value in (None, ''):
-        return None
-
-    normalized = str(value).strip().replace('EUR', '').replace('€', '').replace(',', '.')
-    try:
-        return Decimal(normalized)
-    except (InvalidOperation, ValueError):
-        return None
-
-
-def parse_provider_datetime(value):
-    if not value:
-        return None
-    if hasattr(value, 'tzinfo'):
-        return value
-    parsed = parse_datetime(str(value).strip())
-    return parsed
 
 
 def send_payment_notifications(payment) -> None:
@@ -176,7 +156,7 @@ def send_payment_notifications(payment) -> None:
                     f'Encomenda #{order.pk} paga com sucesso.\n'
                     f'Cliente: {order.name} <{order.email}>\n'
                     f'Total: {order.total:.2f}€\n'
-                    f'Método: {payment.get_method_display()}\n'
+                    f'Método: {payment.method_label}\n'
                     f'{fulfillment_label}: {fulfillment_value}'
                 ),
                 settings.DEFAULT_FROM_EMAIL,
@@ -211,11 +191,6 @@ def schedule_payment_notifications(payment) -> None:
     transaction.on_commit(_send_notifications)
 
 
-def get_default_mbway_expiry(reference_time=None):
-    base_time = reference_time or timezone.now()
-    return base_time + timedelta(minutes=settings.MBWAY_PAYMENT_EXPIRY_MINUTES)
-
-
 def _raise_payment_validation_error(error):
     if hasattr(error, 'message_dict'):
         message = '; '.join(
@@ -225,6 +200,16 @@ def _raise_payment_validation_error(error):
     else:
         message = '; '.join(error.messages)
     raise PaymentTransitionError(message)
+
+
+def _append_order_note(order, note):
+    existing_notes = (order.notes or '').strip()
+    if note in existing_notes:
+        return False
+
+    order.notes = f'{existing_notes}\n\n{note}' if existing_notes else note
+    order.save(update_fields=['notes', 'updated_at'])
+    return True
 
 
 def transition_payment_status(payment, new_status, *, reason='', source=''):
@@ -283,7 +268,7 @@ def mark_payment_failed(payment, *, reason: str) -> bool:
     return changed
 
 
-def expire_pending_payment(payment, *, reason='mbway expired'):
+def expire_pending_payment(payment, *, reason='payment expired'):
     if payment.status == Payment.Status.EXPIRED:
         return False
 
@@ -328,19 +313,6 @@ def expire_stale_pending_payments(*, payment=None, now=None):
     return expired_count
 
 
-def configure_mbway_payment(payment, *, phone, request_id, transaction_id=''):
-    payment.ifthenpay_request_id = request_id
-    payment.mbway_phone = phone
-    payment.mbway_transaction_id = transaction_id
-    payment.expires_at = get_default_mbway_expiry()
-    try:
-        payment.full_clean()
-    except ValidationError as error:
-        _raise_payment_validation_error(error)
-    payment.save(update_fields=['ifthenpay_request_id', 'mbway_phone', 'mbway_transaction_id', 'expires_at'])
-    return payment
-
-
 def reset_payment(order, method):
     payment, _ = Payment.objects.get_or_create(
         order=order,
@@ -355,15 +327,12 @@ def reset_payment(order, method):
 
     payment.method = method
     payment.amount = order.total
-    payment.ifthenpay_request_id = ''
-    payment.mb_entity = ''
-    payment.mb_reference = ''
-    payment.mbway_phone = ''
-    payment.mbway_transaction_id = ''
+    payment.stripe_session_id = ''
+    payment.stripe_payment_intent_id = ''
     payment.checkout_url = ''
     payment.last_error = ''
     payment.paid_at = None
-    payment.expires_at = get_default_mbway_expiry() if method == Payment.Method.MBWAY else None
+    payment.expires_at = None
     try:
         payment.full_clean()
     except ValidationError as error:
@@ -376,106 +345,104 @@ def reset_payment(order, method):
     return payment
 
 
-class IfThenPayService:
-    """
-    Wraps ifthenpay's REST API for Multibanco, MBWay, and Credit Card payments.
+def configure_stripe_checkout(payment, *, session_id, checkout_url, payment_intent_id='', expires_at=None):
+    payment.stripe_session_id = session_id
+    payment.stripe_payment_intent_id = payment_intent_id
+    payment.checkout_url = checkout_url
+    payment.expires_at = expires_at or (timezone.now() + STRIPE_CHECKOUT_EXPIRY_WINDOW)
+    try:
+        payment.full_clean()
+    except ValidationError as error:
+        _raise_payment_validation_error(error)
+    payment.save(update_fields=['stripe_session_id', 'stripe_payment_intent_id', 'checkout_url', 'expires_at'])
+    return payment
 
-    Requires these settings:
-        IFTHENPAY_BACKOFFICE_KEY
-        IFTHENPAY_MB_ENTITY
-        IFTHENPAY_MB_SUBENTITY
-        IFTHENPAY_MBWAY_KEY
-        IFTHENPAY_CCARD_KEY
-        IFTHENPAY_ANTI_PHISHING_KEY
-        IFTHENPAY_CALLBACK_URL
-    """
 
-    MB_URL = 'https://ifthenpay.com/api/multibanco/reference/init'
-    MBWAY_URL = 'https://ifthenpay.com/api/mbway/payment'
-    MBWAY_STATUS_URL = 'https://ifthenpay.com/api/mbway/status'
-    CCARD_URL = 'https://ifthenpay.com/api/creditcard/init'
+def mark_payment_refunded(payment, *, reason='stripe refund'):
+    changed = transition_payment_status(payment, Payment.Status.REFUNDED, reason=reason, source='stripe_refund')
 
-    def create_multibanco_reference(self, order_id: str, amount: Decimal) -> dict:
-        """
-        Generate a Multibanco payment reference.
-        Returns: {entity, reference, request_id} or raises exception.
-        """
-        payload = {
-            'mbKey': f'{settings.IFTHENPAY_MB_ENTITY}-{settings.IFTHENPAY_MB_SUBENTITY}',
-            'orderId': str(order_id),
-            'amount': str(amount),
-        }
+    order = payment.order
+    if changed and order.status == Order.Status.PAID:
+        cancel_unpaid_order(order)
+    elif changed and order.status in {Order.Status.PREPARING, Order.Status.READY}:
+        timestamp = timezone.localtime().strftime('%d/%m/%Y %H:%M')
+        _append_order_note(order, f'Reembolso registado em {timestamp}: {reason}. Rever operação manualmente.')
 
-        response = requests.post(self.MB_URL, json=payload, timeout=30)
-        response.raise_for_status()
-        data = response.json()
+    logger.info('Payment %s marked as refunded: %s', payment.pk, reason)
+    return changed
 
+
+class StripeService:
+    def _client_options(self):
+        return {'api_key': settings.STRIPE_SECRET_KEY}
+
+    def create_checkout_session(self, *, order, payment, success_url: str, cancel_url: str) -> dict:
+        # Get order items with product details
+        order_items = order.items.all()
+        
+        # Build line items for each product in the order
+        line_items = [
+            {
+                'quantity': item.quantity,
+                'price_data': {
+                    'currency': settings.STRIPE_CURRENCY,
+                    'unit_amount': int((item.price * 100).quantize(Decimal('1'))),
+                    'product_data': {
+                        'name': item.product_name,
+                    },
+                },
+            }
+            for item in order_items
+        ]
+        
+        # Format order number as #0000001
+        order_number = f'#{order.pk:07d}'
+        
+        # Add an order summary line if there are multiple items
+        if len(line_items) > 1:
+            line_items.append({
+                'quantity': 1,
+                'price_data': {
+                    'currency': settings.STRIPE_CURRENCY,
+                    'unit_amount': 0,
+                    'product_data': {
+                        'name': f'Encomenda {order_number}',
+                    },
+                },
+            })
+        else:
+            # For single item, just use the order number in the product name
+            line_items[0]['price_data']['product_data']['name'] = f'{line_items[0]["price_data"]["product_data"]["name"]} (Encomenda {order_number})'
+        
+        session = stripe.checkout.Session.create(
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            customer_email=order.email,
+            payment_method_types=['card', 'mb_way'],
+            metadata={
+                'order_id': str(order.pk),
+                'payment_id': str(payment.pk),
+            },
+            line_items=line_items,
+            **self._client_options(),
+        )
         return {
-            'entity': data.get('Entity', ''),
-            'reference': data.get('Reference', ''),
-            'request_id': data.get('RequestId', str(order_id)),
-            'expires_at': parse_provider_datetime(data.get('ExpiryDate') or data.get('Expiry')),
+            'session_id': session.id,
+            'payment_intent_id': getattr(session, 'payment_intent', '') or '',
+            'checkout_url': session.url or '',
+            'expires_at': datetime.fromtimestamp(session.expires_at, tz=dt_timezone.utc) if getattr(session, 'expires_at', None) else None,
         }
 
-    def create_mbway_payment(self, order_id: str, amount: Decimal, phone: str) -> dict:
-        """
-        Push an MBWay payment request to the user's phone.
-        Returns: {request_id, status}
-        """
-        payload = {
-            'mbWayKey': settings.IFTHENPAY_MBWAY_KEY,
-            'orderId': str(order_id),
-            'amount': str(amount),
-            'mobileNumber': phone,
-            'description': f'Biobrassica Encomenda #{order_id}',
-        }
+    def retrieve_checkout_session(self, session_id: str):
+        return stripe.checkout.Session.retrieve(session_id, **self._client_options())
 
-        response = requests.post(self.MBWAY_URL, json=payload, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-
-        return {
-            'request_id': data.get('RequestId', ''),
-            'status': data.get('Status', ''),
-            'transaction_id': data.get('TransactionId', ''),
-        }
-
-    def check_mbway_status(self, request_id: str) -> str:
-        """Check the status of an MBWay payment."""
-        payload = {
-            'mbWayKey': settings.IFTHENPAY_MBWAY_KEY,
-            'requestId': request_id,
-        }
-
-        response = requests.post(self.MBWAY_STATUS_URL, json=payload, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-
-        return data.get('Status', 'pending')
-
-    def create_credit_card_payment(self, order_id: str, amount: Decimal, return_url: str) -> dict:
-        """
-        Generate a credit card payment URL (redirect to ifthenpay hosted page).
-        Returns: {payment_url, request_id}
-        """
-        payload = {
-            'ccardKey': settings.IFTHENPAY_CCARD_KEY,
-            'orderId': str(order_id),
-            'amount': str(amount),
-            'successUrl': return_url,
-            'errorUrl': return_url,
-            'cancelUrl': return_url,
-            'language': 'pt',
-        }
-
-        response = requests.post(self.CCARD_URL, json=payload, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-
-        return {
-            'payment_url': data.get('PaymentUrl', ''),
-            'request_id': data.get('RequestId', ''),
-        }
+    def construct_webhook_event(self, payload: bytes, signature: str):
+        return stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=signature,
+            secret=settings.STRIPE_WEBHOOK_SECRET,
+        )
 
 
-ifthenpay_service = IfThenPayService()
+stripe_service = StripeService()

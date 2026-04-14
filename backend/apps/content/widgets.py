@@ -14,6 +14,7 @@ import uuid
 
 from django import forms
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
 _INPUT_BASE = 'padding:5px 8px;border:1px solid #d1d5db;border-radius:4px;background:#fff;'
 _BTN_ADD    = (
@@ -103,7 +104,7 @@ class IngredientListWidget(forms.Widget):
             v = html.escape(label, quote=True)
             rows += (
                 f'<div class="bb-ingredient-row" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
-                f'<input type="text" class="bb-ingredient-input" value="{v}" placeholder="ex: 200g farinha espelta"'
+                f'<input type="text" class="bb-ingredient-input" value="{v}" placeholder="{html.escape(str(_("ex: 200g farinha espelta")), quote=True)}"'
                 f' style="flex:1;{_INPUT_BASE}font-size:14px;" />'
                 f'<button type="button" onclick="bbRemoveItem(this)" style="{_BTN_REMOVE}">×</button>'
                 f'</div>'
@@ -113,7 +114,7 @@ class IngredientListWidget(forms.Widget):
         out = (
             f'<div id="{cid}" class="bb-widget-container" data-type="ingredients" style="{_WRAP}">'
             f'<div class="bb-ingredients-container">{rows}</div>'
-            f'<button type="button" onclick="bbAddIngredient(\'{cid}\')" style="{_BTN_ADD}">+ Adicionar ingrediente</button>'
+            f'<button type="button" onclick="bbAddIngredient(\'{cid}\')" style="{_BTN_ADD}">+ {_("Adicionar ingrediente")}</button>'
             f'<input type="hidden" name="{name}" class="bb-json-value" value="{json_attr}" />'
             f'</div>'
         )
@@ -147,7 +148,7 @@ class StepListWidget(forms.Widget):
                 f'<div class="bb-step-row" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">'
                 f'<span class="bb-step-num" style="min-width:24px;padding-top:7px;font-weight:700;font-size:13px;'
                 f'color:#6b7280;text-align:right;">{i}.</span>'
-                f'<textarea class="bb-step-input" rows="2" placeholder="Descreva este passo…"'
+                f'<textarea class="bb-step-input" rows="2" placeholder="{html.escape(str(_("Descreva este passo…")), quote=True)}"'
                 f' style="flex:1;{_INPUT_BASE}font-size:14px;resize:vertical;">{v}</textarea>'
                 f'<button type="button" onclick="bbRemoveItem(this)" style="{_BTN_REMOVE};margin-top:4px;">×</button>'
                 f'</div>'
@@ -157,7 +158,7 @@ class StepListWidget(forms.Widget):
         out = (
             f'<div id="{cid}" class="bb-widget-container" data-type="steps" style="{_WRAP}">'
             f'<div class="bb-steps-container">{rows}</div>'
-            f'<button type="button" onclick="bbAddStep(\'{cid}\')" style="{_BTN_ADD}">+ Adicionar passo</button>'
+            f'<button type="button" onclick="bbAddStep(\'{cid}\')" style="{_BTN_ADD}">+ {_("Adicionar passo")}</button>'
             f'<input type="hidden" name="{name}" class="bb-json-value" value="{json_attr}" />'
             f'</div>'
         )

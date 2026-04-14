@@ -1,6 +1,8 @@
 from django import forms
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from apps.catalog.models import Location
 from apps.orders.models import Order, PT_POSTAL_CODE_RE
 from apps.payments.models import Payment
 
@@ -9,7 +11,11 @@ class CheckoutForm(forms.Form):
     name = forms.CharField(max_length=255)
     email = forms.EmailField()
     phone = forms.CharField(max_length=20, required=False)
-    fulfillment_method = forms.ChoiceField(choices=Order.FulfillmentMethod.choices, required=False)
+    fulfillment_method = forms.ChoiceField(
+        choices=Order.FulfillmentMethod.choices,
+        required=False,
+        error_messages={'invalid_choice': _('Selecione um método de entrega válido.')},
+    )
     pickup_location = forms.ChoiceField(choices=Order.PickupLocation.choices, required=False)
     shipping_address_line1 = forms.CharField(max_length=255, required=False)
     shipping_address_line2 = forms.CharField(max_length=255, required=False)
@@ -17,12 +23,56 @@ class CheckoutForm(forms.Form):
     shipping_postal_code = forms.CharField(max_length=10, required=False)
     notes = forms.CharField(required=False)
 
-    def __init__(self, *args, cart_can_ship, **kwargs):
+    def __init__(self, *args, cart_can_ship, cart_items=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.cart_can_ship = cart_can_ship
+        self.cart_items = list(cart_items or [])
+        self.pickup_choices = self._build_pickup_choices()
+        self.fields['pickup_location'].choices = self.pickup_choices
+        self.allowed_pickup_locations = self._allowed_pickup_locations()
+
+    def _build_pickup_choices(self):
+        choices = []
+        for location in Location.objects.filter(is_active=True).order_by('order', 'name'):
+            pickup_value = self._pickup_location_value(location.name)
+            if pickup_value is None or any(value == pickup_value for value, _label in choices):
+                continue
+            choices.append((pickup_value, location.name))
+        return choices or list(Order.PickupLocation.choices)
+
+    def _allowed_pickup_locations(self):
+        if not self.cart_items:
+            return None
+
+        allowed_sets = []
+        for cart_item in self.cart_items:
+            location_values = {
+                pickup_value
+                for location in cart_item.product.available_locations.all()
+                for pickup_value in [self._pickup_location_value(location.name)]
+                if pickup_value is not None
+            }
+            allowed_sets.append(location_values)
+
+        if not allowed_sets:
+            return None
+
+        allowed_values = set.intersection(*allowed_sets) if allowed_sets else set()
+        return allowed_values
+
+    def _pickup_location_value(self, location_name):
+        normalized_name = slugify(location_name or '')
+        if 'guimaraes' in normalized_name:
+            return Order.PickupLocation.GUIMARAES
+        if 'braga' in normalized_name:
+            return Order.PickupLocation.BRAGA
+        return None
 
     def clean_name(self):
         return self.cleaned_data['name'].strip()
+
+    def clean_email(self):
+        return self.cleaned_data['email'].strip()
 
     def clean_phone(self):
         return self.cleaned_data['phone'].strip()
@@ -65,26 +115,25 @@ class CheckoutForm(forms.Form):
             cleaned_data['pickup_location'] = ''
         elif not cleaned_data.get('pickup_location'):
             raise forms.ValidationError(_('Selecione um local de levantamento.'))
+        elif self.allowed_pickup_locations is not None:
+            pickup_location = cleaned_data['pickup_location']
+            if not self.allowed_pickup_locations:
+                self.add_error('pickup_location', _('Os produtos deste carrinho não estão disponíveis para levantamento nas lojas configuradas.'))
+            elif pickup_location not in self.allowed_pickup_locations:
+                self.add_error('pickup_location', _('Este local não está disponível para todos os produtos do carrinho.'))
 
         return cleaned_data
 
 
 class PaymentSelectionForm(forms.Form):
     payment_method = forms.ChoiceField(
-        choices=[(Payment.Method.MBWAY, 'MB WAY')],
+        choices=[(Payment.Method.STRIPE, 'Stripe')],
         error_messages={'invalid_choice': _('Selecione um método de pagamento válido.')},
     )
-    mbway_phone = forms.CharField(max_length=20, required=False)
-
-    def clean_mbway_phone(self):
-        return self.cleaned_data['mbway_phone'].strip()
 
     def clean(self):
         cleaned_data = super().clean()
         payment_method = cleaned_data.get('payment_method')
-        mbway_phone = cleaned_data.get('mbway_phone', '')
-
-        if payment_method == Payment.Method.MBWAY and not mbway_phone:
-            raise forms.ValidationError(_('Indique o número de telemóvel para MB WAY.'))
-
+        if payment_method and payment_method != Payment.Method.STRIPE:
+            raise forms.ValidationError(_('Selecione um método de pagamento válido.'))
         return cleaned_data

@@ -2,7 +2,7 @@
 {% load i18n static %}
 
 {% block title %}{% trans "Contactos" %} | Biobrassica{% endblock %}
-{% block meta_description %}{% trans "Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-nos por telefone e email." %}{% endblock %}
+{% block meta_description %}{{ website_defaults.contacts_meta_description }}{% endblock %}
 
 {% block content %}
 <!-- Hero -->
@@ -19,7 +19,7 @@
 <!-- Store Locations -->
 <section class="max-w-6xl mx-auto px-6 py-20">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-    {% for location in locations %}
+    {% for location in contact_locations %}
     <div class="bg-stone/15 rounded-lg p-8">
       <div class="mb-6 rounded-sm overflow-hidden border border-stone/20">
         <img src="{% if location.image %}{{ location.image.url }}{% else %}{% static location.static_image %}{% endif %}" alt="{{ location.name }}" class="w-full aspect-video object-cover" />
@@ -71,7 +71,7 @@
   <div class="max-w-3xl mx-auto px-6 text-center">
     <h2 class="font-serif text-2xl italic mb-4">{% trans "Prefere enviar mensagem?" %}</h2>
     <p class="text-muted text-sm mb-8">{% trans "Fale connosco pelo WhatsApp para encomendas, dúvidas ou informações." %}</p>
-    <a href="https://wa.me/{% if website_content and website_content.whatsapp_number %}{{ website_content.whatsapp_number|cut:'+'|cut:' ' }}{% else %}351938722638{% endif %}"
+    <a href="{{ website_defaults.whatsapp_url }}"
        target="_blank"
        rel="noopener"
        class="inline-flex items-center gap-3 px-8 py-3 bg-[#25D366] text-white rounded-sm text-sm uppercase tracking-widest font-medium hover:bg-[#20bd5a] transition-colors">

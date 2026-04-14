@@ -27,6 +27,7 @@ make test
 make coverage
 make check
 make prod-config
+make stripe-listen
 ```
 
 Development URLs:
@@ -35,6 +36,39 @@ Development URLs:
 - Shop: http://loja.lvh.me
 - Admin: http://admin.lvh.me
 - Mailpit: http://localhost:8025
+
+### Stripe test mode in development
+
+Stripe does not have a separate "sandbox" product for this integration. For this app,
+you use Stripe test mode with test API keys and a webhook listener.
+
+1. Copy `.env.dev.example` to `.env.dev` if it does not exist.
+2. Set `STRIPE_SECRET_KEY` in `.env.dev` to your Stripe test secret key.
+3. Start the local stack:
+
+```sh
+make up
+```
+
+4. In a second terminal, start the webhook forwarder:
+
+```sh
+make stripe-listen
+```
+
+5. The Stripe CLI prints a webhook signing secret beginning with `whsec_...`.
+	Copy that value into `STRIPE_WEBHOOK_SECRET` in `.env.dev`.
+6. Restart Django so it picks up the new webhook secret:
+
+```sh
+make restart
+```
+
+7. Use Stripe test cards during checkout, for example `4242 4242 4242 4242`.
+
+Keep the `make stripe-listen` terminal running while you test payments locally.
+If you stop and restart the listener, Stripe may issue a new webhook signing secret,
+so update `.env.dev` and restart Django again.
 
 ## Production deployment
 
@@ -49,6 +83,9 @@ docker compose -f docker-compose.yml up -d --remove-orphans
 ```
 
 Do not use `docker compose up` without `-f docker-compose.yml` on the server.
+Run database migrations explicitly before starting the production web
+container. The production entrypoint now fails fast on pending migrations
+instead of starting gunicorn against an out-of-date schema.
 
 Detailed operational guidance lives in [docs/deployment.md](docs/deployment.md).
 

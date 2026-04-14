@@ -16,43 +16,23 @@
   </div>
 
   <div class="border border-stone/30 rounded-sm p-8 mb-8 bg-white/70">
-    {% if payment.method == 'multibanco' %}
-    <h2 class="font-serif text-2xl italic mb-4">{% trans "Referência Multibanco" %}</h2>
-    <p class="text-muted mb-6">{% trans "Utilize os dados abaixo para concluir o pagamento. A encomenda só fica confirmada após validação automática." %}</p>
-    <div class="space-y-3 text-sm">
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Entidade" %}</span>
-        <span class="font-mono font-medium">{{ payment.mb_entity }}</span>
-      </div>
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Referência" %}</span>
-        <span class="font-mono font-medium">{{ payment.mb_reference }}</span>
-      </div>
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Valor" %}</span>
-        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
-      </div>
-    </div>
-    {% elif payment.method == 'mbway' %}
-    <h2 class="font-serif text-2xl italic mb-4">MB WAY</h2>
-    <p class="text-muted mb-6">{% trans "O pedido de pagamento foi enviado para o telemóvel indicado. Depois de autorizar no MB WAY, atualize esta página." %}</p>
-    <div class="space-y-3 text-sm">
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Telemóvel" %}</span>
-        <span class="font-medium">{{ payment.mbway_phone }}</span>
-      </div>
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Valor" %}</span>
-        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
-      </div>
-    </div>
-    {% else %}
-    <h2 class="font-serif text-2xl italic mb-4">{% trans "Cartão de Crédito" %}</h2>
-    <p class="text-muted mb-6">{% trans "Se o pagamento ainda não estiver concluído, reabra a página segura do operador para finalizar a transação." %}</p>
+    {% if payment.method == 'stripe' %}
+    <h2 class="font-serif text-2xl italic mb-4">Stripe</h2>
+    <p class="text-muted mb-6">{% trans "Conclua o pagamento na página segura da Stripe. Depois de terminar, esta página é atualizada automaticamente pela confirmação do pagamento." %}</p>
     <a href="{{ payment.checkout_url }}"
        class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors">
-      {% trans "Continuar pagamento" %}
+      {% trans "Abrir checkout seguro" %}
     </a>
+    <div class="space-y-3 text-sm mt-6">
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Valor" %}</span>
+        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
+      </div>
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{% trans "Sessão" %}</span>
+        <span class="font-mono font-medium">{{ payment.masked_stripe_session_id|default:'—' }}</span>
+      </div>
+    </div>
     {% endif %}
   </div>
 
@@ -69,7 +49,7 @@
     </a>
     <a href="{% url 'orders:payment_select' order_id=order.pk %}"
        class="inline-block text-center text-xs uppercase tracking-widest border border-stone/30 px-6 py-3 rounded-sm hover:border-forest hover:text-forest transition-colors">
-      {% trans "Escolher outro método" %}
+      {% trans "Reiniciar pagamento" %}
     </a>
   </div>
 </section>

@@ -8,6 +8,7 @@ from apps.catalog.querysets import (
     latest_product_queryset,
     product_detail_queryset,
 )
+from apps.core.translations import language_choices
 from apps.core.pagination import paginate_queryset
 
 
@@ -23,7 +24,6 @@ def shop_home(request):
         'highlights': highlights,
         'latest_products': latest,
         'categories': categories,
-        'lang': lang,
     })
 
 
@@ -38,7 +38,10 @@ def product_list(request):
 
     search = request.GET.get('q')
     if search:
-        products = products.filter(translations__name__icontains=search, translations__language=lang)
+        products = products.filter(
+            translations__name__icontains=search,
+            translations__language__in=language_choices(lang=lang),
+        ).distinct()
 
     pagination = paginate_queryset(request, products, per_page=PRODUCTS_PER_PAGE)
 
@@ -47,7 +50,6 @@ def product_list(request):
         'categories': categories,
         'current_category': category_slug,
         'search_query': search or '',
-        'lang': lang,
         **pagination,
     })
 
@@ -61,7 +63,6 @@ def category_detail(request, slug):
     return render(request, 'catalog/category_detail.html', {
         'category': category,
         'products': pagination['page_obj'].object_list,
-        'lang': lang,
         **pagination,
     })
 
@@ -77,5 +78,4 @@ def product_detail(request, slug):
     return render(request, 'catalog/product_detail.html', {
         'product': product,
         'related_products': related,
-        'lang': lang,
     })

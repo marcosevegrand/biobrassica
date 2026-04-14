@@ -4,6 +4,7 @@ from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.catalog.models import Product
@@ -28,13 +29,13 @@ def build_admin_dashboard(request, context):
     payment_pending_orders = Order.objects.filter(status=Order.Status.PAYMENT_PENDING)
     paid_orders = Order.objects.filter(
         status__in=[Order.Status.PAID, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED],
-    )
+    ).exclude(payment__status=Payment.Status.REFUNDED)
     today = timezone.localdate()
     todays_pickups = Order.objects.filter(
         fulfillment_method=Order.FulfillmentMethod.PICKUP,
         status__in=[Order.Status.PAID, Order.Status.PREPARING, Order.Status.READY],
         created_at__date=today,
-    )
+    ).exclude(payment__status=Payment.Status.REFUNDED)
     payments_requiring_attention = Payment.objects.filter(status__in=[Payment.Status.PENDING, Payment.Status.FAILED])
     failed_payment_recovery = Payment.objects.filter(status__in=[Payment.Status.FAILED, Payment.Status.EXPIRED])
     draft_blog_posts = BlogPost.objects.filter(is_published=False)
@@ -51,65 +52,65 @@ def build_admin_dashboard(request, context):
     context['dashboard_generated_at'] = timezone.localtime()
     context['dashboard_metric_cards'] = [
         {
-            'label': 'Contas ativas',
+            'label': _('Contas ativas'),
             'value': active_accounts.count(),
-            'context': 'Clientes e equipa com acesso ativo',
+            'context': _('Clientes e equipa com acesso ativo'),
             'icon': 'group',
             'link': reverse('admin:accounts_user_changelist') + '?is_active__exact=1',
         },
         {
-            'label': 'Encomendas pagas',
+            'label': _('Encomendas pagas'),
             'value': paid_orders.count(),
-            'context': 'Pedidos já convertidos em receita',
+            'context': _('Pedidos já convertidos em receita'),
             'icon': 'receipt_long',
             'link': reverse('admin:orders_order_changelist') + f'?status__exact={Order.Status.PAID}',
         },
         {
-            'label': 'Volume transacionado',
+            'label': _('Volume transacionado'),
             'value': f"{paid_payments_total['total']:.2f}€",
-            'context': 'Total confirmado em pagamentos pagos',
+            'context': _('Total confirmado em pagamentos pagos'),
             'icon': 'payments',
             'link': reverse('admin:payments_payment_changelist') + f'?status__exact={Payment.Status.PAID}',
         },
         {
-            'label': 'Ticket médio',
+            'label': _('Ticket médio'),
             'value': f"{average_paid_order_total:.2f}€",
-            'context': 'Valor médio por encomenda paga',
+            'context': _('Valor médio por encomenda paga'),
             'icon': 'monitoring',
             'link': reverse('admin:orders_order_changelist'),
         },
         {
-            'label': 'A cobrar',
+            'label': _('A cobrar'),
             'value': payment_pending_orders.count(),
-            'context': 'Encomendas à espera de pagamento confirmado',
+            'context': _('Encomendas à espera de pagamento confirmado'),
             'icon': 'shopping_bag',
             'link': reverse('admin:orders_order_changelist') + f'?status__exact={Order.Status.PAYMENT_PENDING}',
         },
         {
-            'label': 'Conteúdo em rascunho',
+            'label': _('Conteúdo em rascunho'),
             'value': draft_blog_posts.count() + draft_recipes.count(),
-            'context': 'Blog e receitas por publicar',
+            'context': _('Blog e receitas por publicar'),
             'icon': 'edit_note',
             'link': reverse('admin:content_blogpost_changelist') + '?is_published__exact=0',
         },
         {
-            'label': 'Reposição urgente',
+            'label': _('Reposição urgente'),
             'value': out_of_stock_products.count(),
-            'context': 'Produtos ativos em rutura',
+            'context': _('Produtos ativos em rutura'),
             'icon': 'inventory_2',
             'link': reverse('admin:catalog_product_changelist') + '?ops_queue=out-of-stock',
         },
         {
-            'label': 'Stock baixo',
+            'label': _('Stock baixo'),
             'value': low_stock_products.count(),
-            'context': 'Cobertura curta para a semana',
+            'context': _('Cobertura curta para a semana'),
             'icon': 'warning',
             'link': reverse('admin:catalog_product_changelist') + '?ops_queue=low-stock',
         },
         {
-            'label': 'Produtos com lacunas',
+            'label': _('Produtos com lacunas'),
             'value': products_with_gaps.count(),
-            'context': 'Sem tradução PT ou sem imagem principal',
+            'context': _('Sem tradução PT ou sem imagem principal'),
             'icon': 'broken_image',
             'link': reverse('admin:catalog_product_changelist') + '?ops_queue=missing-image',
         },
@@ -131,13 +132,13 @@ def build_admin_dashboard(request, context):
             'meta': ' · '.join(
                 part
                 for part in [
-                    customer.get_full_name() or 'Sem nome definido',
-                    'Sem telefone' if not customer.phone else 'Telefone OK',
-                    'Sem morada predefinida' if not getattr(customer, 'default_address_count', 0) else 'Morada pronta',
+                    customer.get_full_name() or str(_('Sem nome definido')),
+                    str(_('Sem telefone')) if not customer.phone else str(_('Telefone OK')),
+                    str(_('Sem morada predefinida')) if not getattr(customer, 'default_address_count', 0) else str(_('Morada pronta')),
                 ]
                 if part
             ),
-            'badge': 'Acompanhar',
+            'badge': _('Acompanhar'),
             'link': reverse('admin:accounts_user_change', args=[customer.pk]),
         }
         for customer in customers_needing_follow_up.order_by('-date_joined')[:5]
@@ -157,7 +158,7 @@ def build_admin_dashboard(request, context):
         {
             'title': f'Pagamento #{payment.pk}',
             'meta': f'{payment.order.name} · {Payment.Status(payment.status).label} · {timezone.localtime(payment.created_at).strftime("%d/%m %H:%M")}',
-            'badge': 'Recuperar',
+            'badge': _('Recuperar'),
             'link': reverse('admin:payments_payment_change', args=[payment.pk]),
         }
         for payment in failed_payment_recovery.select_related('order').order_by('-created_at')[:5]
@@ -167,7 +168,7 @@ def build_admin_dashboard(request, context):
         {
             'title': f'Encomenda #{order.pk}',
             'meta': f'{order.name} · {order.get_pickup_location_display()} · {Order.Status(order.status).label}',
-            'badge': 'Hoje',
+            'badge': _('Hoje'),
             'link': reverse('admin:orders_order_change', args=[order.pk]),
         }
         for order in todays_pickups.order_by('created_at')[:6]
@@ -181,11 +182,11 @@ def build_admin_dashboard(request, context):
                 for part in [
                     f'Stock {product.stock}',
                     product.brand,
-                    f'{getattr(product, "location_count", 0)} localizações',
+                    _('%(count)s localizações') % {'count': getattr(product, 'location_count', 0)},
                 ]
                 if part
             ),
-            'badge': 'Rutura' if product.stock == 0 else 'Baixo stock',
+            'badge': _('Rutura') if product.stock == 0 else _('Baixo stock'),
             'link': reverse('admin:catalog_product_change', args=[product.pk]),
         }
         for product in product_queryset.filter(Q(is_active=True, stock=0) | Q(is_active=True, stock__gt=0, stock__lt=5)).order_by('stock', 'updated_at')[:6]
@@ -194,16 +195,16 @@ def build_admin_dashboard(request, context):
     draft_content_items = [
         {
             'title': str(post),
-            'meta': f'Blog · {timezone.localtime(post.created_at).strftime("%d/%m %H:%M")}',
-            'badge': 'Rascunho',
+            'meta': _('Blog') + f' · {timezone.localtime(post.created_at).strftime("%d/%m %H:%M")}',
+            'badge': _('Rascunho'),
             'link': reverse('admin:content_blogpost_change', args=[post.pk]),
         }
         for post in draft_blog_posts.order_by('-created_at')[:3]
     ] + [
         {
             'title': str(recipe),
-            'meta': f'Receita · {timezone.localtime(recipe.created_at).strftime("%d/%m %H:%M")}',
-            'badge': 'Rascunho',
+            'meta': _('Receita') + f' · {timezone.localtime(recipe.created_at).strftime("%d/%m %H:%M")}',
+            'badge': _('Rascunho'),
             'link': reverse('admin:content_recipe_change', args=[recipe.pk]),
         }
         for recipe in draft_recipes.order_by('-created_at')[:3]
@@ -211,52 +212,52 @@ def build_admin_dashboard(request, context):
 
     context['dashboard_panels'] = [
         {
-            'title': 'Fila operacional',
-            'description': 'Pedidos que exigem decisão nas próximas horas.',
+            'title': _('Fila operacional'),
+            'description': _('Pedidos que exigem decisão nas próximas horas.'),
             'items': recent_order_items,
-            'empty': 'Sem encomendas recentes.',
+            'empty': _('Sem encomendas recentes.'),
             'link': reverse('admin:orders_order_changelist'),
         },
         {
-            'title': 'Levantamentos de hoje',
-            'description': 'Pedidos pickup com atividade prevista para hoje.',
+            'title': _('Levantamentos de hoje'),
+            'description': _('Pedidos pickup com atividade prevista para hoje.'),
             'items': todays_pickup_items,
-            'empty': 'Sem levantamentos planeados para hoje.',
+            'empty': _('Sem levantamentos planeados para hoje.'),
             'link': reverse('admin:orders_order_changelist') + f'?fulfillment_method__exact={Order.FulfillmentMethod.PICKUP}',
         },
         {
-            'title': 'Reposição urgente',
-            'description': 'Produtos com rutura ou cobertura curta para a semana.',
+            'title': _('Reposição urgente'),
+            'description': _('Produtos com rutura ou cobertura curta para a semana.'),
             'items': replenishment_items,
-            'empty': 'Sem alertas de reposição neste momento.',
+            'empty': _('Sem alertas de reposição neste momento.'),
             'link': reverse('admin:catalog_product_changelist') + '?ops_queue=low-stock',
         },
         {
-            'title': 'Clientes a acompanhar',
-            'description': 'Perfis ativos com dados incompletos para suporte ou checkout.',
+            'title': _('Clientes a acompanhar'),
+            'description': _('Perfis ativos com dados incompletos para suporte ou checkout.'),
             'items': customer_follow_up_items,
-            'empty': 'Todos os clientes ativos têm a base de dados completa.',
+            'empty': _('Todos os clientes ativos têm a base de dados completa.'),
             'link': reverse('admin:accounts_user_changelist'),
         },
         {
-            'title': 'Pagamentos recentes',
-            'description': 'Estado dos últimos pagamentos gerados.',
+            'title': _('Pagamentos recentes'),
+            'description': _('Estado dos últimos pagamentos gerados.'),
             'items': payment_items,
-            'empty': 'Sem pagamentos registados.',
+            'empty': _('Sem pagamentos registados.'),
             'link': reverse('admin:payments_payment_changelist'),
         },
         {
-            'title': 'Recuperação de pagamentos',
-            'description': 'Cobranças expiradas ou falhadas a recuperar pelo suporte.',
+            'title': _('Recuperação de pagamentos'),
+            'description': _('Cobranças expiradas ou falhadas a recuperar pelo suporte.'),
             'items': failed_payment_items,
-            'empty': 'Sem pagamentos falhados para recuperar.',
+            'empty': _('Sem pagamentos falhados para recuperar.'),
             'link': reverse('admin:payments_payment_changelist') + f'?status__exact={Payment.Status.FAILED}',
         },
         {
-            'title': 'Conteúdo por publicar',
-            'description': 'Rascunhos mais recentes à espera de revisão.',
+            'title': _('Conteúdo por publicar'),
+            'description': _('Rascunhos mais recentes à espera de revisão.'),
             'items': draft_content_items[:5],
-            'empty': 'Não há rascunhos urgentes neste momento.',
+            'empty': _('Não há rascunhos urgentes neste momento.'),
             'link': reverse('admin:content_blogpost_changelist') + '?is_published__exact=0',
         },
     ]

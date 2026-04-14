@@ -109,6 +109,7 @@ def create_order_from_cart(
     shipping_city,
     shipping_postal_code,
     notes,
+    clear_cart_items=True,
 ):
     with transaction.atomic():
         if not cart_items:
@@ -169,5 +170,6 @@ def create_order_from_cart(
             for cart_item in cart_items
         ])
 
-        clear_cart(cart)
+        if clear_cart_items:
+            clear_cart(cart)
         return order

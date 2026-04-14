@@ -26,7 +26,7 @@
                 {% endfor %}
             </div>
             <div class="flex flex-wrap gap-3 text-xs text-base-500 dark:text-base-400">
-                <span class="rounded-full bg-white px-3 py-1 shadow-xs dark:bg-base-900/70">Atualizado em {{ dashboard_generated_at|date:"d/m/Y H:i" }}</span>
+                <span class="rounded-full bg-white px-3 py-1 shadow-xs dark:bg-base-900/70">{% trans "Atualizado em" %} {{ dashboard_generated_at|date:"d/m/Y H:i" }}</span>
             </div>
         {% endif %}
 
@@ -39,7 +39,7 @@
                                 <h2 class="text-base font-semibold text-font-important-light dark:text-font-important-dark">{{ panel.title }}</h2>
                                 <p class="mt-1 text-sm text-font-default-light dark:text-font-default-dark">{{ panel.description }}</p>
                             </div>
-                            <a href="{{ panel.link }}" class="text-sm font-medium text-primary-600 dark:text-primary-400">Abrir fila</a>
+                            <a href="{{ panel.link }}" class="text-sm font-medium text-primary-600 dark:text-primary-400">{% trans "Abrir fila" %}</a>
                         </div>
                         <div class="divide-y divide-base-200 dark:divide-base-800">
                             {% for item in panel.items %}

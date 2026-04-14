@@ -20,28 +20,50 @@
 
   <form method="post">
     {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="mb-6 rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
     <div class="space-y-6">
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Nome" %}</label>
           {{ form.first_name }}
+          {% for error in form.first_name.errors %}
+          <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+          {% endfor %}
         </div>
         <div>
           <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Apelido" %}</label>
           {{ form.last_name }}
+          {% for error in form.last_name.errors %}
+          <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+          {% endfor %}
         </div>
       </div>
       <div>
         <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Telefone" %}</label>
         {{ form.phone }}
+        {% for error in form.phone.errors %}
+        <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
       </div>
       <div>
         <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Idioma preferido" %}</label>
         {{ form.preferred_language }}
+        {% for error in form.preferred_language.errors %}
+        <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
       </div>
       <div>
         <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "NIF" %}</label>
         {{ form.nif }}
+        {% for error in form.nif.errors %}
+        <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
       </div>
     </div>
 

@@ -13,6 +13,8 @@ def required_env(name):
     raise ImproperlyConfigured(f'Missing required production environment variable: {name}')
 
 DEBUG = False
+SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.biobrassica.pt').rstrip('/')
+
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
     'biobrassica.pt,www.biobrassica.pt,loja.biobrassica.pt,admin.biobrassica.pt',
@@ -22,18 +24,13 @@ DB_PASSWORD = required_env('DB_PASSWORD')
 EMAIL_HOST = required_env('EMAIL_HOST')
 EMAIL_HOST_USER = required_env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = required_env('EMAIL_HOST_PASSWORD')
-IFTHENPAY_BACKOFFICE_KEY = required_env('IFTHENPAY_BACKOFFICE_KEY')
-IFTHENPAY_MBWAY_KEY = required_env('IFTHENPAY_MBWAY_KEY')
-IFTHENPAY_MB_ENTITY = required_env('IFTHENPAY_MB_ENTITY')
-IFTHENPAY_MB_SUBENTITY = required_env('IFTHENPAY_MB_SUBENTITY')
-IFTHENPAY_CCARD_KEY = required_env('IFTHENPAY_CCARD_KEY')
-IFTHENPAY_ANTI_PHISHING_KEY = required_env('IFTHENPAY_ANTI_PHISHING_KEY')
+STRIPE_SECRET_KEY = required_env('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = required_env('STRIPE_WEBHOOK_SECRET')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://biobrassica.pt',
-    'https://www.biobrassica.pt',
-    'https://loja.biobrassica.pt',
-    'https://admin.biobrassica.pt',
+    f'https://{host}'
+    for host in ALLOWED_HOSTS
+    if host != '*'
 ]
 
 DATABASES = {
@@ -87,6 +84,7 @@ CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_SSL_REDIRECT = True
+SECURE_REDIRECT_EXEMPT = [r'^_health/$']
 if DJANGO_HTTPS_MODE == 'proxy':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     USE_X_FORWARDED_HOST = True

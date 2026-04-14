@@ -1,7 +1,5 @@
-from django.db.models import Q
-
 from apps.catalog.models import Category, CategoryTranslation, Product, ProductTranslation
-from apps.core.translations import translation_prefetch, normalized_language
+from apps.core.translations import translation_prefetch
 
 
 def active_category_queryset(*, lang=None):
@@ -15,12 +13,7 @@ def display_category_queryset(*, lang=None):
 
 
 def active_product_queryset(*, lang=None):
-    # Filter to only include products that have a translation in the specified language
-    normalized_lang = normalized_language(lang)
-    return Product.objects.filter(
-        is_active=True,
-        translations__language=normalized_lang,
-    ).distinct().select_related('category').prefetch_related(
+    return Product.objects.filter(is_active=True).select_related('category').prefetch_related(
         translation_prefetch(ProductTranslation, lang=lang),
         translation_prefetch(CategoryTranslation, related_name='category__translations', lang=lang),
         'images',

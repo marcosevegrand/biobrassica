@@ -1,14 +1,14 @@
-{% load admin_urls %}
+{% load admin_urls i18n %}
 
 {% block object-tools-items %}
     {% if show_history %}
         {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
         {% add_preserved_filters history_url as link %}
-        {% include "unfold/helpers/tab_action.html" with title="Histórico" link=link icon="history" %}
+        {% include "unfold/helpers/tab_action.html" with title=_('Histórico') link=link icon="history" %}
     {% endif %}
 
     {% if has_absolute_url and show_view_on_site %}
-        {% include "unfold/helpers/tab_action.html" with title="Ver no site" link=absolute_url blank=1 icon="open_in_new" %}
+        {% include "unfold/helpers/tab_action.html" with title=_('Ver no site') link=absolute_url blank=1 icon="open_in_new" %}
     {% endif %}
 
     {% for tool in custom_object_tools %}

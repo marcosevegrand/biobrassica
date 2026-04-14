@@ -5,6 +5,7 @@
 {% block meta_description %}{% trans "Política de privacidade e proteção de dados da Biobrassica." %}{% endblock %}
 
 {% block content %}
+{% with content=website_content %}
 <section class="bg-forest text-paper">
   <div class="max-w-4xl mx-auto px-6 sm:px-8 pt-44 pb-24 text-center">
     <h1 class="text-4xl sm:text-5xl font-serif italic">{% trans "Política de Privacidade" %}</h1>
@@ -16,7 +17,7 @@
     <p class="text-muted text-sm">{% trans "Última atualização" %}: {% now "j F Y" %}</p>
 
     <h2>{% trans "1. Responsável pelo Tratamento" %}</h2>
-    <p>{% trans "A Biobrassica, Lda., com sede na R. dos Capelistas 121, 4700-215 Braga, é a entidade responsável pelo tratamento dos seus dados pessoais." %}</p>
+    <p>{% blocktrans with legal_name=website_defaults.company_legal_name legal_address=website_defaults.company_address %}A {{ legal_name }}, com sede em {{ legal_address }}, é a entidade responsável pelo tratamento dos seus dados pessoais.{% endblocktrans %}</p>
 
     <h2>{% trans "2. Dados Recolhidos" %}</h2>
     <p>{% trans "Recolhemos apenas os dados necessários para:" %}</p>
@@ -37,7 +38,7 @@
     <h2>{% trans "4. Partilha de Dados" %}</h2>
     <p>{% trans "Os seus dados podem ser partilhados com:" %}</p>
     <ul>
-      <li>{% trans "Processadores de pagamento (ifthenpay) — para efetuar o pagamento" %}</li>
+      <li>{% trans "Processadores de pagamento (Stripe) — para efetuar o pagamento" %}</li>
       <li>{% trans "Transportadoras (CTT) — para entrega de encomendas" %}</li>
     </ul>
 
@@ -54,15 +55,17 @@
       <li>{% trans "Solicitar a portabilidade dos seus dados" %}</li>
       <li>{% trans "Opor-se ao tratamento dos seus dados" %}</li>
     </ul>
-    <p>{% trans "Para exercer os seus direitos, contacte-nos em" %} <a href="mailto:geral@biobrassica.pt">geral@biobrassica.pt</a>.</p>
+    <p>{% trans "Para exercer os seus direitos, contacte-nos em" %} <a href="mailto:{{ website_defaults.support_email }}">{{ website_defaults.support_email }}</a>.</p>
 
     <h2>{% trans "7. Cookies" %}</h2>
     <p>{% trans "Este website utiliza cookies essenciais para o funcionamento da sessão e do carrinho de compras. Não utilizamos cookies de rastreamento de terceiros." %}</p>
 
     <h2>{% trans "8. Contacto" %}</h2>
     <p>{% trans "Para questões relacionadas com a proteção de dados:" %}<br>
-    Email: <a href="mailto:geral@biobrassica.pt">geral@biobrassica.pt</a><br>
-    {% trans "Morada" %}: R. dos Capelistas 121, 4700-215 Braga</p>
+    Email: <a href="mailto:{{ website_defaults.support_email }}">{{ website_defaults.support_email }}</a><br>
+    {% trans "Morada" %}: {{ website_defaults.company_address }}<br>
+    {% if content.company_nif %}{% trans "NIF" %}: {{ content.company_nif }}{% endif %}</p>
   </div>
 </section>
+{% endwith %}
 {% endblock %}

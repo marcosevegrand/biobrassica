@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
@@ -35,7 +36,7 @@ class RegistrationForm(forms.ModelForm):
         p1 = self.cleaned_data.get('password1')
         p2 = self.cleaned_data.get('password2')
         if p1 and p2 and p1 != p2:
-            raise forms.ValidationError('As passwords não coincidem.')
+            raise forms.ValidationError(_('As passwords não coincidem.'))
 
         if p2:
             user = self.instance

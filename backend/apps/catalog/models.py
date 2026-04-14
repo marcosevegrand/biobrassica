@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q
 
 from apps.core.translations import get_translated_attr
 
@@ -156,8 +157,35 @@ class Product(models.Model):
             if not self.images.exists():
                 errors.setdefault('__all__', []).append('O produto deve ter pelo menos uma foto.')
 
+        if self.is_active:
+            activation_blockers = self.get_activation_blockers()
+            if activation_blockers:
+                errors.setdefault('__all__', []).extend(activation_blockers)
+
         if errors:
             raise ValidationError(errors)
+
+    def get_activation_blockers(self):
+        blockers = []
+
+        if self.stock <= 0:
+            blockers.append('O produto precisa de stock para estar ativo.')
+
+        if not self.pk:
+            return blockers
+
+        pt_translation_count = getattr(self, 'pt_translation_count', self.translations.filter(language='pt').count())
+        primary_image_count = getattr(self, 'primary_image_count', self.images.filter(is_primary=True).count())
+        location_count = getattr(self, 'location_count', self.available_locations.count())
+
+        if pt_translation_count == 0:
+            blockers.append('O produto precisa de tradução PT para estar ativo.')
+        if primary_image_count == 0:
+            blockers.append('O produto precisa de uma imagem principal para estar ativo.')
+        if location_count == 0:
+            blockers.append('O produto precisa de pelo menos uma localização para levantamento.')
+
+        return blockers
 
     def get_name(self, lang=None):
         return get_translated_attr(self, 'name', default=self.slug, lang=lang)
@@ -236,6 +264,25 @@ class ProductImage(models.Model):
         ordering = ['order']
         verbose_name = 'imagem de produto'
         verbose_name_plural = 'imagens de produto'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product'],
+                condition=Q(is_primary=True),
+                name='catalog_unique_primary_product_image',
+            ),
+        ]
 
     def __str__(self):
         return f'Imagem {self.order} - {self.product}'
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.is_primary
+            and self.product_id
+            and ProductImage.objects.filter(product_id=self.product_id, is_primary=True)
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise ValidationError({'is_primary': 'O produto já tem uma imagem principal.'})

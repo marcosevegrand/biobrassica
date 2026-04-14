@@ -9,7 +9,7 @@
   <div class="max-w-4xl mx-auto px-6">
     <h1 class="font-serif text-4xl md:text-5xl italic mb-6">{% trans "A nossa loja online" %}</h1>
     <p class="text-paper/80 text-lg mb-10 leading-relaxed">
-      {% trans "Produtos biológicos selecionados no Minho. Encomende online e levante na nossa loja de Braga ou Guimarães." %}
+      {{ website_defaults.core_home_body }}
     </p>
     <a href="{% url 'catalog:product_list' %}"
        class="inline-block text-xs uppercase tracking-widest border border-paper/60 px-8 py-4 rounded-sm hover:bg-paper hover:text-forest transition-colors">
@@ -51,7 +51,7 @@
           </svg>
         </div>
         <h3 class="font-serif text-lg italic mb-2">{% trans "Levantamento na loja" %}</h3>
-        <p class="text-sm text-muted">{% trans "Braga ou Guimarães" %}</p>
+        <p class="text-sm text-muted">{{ website_defaults.pickup_locations_label }}</p>
       </div>
       <div>
         <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-forest/10 flex items-center justify-center">

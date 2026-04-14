@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin, TabularInline
 
 from apps.orders.models import Order, OrderItem
@@ -39,7 +40,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     )
     list_filter = ('status', 'payment__status', 'fulfillment_method', 'pickup_location', 'created_at')
     search_fields = ('=pk', 'email', 'name', 'phone')
-    search_help_text = 'Pesquise por número de encomenda, email, nome ou telefone.'
+    search_help_text = _('Pesquise por número de encomenda, email, nome ou telefone.')
     readonly_fields = (
         'status',
         'workflow_summary',
@@ -78,9 +79,9 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     )
 
     transition_submit_actions = {
-        '_mark_preparing': (Order.Status.PREPARING, 'Encomenda marcada como em preparação.'),
-        '_mark_ready': (Order.Status.READY, 'Encomenda marcada como pronta para levantamento.'),
-        '_mark_delivered': (Order.Status.DELIVERED, 'Encomenda marcada como entregue.'),
+        '_mark_preparing': (Order.Status.PREPARING, _('Encomenda marcada como em preparação.')),
+        '_mark_ready': (Order.Status.READY, _('Encomenda marcada como pronta para levantamento.')),
+        '_mark_delivered': (Order.Status.DELIVERED, _('Encomenda marcada como entregue.')),
     }
 
     def get_urls(self):
@@ -143,9 +144,9 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def get_changeform_submit_actions(self, request, obj):
         actions = []
         transition_buttons = {
-            Order.Status.PREPARING: ('_mark_preparing', 'Marcar em preparação'),
-            Order.Status.READY: ('_mark_ready', 'Marcar pronta'),
-            Order.Status.DELIVERED: ('_mark_delivered', 'Marcar entregue'),
+            Order.Status.PREPARING: ('_mark_preparing', _('Marcar em preparação')),
+            Order.Status.READY: ('_mark_ready', _('Marcar pronta')),
+            Order.Status.DELIVERED: ('_mark_delivered', _('Marcar entregue')),
         }
         for status, (action_name, description) in transition_buttons.items():
             if obj.can_transition_to(status):
@@ -157,21 +158,21 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         payment = getattr(obj, 'payment', None)
         if payment is not None:
             tools.append({
-                'title': 'Abrir pagamento',
+                'title': _('Abrir pagamento'),
                 'link': reverse('admin:payments_payment_change', args=[payment.pk]),
                 'icon': 'payments',
                 'blank': False,
             })
         if obj.user_id:
             tools.append({
-                'title': 'Abrir cliente',
+                'title': _('Abrir cliente'),
                 'link': reverse('admin:accounts_user_change', args=[obj.user_id]),
                 'icon': 'person',
                 'blank': False,
             })
         if self._can_cancel_from_change_form(obj):
             tools.append({
-                'title': 'Cancelar não paga',
+                'title': _('Cancelar não paga'),
                 'link': reverse('admin:orders_order_cancel_unpaid', args=[obj.pk]),
                 'icon': 'cancel',
                 'blank': False,
@@ -181,7 +182,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def cancel_unpaid_view(self, request, object_id):
         order = self.get_object(request, object_id)
         if order is None:
-            self.message_user(request, 'Encomenda não encontrada.', level=messages.ERROR)
+            self.message_user(request, _('Encomenda não encontrada.'), level=messages.ERROR)
             return HttpResponseRedirect(reverse('admin:orders_order_changelist'))
 
         try:
@@ -190,7 +191,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             self.message_user(request, str(error), level=messages.WARNING)
         else:
             if changed:
-                self.message_user(request, 'Encomenda cancelada e stock reposto.', level=messages.SUCCESS)
+                self.message_user(request, _('Encomenda cancelada e stock reposto.'), level=messages.SUCCESS)
         return HttpResponseRedirect(reverse('admin:orders_order_change', args=[order.pk]))
 
     def _can_cancel_from_change_form(self, obj):
@@ -202,25 +203,25 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
 
-    @admin.display(ordering='items_count', description='Itens')
+    @admin.display(ordering='items_count', description=_('Itens'))
     def items_count_display(self, obj):
         return getattr(obj, 'items_count', obj.items.count())
 
-    @admin.display(description='Próxima ação')
+    @admin.display(description=_('Próxima ação'))
     def workflow_next_step(self, obj):
         if obj.status == Order.Status.PAID:
-            return 'Iniciar preparação'
+            return _('Iniciar preparação')
         if obj.status == Order.Status.PREPARING:
-            return 'Marcar pronta'
+            return _('Marcar pronta')
         if obj.status == Order.Status.READY:
-            return 'Entregar'
+            return _('Entregar')
         if obj.status == Order.Status.PAYMENT_PENDING:
-            return 'Confirmar pagamento'
+            return _('Confirmar pagamento')
         if obj.status in {Order.Status.DELIVERED, Order.Status.CANCELLED}:
-            return 'Fluxo concluído'
-        return 'Validar dados'
+            return _('Fluxo concluído')
+        return _('Validar dados')
 
-    @admin.display(description='Há')
+    @admin.display(description=_('Há'))
     def created_since(self, obj):
         delta = timezone.now() - obj.created_at
         hours = int(delta.total_seconds() // 3600)
@@ -228,14 +229,14 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             return f'{max(hours, 0)}h'
         return f'{delta.days}d'
 
-    @admin.display(description='Cliente')
+    @admin.display(description=_('Cliente'))
     def customer_display(self, obj):
         contact = obj.masked_contact
         phone = obj.phone[:3] + '***' + obj.phone[-2:] if obj.phone and len(obj.phone) > 5 else obj.phone
         details = ' · '.join(part for part in [contact, phone] if part)
         return format_html('<strong>{}</strong><br><span style="color:#64748b;">{}</span>', obj.name, details or '—')
 
-    @admin.display(ordering='payment__status', description='Pagamento')
+    @admin.display(ordering='payment__status', description=_('Pagamento'))
     def payment_status_badge(self, obj):
         payment = getattr(obj, 'payment', None)
         if payment is None:
@@ -250,65 +251,65 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         }
         return render_status_badge(payment.get_status_display(), tones.get(payment.status, 'neutral'))
 
-    @admin.display(ordering='payment__method', description='Método pag.')
+    @admin.display(ordering='payment__method', description=_('Método pag.'))
     def payment_method_display(self, obj):
         payment = getattr(obj, 'payment', None)
         return payment.get_method_display() if payment else '—'
 
-    @admin.display(description='Resumo do pagamento')
+    @admin.display(description=_('Resumo do pagamento'))
     def payment_summary(self, obj):
         payment = getattr(obj, 'payment', None)
         if payment is None:
-            return 'Sem pagamento associado.'
+            return _('Sem pagamento associado.')
         return render_summary_panel(
-            'Pagamento',
+            _('Pagamento'),
             [
-                ('Estado', payment.get_status_display()),
-                ('Método', payment.get_method_display()),
-                ('Pedido', payment.masked_request_id or '—'),
-                ('Referência', payment.masked_reference or '—'),
-                ('Valor', f'{payment.amount:.2f}€'),
+                (_('Estado'), payment.status_label),
+                (_('Método'), payment.method_label),
+                (_('Sessão Stripe'), payment.masked_stripe_session_id or '—'),
+                (_('Payment Intent'), payment.masked_stripe_payment_intent_id or '—'),
+                (_('Valor'), f'{payment.amount:.2f}€'),
             ],
-            footer='Os pagamentos confirmados libertam automaticamente as próximas ações do fluxo.',
+            footer=_('Os pagamentos confirmados libertam automaticamente as próximas ações do fluxo.'),
         )
 
-    @admin.display(description='Resumo operacional')
+    @admin.display(description=_('Resumo operacional'))
     def workflow_summary(self, obj):
         next_steps = ', '.join(
             Order.Status(step).label for step in obj.valid_next_statuses()
-        ) or 'Sem transições disponíveis'
+        ) or _('Sem transições disponíveis')
         return render_summary_panel(
-            'Fluxo da encomenda',
+            _('Fluxo da encomenda'),
             [
-                ('Estado atual', obj.get_status_display()),
-                ('Próximas transições', next_steps),
-                ('Itens', getattr(obj, 'items_count', obj.items.count())),
-                ('Atualizada', obj.updated_at.strftime('%d/%m/%Y %H:%M')),
+                (_('Estado atual'), obj.get_status_display()),
+                (_('Próximas transições'), next_steps),
+                (_('Itens'), getattr(obj, 'items_count', obj.items.count())),
+                (_('Atualizada'), obj.updated_at.strftime('%d/%m/%Y %H:%M')),
             ],
-            footer='Use os botões inferiores para avançar o fluxo quando a operação estiver concluída.',
+            footer=_('Use os botões inferiores para avançar o fluxo quando a operação estiver concluída.'),
         )
 
-    @admin.display(description='Ficha do cliente')
+    @admin.display(description=_('Ficha do cliente'))
     def customer_snapshot(self, obj):
         return render_summary_panel(
-            'Cliente',
+            _('Cliente'),
             [
-                ('Nome', obj.name),
-                ('Contacto', obj.masked_contact or '—'),
-                ('Telefone', obj.phone or '—'),
-                ('Conta', 'Associada' if obj.user_id else 'Convidado'),
+                (_('Nome'), obj.name),
+                (_('Contacto'), obj.masked_contact or '—'),
+                (_('Telefone'), obj.phone or '—'),
+                (_('Conta'), _('Associada') if obj.user_id else _('Convidado')),
             ],
         )
 
-    @admin.display(description='Entrega / levantamento')
+    @admin.display(description=_('Entrega / levantamento'))
     def fulfillment_snapshot(self, obj):
         return render_summary_panel(
-            'Cumprimento',
+            _('Cumprimento'),
             [
-                ('Método', obj.get_fulfillment_method_display()),
-                ('Levantamento', obj.get_pickup_location_display() if obj.pickup_location else '—'),
-                ('Morada', obj.shipping_address_display or '—'),
-                ('Idioma', obj.language.upper()),
+                (_('Método'), obj.get_fulfillment_method_display()),
+                (_('Levantamento'), obj.get_pickup_location_display() if obj.pickup_location else '—'),
+                (_('Morada'), obj.shipping_address_display or '—'),
+                (_('Idioma'), obj.language.upper()),
             ],
         )
 
@@ -326,23 +327,23 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 error_count += 1
 
         if success_count:
-            self.message_user(request, f'{success_count} encomenda(s) atualizada(s).', level=messages.SUCCESS)
+            self.message_user(request, _('{} encomenda(s) atualizada(s).').format(success_count), level=messages.SUCCESS)
         if error_count:
-            self.message_user(request, f'{error_count} encomenda(s) rejeitada(s) por transição inválida.', level=messages.WARNING)
+            self.message_user(request, _('{} encomenda(s) rejeitada(s) por transição inválida.').format(error_count), level=messages.WARNING)
 
-    @admin.action(description='Marcar como em preparação')
+    @admin.action(description=_('Marcar como em preparação'))
     def mark_preparing(self, request, queryset):
         self._process_transition_action(request, queryset, Order.Status.PREPARING)
 
-    @admin.action(description='Marcar como pronta')
+    @admin.action(description=_('Marcar como pronta'))
     def mark_ready(self, request, queryset):
         self._process_transition_action(request, queryset, Order.Status.READY)
 
-    @admin.action(description='Marcar como entregue')
+    @admin.action(description=_('Marcar como entregue'))
     def mark_delivered(self, request, queryset):
         self._process_transition_action(request, queryset, Order.Status.DELIVERED)
 
-    @admin.action(description='Cancelar encomendas não pagas')
+    @admin.action(description=_('Cancelar encomendas não pagas'))
     def cancel_unpaid_orders(self, request, queryset):
         success_count = 0
         error_count = 0
@@ -355,6 +356,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 error_count += 1
 
         if success_count:
-            self.message_user(request, f'{success_count} encomenda(s) cancelada(s).', level=messages.SUCCESS)
+            self.message_user(request, _('{} encomenda(s) cancelada(s).').format(success_count), level=messages.SUCCESS)
         if error_count:
-            self.message_user(request, f'{error_count} encomenda(s) não puderam ser cancelada(s).', level=messages.WARNING)
+            self.message_user(request, _('{} encomenda(s) não puderam ser cancelada(s).').format(error_count), level=messages.WARNING)

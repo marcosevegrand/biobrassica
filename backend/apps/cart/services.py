@@ -32,7 +32,11 @@ def get_or_create_cart_for_request(request):
 
 
 def get_cart_items_queryset(cart):
-    return cart.items.select_related('product').prefetch_related('product__translations', 'product__images')
+    return (
+        cart.items.filter(product__is_active=True)
+        .select_related('product')
+        .prefetch_related('product__translations', 'product__images')
+    )
 
 
 def get_cart_preview_items(cart, *, limit=3):
@@ -47,7 +51,7 @@ def get_cart_summary(cart, *, preview_limit=3):
             'cart_total': Decimal('0'),
         }
 
-    totals = cart.items.aggregate(
+    totals = cart.items.filter(product__is_active=True).aggregate(
         cart_item_count=Coalesce(Sum('quantity'), 0),
         cart_total=Coalesce(
             Sum(
@@ -68,6 +72,9 @@ def get_cart_summary(cart, *, preview_limit=3):
 
 
 def add_product_to_cart(cart, product, *, quantity):
+    if not product.is_active:
+        raise ValueError('Cannot add an inactive product to cart.')
+
     with transaction.atomic():
         item = CartItem.objects.select_for_update().filter(cart=cart, product=product).first()
         current_quantity = item.quantity if item else 0
@@ -143,6 +150,11 @@ def merge_anonymous_cart_into_user_cart(request, user):
 
 def clear_cart(cart):
     cart.items.all().delete()
+
+
+def remove_inactive_cart_items(cart):
+    deleted_count, _ = cart.items.filter(product__is_active=False).delete()
+    return deleted_count
 
 
 def cart_allows_shipping(cart_items: Iterable):

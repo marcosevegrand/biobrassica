@@ -13,6 +13,7 @@ from apps.cart.services import (
     get_cart_items_queryset,
     get_cart_summary,
     get_or_create_cart_for_request,
+    remove_inactive_cart_items,
     set_cart_item_quantity,
 )
 from apps.catalog.models import Product
@@ -35,9 +36,18 @@ def _render_cart_popup(cart_summary, request, open_popup=False):
         {
             'cart_preview_items': cart_summary['cart_preview_items'],
             'cart_total': cart_summary['cart_total'],
-            'cart_item_count': cart_summary['cart_item_count'],
             'oob': True,
             'open': open_popup,
+        },
+        request=request,
+    )
+
+
+def _render_cart_messages(request):
+    return render_to_string(
+        'cart/_messages.html',
+        {
+            'oob': True,
         },
         request=request,
     )
@@ -84,6 +94,7 @@ def _cart_htmx_response(*, request, cart, cart_summary, item=None, open_popup=Fa
         fragments.append(_render_cart_items(cart, request))
 
     fragments.extend([
+        _render_cart_messages(request),
         _render_cart_summary(cart_summary, request),
         _render_cart_count(cart_summary, request),
         _render_cart_popup(cart_summary, request, open_popup=open_popup),
@@ -101,6 +112,7 @@ def _cart_htmx_response(*, request, cart, cart_summary, item=None, open_popup=Fa
 def cart_detail(request):
     lang = get_language() or 'pt'
     cart = get_or_create_cart_for_request(request)
+    remove_inactive_cart_items(cart)
     items = get_cart_items_queryset(cart)
     cart_summary = get_cart_summary(cart)
 
@@ -120,11 +132,19 @@ def add_to_cart(request, product_id):
 
     if not form.is_valid():
         if request.htmx:
-            return HttpResponse(status=400)
+            messages.error(request, _('Indique uma quantidade válida.'))
+            response = HttpResponse(_render_cart_messages(request), status=400)
+            response['HX-Retarget'] = '#cart-messages'
+            response['HX-Reswap'] = 'outerHTML'
+            return response
         messages.error(request, _('Indique uma quantidade válida.'))
         return redirect('cart:detail')
 
-    item, was_capped = add_product_to_cart(cart, product, quantity=form.cleaned_data['quantity'])
+    try:
+        item, was_capped = add_product_to_cart(cart, product, quantity=form.cleaned_data['quantity'])
+    except ValueError:
+        messages.error(request, _('Este produto já não está disponível.'))
+        return redirect('cart:detail')
 
     if item is None:
         messages.warning(request, _('Este produto está esgotado.'))
@@ -133,9 +153,7 @@ def add_to_cart(request, product_id):
 
     if request.htmx:
         cart_summary = get_cart_summary(cart)
-        count_html = _render_cart_count(cart_summary, request)
-        popup_html = _render_cart_popup(cart_summary, request, open_popup=True)
-        return HttpResponse(f'{count_html}{popup_html}')
+        return _cart_htmx_response(request=request, cart=cart, cart_summary=cart_summary, open_popup=True)
 
     return redirect('cart:detail')
 
@@ -148,6 +166,7 @@ def update_cart_item(request, item_id):
 
     if not form.is_valid():
         if request.htmx:
+            messages.error(request, _('Indique uma quantidade válida.'))
             cart_summary = get_cart_summary(cart)
             return _cart_htmx_response(request=request, cart=cart, cart_summary=cart_summary, item=item)
         messages.error(request, _('Indique uma quantidade válida.'))

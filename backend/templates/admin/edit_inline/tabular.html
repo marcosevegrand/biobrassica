@@ -23,8 +23,9 @@
                 </div>
             </section>
             {% endif %}
-            <div class="formset border border-base-200 overflow-x-auto rounded-default shadow-xs dark:border-base-800" data-inline-formset="{{ inline_admin_formset.inline_formset_data }}" data-simplebar data-simplebar-auto-hide="false">
-                <table class="tabular-table w-full [&>tbody:nth-child(odd)]:bg-base-50 dark:[&>tbody:nth-child(odd)]:bg-white/2" {% if inline_admin_formset.opts.ordering_field %}data-ordering-field="{{ inline_admin_formset.opts.ordering_field }}" x-on:end="sortRecords" x-sort.ghost x-sort:config="{preventOnFilter: false}"{% endif %}>
+            <div class="formset">
+                <div class="formset border border-base-200 overflow-x-auto rounded-default shadow-xs dark:border-base-800" data-inline-formset="{{ inline_admin_formset.inline_formset_data }}" data-simplebar data-simplebar-auto-hide="false">
+                    <table class="tabular-table w-full [&>tbody:nth-child(odd)]:bg-base-50 dark:[&>tbody:nth-child(odd)]:bg-white/2" {% if inline_admin_formset.opts.ordering_field %}data-ordering-field="{{ inline_admin_formset.opts.ordering_field }}" x-on:end="sortRecords" x-sort.ghost x-sort:config="{preventOnFilter: false}"{% endif %}>
                     {% include "unfold/helpers/edit_inline/tabular_heading.html" %}
 
                     {% for inline_admin_form in inline_admin_formset %}
@@ -36,15 +37,16 @@
                             {% include "unfold/helpers/edit_inline/tabular_row.html" %}
                         </tbody>
                     {% endfor %}
-                </table>
+                    </table>
 
-                {% if inline_admin_formset.has_add_permission %}
-                <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
-                    <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
-                        {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                    {% if inline_admin_formset.has_add_permission %}
+                    <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
+                        <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
+                            {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
 
             {% include "unfold/helpers/pagination_inline.html" %}

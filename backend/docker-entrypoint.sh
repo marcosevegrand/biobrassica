@@ -8,12 +8,8 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
         EMAIL_HOST \
         EMAIL_HOST_USER \
         EMAIL_HOST_PASSWORD \
-        IFTHENPAY_BACKOFFICE_KEY \
-        IFTHENPAY_MBWAY_KEY \
-        IFTHENPAY_MB_ENTITY \
-        IFTHENPAY_MB_SUBENTITY \
-        IFTHENPAY_CCARD_KEY \
-        IFTHENPAY_ANTI_PHISHING_KEY; do
+        STRIPE_SECRET_KEY \
+        STRIPE_WEBHOOK_SECRET; do
         eval "value=\${$var:-}"
         if [ -z "$value" ]; then
             echo "Missing required environment variable: $var" >&2
@@ -21,9 +17,15 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
         fi
     done
 
-    /usr/local/bin/python manage.py migrate --noinput
-    /usr/local/bin/python manage.py collectstatic --noinput
-    /usr/local/bin/python manage.py compilemessages
+    if [ "${1:-}" = "gunicorn" ]; then
+        if ! /usr/local/bin/python manage.py migrate --check --noinput; then
+            echo "Pending Django migrations detected. Run '/usr/local/bin/python manage.py migrate --noinput' before starting the production web container." >&2
+            exit 1
+        fi
+
+        /usr/local/bin/python manage.py collectstatic --noinput
+        /usr/local/bin/python manage.py compilemessages
+    fi
 fi
 
 exec "$@"
