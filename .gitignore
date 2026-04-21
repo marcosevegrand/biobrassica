@@ -37,3 +37,8 @@ certbot/www/
 
 # Logs
 *.log
+
+# Backup files
+*.bak
+*.sql.gz
+*.tar.gz
