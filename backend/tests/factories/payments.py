@@ -14,9 +14,14 @@ class PaymentFactory(factory.django.DjangoModelFactory):
     method = Payment.Method.STRIPE
     status = Payment.Status.PENDING
     amount = Decimal('19.00')
-    stripe_session_id = factory.Sequence(lambda n: f'cs_test_{n}')
-    stripe_payment_intent_id = factory.Sequence(lambda n: f'pi_test_{n}')
-    checkout_url = factory.LazyAttribute(lambda obj: f'https://checkout.stripe.com/pay/{obj.stripe_session_id}')
+    provider_reference = factory.Sequence(lambda n: f'cs_test_{n}')
+    provider_payment_id = factory.Sequence(lambda n: f'pi_test_{n}')
+    provider_data = factory.LazyFunction(dict)
+    checkout_url = factory.LazyAttribute(
+        lambda obj: f'https://checkout.stripe.com/pay/{obj.provider_reference}'
+        if obj.method == Payment.Method.STRIPE and obj.provider_reference
+        else ''
+    )
     last_error = ''
     expires_at = None
     paid_at = None

@@ -10,6 +10,8 @@ from apps.payments.services import (
     expire_stale_pending_payments,
     mark_payment_failed,
     mark_payment_paid,
+    normalize_mbway_mobile_number,
+    PaymentProcessingError,
     sanitize_callback_payload,
 )
 from tests.factories.orders import OrderFactory
@@ -50,6 +52,18 @@ def test_anonymize_ip_address_masks_ipv4_and_ipv6_values():
 def test_anonymize_ip_address_returns_placeholder_for_invalid_values():
     assert anonymize_ip_address('not-an-ip') == '0.0.0.0'
     assert anonymize_ip_address('') == '0.0.0.0'
+
+
+@pytest.mark.ifthenpay
+def test_normalize_mbway_mobile_number_accepts_supported_pt_formats():
+    assert normalize_mbway_mobile_number('912345678') == '351#912345678'
+    assert normalize_mbway_mobile_number('+351 912 345 678') == '351#912345678'
+
+
+@pytest.mark.ifthenpay
+def test_normalize_mbway_mobile_number_rejects_invalid_values():
+    with pytest.raises(PaymentProcessingError):
+        normalize_mbway_mobile_number('212345678')
 
 
 @pytest.mark.stripe

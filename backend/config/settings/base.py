@@ -37,6 +37,11 @@ SITE_ROLE = os.environ.get('SITE_ROLE', '').strip().lower()
 if SITE_ROLE and SITE_ROLE not in SITE_URLCONFS:
     raise ImproperlyConfigured('SITE_ROLE must be one of: website, shop, admin')
 
+PAYMENT_PROVIDERS = {
+    'stripe',
+    'ifthenpay_mbway',
+}
+
 
 SECRET_KEY = env_required('DJANGO_SECRET_KEY', 'django-insecure-dev-only-change-in-production')
 
@@ -137,11 +142,20 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Stripe
+# Payments
+PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'stripe').strip().lower() or 'stripe'
+if PAYMENT_PROVIDER not in PAYMENT_PROVIDERS:
+    raise ImproperlyConfigured(
+        'PAYMENT_PROVIDER must be one of: stripe, ifthenpay_mbway'
+    )
+
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'eur').strip().lower() or 'eur'
+IFTHENPAY_API_BASE_URL = os.environ.get('IFTHENPAY_API_BASE_URL', 'https://api.ifthenpay.com').rstrip('/')
+IFTHENPAY_MBWAY_KEY = os.environ.get('IFTHENPAY_MBWAY_KEY', '')
+IFTHENPAY_ANTI_PHISHING_KEY = os.environ.get('IFTHENPAY_ANTI_PHISHING_KEY', '')
 PAYMENTS_FORCE_DISABLED = env_bool('PAYMENTS_FORCE_DISABLED', default=False)
 SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
 

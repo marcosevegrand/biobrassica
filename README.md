@@ -64,6 +64,15 @@ cp .env.example .env
 
 Fill in real secrets before starting the stack. Production Compose commands and the backup/restore scripts use `.env` through Docker Compose.
 
+Payments are deployment-wide. Set `PAYMENT_PROVIDER=stripe` to keep the current hosted Stripe checkout flow, or `PAYMENT_PROVIDER=ifthenpay_mbway` to switch the shop to Ifthenpay MB WAY. Only one provider is active in a given deployment.
+
+Provider-specific production variables:
+
+- `PAYMENT_PROVIDER=stripe`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, optional `STRIPE_PUBLISHABLE_KEY`, `STRIPE_CURRENCY`
+- `PAYMENT_PROVIDER=ifthenpay_mbway`: `IFTHENPAY_MBWAY_KEY`, `IFTHENPAY_ANTI_PHISHING_KEY`, optional `IFTHENPAY_API_BASE_URL`
+
+When MB WAY is active, checkout requires a customer mobile number, creates the MB WAY payment request at order confirmation time, and keeps the customer on the internal payment-status page while Biobrassica waits for the Ifthenpay callback.
+
 The production web tier is split into three services:
 
 - `django_website` for `marcosevegrand.com` and `www.marcosevegrand.com`
@@ -158,7 +167,13 @@ docker compose -f docker-compose.yml --profile tools run --rm certbot \
 docker compose -f docker-compose.yml exec nginx nginx -s reload
 ```
 
-After rollout, verify redirects and certificates:
+After rollout, verify nginx, redirects, certificates, and upstream health from the VPS host:
+
+```bash
+make verify ENV=prod
+```
+
+If you need raw curl checks while debugging a 521, these are still useful:
 
 ```bash
 curl -I http://marcosevegrand.com

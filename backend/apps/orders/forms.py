@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Location
@@ -111,18 +112,28 @@ class CheckoutForm(forms.Form):
             elif pickup_location not in self.allowed_pickup_locations:
                 self.add_error('pickup_location', _('Este local não está disponível para todos os produtos do carrinho.'))
 
+        if settings.PAYMENT_PROVIDER == Payment.Method.IFTHENPAY_MBWAY and not cleaned_data.get('phone'):
+            self.add_error('phone', _('Indique um telemóvel para receber o pedido MB WAY.'))
+
         return cleaned_data
 
 
 class PaymentSelectionForm(forms.Form):
     payment_method = forms.ChoiceField(
-        choices=[(Payment.Method.STRIPE, 'Stripe')],
+        choices=(),
         error_messages={'invalid_choice': _('Selecione um método de pagamento válido.')},
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        active_method = settings.PAYMENT_PROVIDER
+        method_label = dict(Payment.Method.choices).get(active_method, active_method)
+        self.fields['payment_method'].choices = [(active_method, method_label)]
+        self.active_method = active_method
 
     def clean(self):
         cleaned_data = super().clean()
         payment_method = cleaned_data.get('payment_method')
-        if payment_method and payment_method != Payment.Method.STRIPE:
+        if payment_method and payment_method != self.active_method:
             raise forms.ValidationError(_('Selecione um método de pagamento válido.'))
         return cleaned_data

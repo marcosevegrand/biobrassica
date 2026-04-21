@@ -16,24 +16,22 @@
   </div>
 
   <div class="border border-stone/30 rounded-sm p-8 mb-8 bg-white/70">
-    {% if payment.method == 'stripe' %}
-    <h2 class="font-serif text-2xl italic mb-4">Stripe</h2>
-    <p class="text-muted mb-6">{% trans "Conclua o pagamento na página segura da Stripe. Depois de terminar, esta página é atualizada automaticamente pela confirmação do pagamento." %}</p>
-    <a href="{{ payment.checkout_url }}"
+    <h2 class="font-serif text-2xl italic mb-4">{{ payment_provider.title }}</h2>
+    <p class="text-muted mb-6">{{ payment_provider.description }}</p>
+    {% if payment_provider.action_url %}
+    <a href="{{ payment_provider.action_url }}"
        class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors">
-      {% trans "Abrir checkout seguro" %}
+      {{ payment_provider.action_label }}
     </a>
-    <div class="space-y-3 text-sm mt-6">
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Valor" %}</span>
-        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
-      </div>
-      <div class="flex justify-between gap-6">
-        <span class="text-muted">{% trans "Sessão" %}</span>
-        <span class="font-mono font-medium">{{ payment.masked_stripe_session_id|default:'—' }}</span>
-      </div>
-    </div>
     {% endif %}
+    <div class="space-y-3 text-sm mt-6">
+      {% for label, value in payment_provider.detail_rows %}
+      <div class="flex justify-between gap-6">
+        <span class="text-muted">{{ label }}</span>
+        <span class="font-medium{% if forloop.last %} font-mono{% endif %}">{{ value }}</span>
+      </div>
+      {% endfor %}
+    </div>
   </div>
 
   {% if payment.last_error %}

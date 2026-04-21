@@ -16,9 +16,7 @@ from apps.core.site_content import payments_are_enabled
 from apps.payments.models import Payment
 from apps.payments.services import (
     PaymentDisabledError,
-    configure_stripe_checkout,
-    expire_pending_payment,
-    finalize_successful_payment,
+    get_payment_service,
     reset_payment,
     stripe_service,
 )
@@ -53,10 +51,12 @@ def _get_order_payment(order):
 
 
 def _payment_select_context(order, form):
+    payment_service = get_payment_service()
     return {
         'order': order,
         'form': form,
         'payments_enabled': payments_are_enabled(),
+        'payment_provider': payment_service.checkout_option(),
     }
 
 
@@ -154,6 +154,7 @@ def checkout_confirm(request):
     lang = get_language() or 'pt'
     order = None
     payment = None
+    payment_service = get_payment_service()
 
     try:
         order = create_order_from_cart(
@@ -176,7 +177,7 @@ def checkout_confirm(request):
 
         payment = Payment.objects.create(
             order=order,
-            method=Payment.Method.STRIPE,
+            method=payment_service.method,
             status=Payment.Status.PENDING,
             amount=order.total,
         )
@@ -186,22 +187,17 @@ def checkout_confirm(request):
         success_url = request.build_absolute_uri(
             f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
         )
+        status_url = request.build_absolute_uri(_order_url('orders:payment_status', order))
         cancel_url = request.build_absolute_uri(_order_url('orders:checkout_order', order))
-        response = stripe_service.create_checkout_session(
+        redirect_url = payment_service.initiate_payment(
             order=order,
             payment=payment,
             success_url=success_url,
             cancel_url=cancel_url,
-        )
-        configure_stripe_checkout(
-            payment,
-            session_id=response['session_id'],
-            payment_intent_id=response.get('payment_intent_id', ''),
-            checkout_url=response['checkout_url'],
-            expires_at=response.get('expires_at'),
+            status_url=status_url,
         )
         clear_cart(cart)
-        return redirect(payment.checkout_url)
+        return redirect(redirect_url)
     except CartStateChangedError:
         cart_items = list(get_cart_items_queryset(cart))
         if not cart_items:
@@ -233,10 +229,10 @@ def checkout_confirm(request):
             try:
                 cancel_unpaid_order(order)
             except Exception:
-                logger.exception('Failed to cancel order %s after Stripe setup failure', order.pk)
+                logger.exception('Failed to cancel order %s after payment setup failure', order.pk)
         if payment is not None:
             payment.delete()
-        logger.exception('Failed to initiate Stripe payment for order %s', order.pk if order else 'new')
+        logger.exception('Failed to initiate payment for order %s', order.pk if order else 'new')
         messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
         return redirect('orders:checkout')
 
@@ -254,7 +250,7 @@ def payment_select(request, order_id):
         return redirect(_order_url('orders:complete', order))
 
     if request.method == 'GET':
-        form = PaymentSelectionForm(initial={'payment_method': Payment.Method.STRIPE})
+        form = PaymentSelectionForm(initial={'payment_method': get_payment_service().method})
         return render(request, 'orders/payment_select.html', _payment_select_context(order, form))
 
     if not payments_are_enabled():
@@ -265,36 +261,32 @@ def payment_select(request, order_id):
         return render(request, 'orders/payment_select.html', _payment_select_context(order, form), status=200)
 
     payment_method = form.cleaned_data['payment_method']
+    payment_service = get_payment_service(payment_method)
     existing_payment = current_payment
     if existing_payment and existing_payment.status == Payment.Status.PAID:
         return redirect(_order_url('orders:complete', order))
 
     try:
         if existing_payment and existing_payment.status == Payment.Status.PENDING and existing_payment.method == payment_method:
-            if payment_method == Payment.Method.STRIPE and existing_payment.checkout_url:
+            if existing_payment.checkout_url:
+                return redirect(existing_payment.checkout_url)
+            if payment_method == Payment.Method.IFTHENPAY_MBWAY:
                 return redirect(_order_url('orders:payment_status', order))
 
         payment = reset_payment(order, payment_method)
-
-        if payment_method == Payment.Method.STRIPE:
-            success_url = request.build_absolute_uri(
-                f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
-            )
-            cancel_url = request.build_absolute_uri(_order_url('orders:payment_select', order))
-            response = stripe_service.create_checkout_session(
-                order=order,
-                payment=payment,
-                success_url=success_url,
-                cancel_url=cancel_url,
-            )
-            configure_stripe_checkout(
-                payment,
-                session_id=response['session_id'],
-                payment_intent_id=response.get('payment_intent_id', ''),
-                checkout_url=response['checkout_url'],
-                expires_at=response.get('expires_at'),
-            )
-            return redirect(payment.checkout_url)
+        success_url = request.build_absolute_uri(
+            f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
+        )
+        status_url = request.build_absolute_uri(_order_url('orders:payment_status', order))
+        cancel_url = request.build_absolute_uri(_order_url('orders:payment_select', order))
+        redirect_url = payment_service.initiate_payment(
+            order=order,
+            payment=payment,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            status_url=status_url,
+        )
+        return redirect(redirect_url)
     except PaymentDisabledError:
         messages.error(request, PAYMENTS_DISABLED_MESSAGE)
         return redirect(_order_url('orders:payment_select', order))
@@ -319,28 +311,25 @@ def payment_status(request, order_id):
     if payment.status == Payment.Status.PAID or order.status == Order.Status.PAID:
         return redirect(_order_url('orders:complete', order))
 
-    if payment.method == Payment.Method.STRIPE and payment.stripe_session_id and payment.status == Payment.Status.PENDING:
+    payment_service = get_payment_service(payment.method)
+
+    if payment.status == Payment.Status.PENDING:
         try:
-            session = stripe_service.retrieve_checkout_session(payment.stripe_session_id)
+            refresh_state = payment_service.refresh_pending_payment(payment)
         except Exception:
-            logger.exception('Failed to fetch Stripe Checkout session for payment %s', payment.pk)
+            logger.exception('Failed to refresh payment state for payment %s', payment.pk)
         else:
-            if getattr(session, 'payment_status', '') == 'paid':
-                with transaction.atomic():
-                    locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=payment.pk)
-                    finalize_successful_payment(locked_payment, source='stripe_checkout_poll')
+            if refresh_state == 'paid':
                 messages.success(request, _('Pagamento confirmado com sucesso.'))
                 return redirect(_order_url('orders:complete', order))
-            if getattr(session, 'status', '') == 'expired':
-                with transaction.atomic():
-                    locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=payment.pk)
-                    expire_pending_payment(locked_payment, reason='stripe checkout expired (poll)')
+            if refresh_state == 'expired':
                 payment.refresh_from_db()
                 messages.error(request, _('A sessão de pagamento expirou. Pode iniciar novamente.'))
 
     return render(request, 'orders/payment_status.html', {
         'order': order,
         'payment': payment,
+        'payment_provider': payment_service.payment_status_context(payment),
     })
 
 

@@ -16,17 +16,17 @@
     {% trans "O pagamento da sua encomenda" %} <strong>#{{ order.pk }}</strong> {% trans "foi confirmado." %}
   </p>
 
-  {% if order.payment.method == 'stripe' %}
+  {% if order.payment %}
   <div class="border border-stone/30 rounded-sm p-8 text-left mb-8">
     <h3 class="font-serif text-lg italic mb-4">{% trans "Pagamento" %}</h3>
     <div class="space-y-2 text-sm">
       <div class="flex justify-between">
         <span class="text-muted">{% trans "Método" %}</span>
-        <span class="font-medium">Stripe</span>
+        <span class="font-medium">{{ order.payment.method_label }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="text-muted">{% trans "Sessão" %}</span>
-        <span class="font-mono font-medium">{{ order.payment.masked_stripe_session_id }}</span>
+        <span class="text-muted">{% trans "Referência" %}</span>
+        <span class="font-mono font-medium">{{ order.payment.masked_provider_identifier|default:'—' }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-muted">{% trans "Valor" %}</span>

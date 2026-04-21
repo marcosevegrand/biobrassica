@@ -1,4 +1,4 @@
-.PHONY: help stack django backup restore
+.PHONY: help stack django backup restore verify
 
 .DEFAULT_GOAL := help
 
@@ -46,6 +46,7 @@ help: ## Show the minimal command surface
 	@printf "    \033[36mdjango\033[0m   Run python manage.py CMD=... via explicit ENV=dev|prod\n"
 	@printf "    \033[36mbackup\033[0m   Backup the production database and media\n"
 	@printf "    \033[36mrestore\033[0m  Restore production data from FILE=... with optional MEDIA=...\n"
+	@printf "    \033[36mverify\033[0m   Verify the production nginx ingress and Django upstreams\n"
 	@printf "\n"
 	@printf "  ENV options\n"
 	@printf "    dev      docker-compose.yml + docker-compose.dev.yml with .env.dev\n"
@@ -93,6 +94,11 @@ django: ## Run python manage.py CMD=... [ENV=dev|prod] [DJANGO_SERVICE=name]
 
 backup: ## Backup the production database and media
 	./scripts/backup.sh
+
+verify: ## Verify the production stack from the VPS host
+	$(call require_env,verify,)
+	@if [ "$(ENV)" != "prod" ]; then echo "verify is only supported with ENV=prod"; exit 1; fi
+	./scripts/verify_stack.sh
 
 restore: ## Restore production data; usage: make restore FILE=/path/to/db.sql.gz [MEDIA=/path/to/media.tar.gz] [YES=1]
 	@test -n "$(FILE)" || (echo "Usage: make restore FILE=/path/to/db.sql.gz [MEDIA=/path/to/media.tar.gz] [YES=1]" && exit 1)

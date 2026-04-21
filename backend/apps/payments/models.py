@@ -25,6 +25,7 @@ def _mask_value(value, *, keep_start=2, keep_end=2):
 class Payment(models.Model):
     class Method(models.TextChoices):
         STRIPE = 'stripe', 'Stripe'
+        IFTHENPAY_MBWAY = 'ifthenpay_mbway', 'Ifthenpay MB WAY'
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pendente'
@@ -42,8 +43,9 @@ class Payment(models.Model):
     method = models.CharField('método', max_length=20, choices=Method.choices)
     status = models.CharField('estado', max_length=20, choices=Status.choices, default=Status.PENDING)
     amount = models.DecimalField('valor', max_digits=10, decimal_places=2)
-    stripe_session_id = models.CharField('ID da sessão Stripe', max_length=255, blank=True, db_index=True)
-    stripe_payment_intent_id = models.CharField('ID do Payment Intent Stripe', max_length=255, blank=True, db_index=True)
+    provider_reference = models.CharField('referência do provedor', max_length=255, blank=True, db_index=True)
+    provider_payment_id = models.CharField('ID do pagamento no provedor', max_length=255, blank=True, db_index=True)
+    provider_data = models.JSONField('dados do provedor', default=dict, blank=True)
     checkout_url = models.URLField('URL de checkout', max_length=500, blank=True)
     last_error = models.TextField('último erro', blank=True)
     expires_at = models.DateTimeField('expira em', null=True, blank=True)
@@ -55,14 +57,14 @@ class Payment(models.Model):
         verbose_name_plural = 'pagamentos'
         constraints = [
             models.UniqueConstraint(
-                fields=['stripe_session_id'],
-                condition=~Q(stripe_session_id=''),
-                name='payments_unique_stripe_session_id',
+                fields=['method', 'provider_reference'],
+                condition=~Q(provider_reference=''),
+                name='payments_unique_provider_reference',
             ),
             models.UniqueConstraint(
-                fields=['stripe_payment_intent_id'],
-                condition=~Q(stripe_payment_intent_id=''),
-                name='payments_unique_stripe_payment_intent_id',
+                fields=['method', 'provider_payment_id'],
+                condition=~Q(provider_payment_id=''),
+                name='payments_unique_provider_payment_id',
             ),
         ]
         indexes = [
@@ -70,7 +72,13 @@ class Payment(models.Model):
         ]
 
     def __init__(self, *args, **kwargs):
+        legacy_stripe_session_id = kwargs.pop('stripe_session_id', '')
+        legacy_stripe_payment_intent_id = kwargs.pop('stripe_payment_intent_id', '')
         super().__init__(*args, **kwargs)
+        if legacy_stripe_session_id:
+            self.provider_reference = legacy_stripe_session_id
+        if legacy_stripe_payment_intent_id:
+            self.provider_payment_id = legacy_stripe_payment_intent_id
         self._original_status = None if self._state.adding else self.status
 
     @classmethod
@@ -128,8 +136,40 @@ class Payment(models.Model):
         return _mask_value(self.stripe_payment_intent_id, keep_start=6, keep_end=4)
 
     @property
+    def masked_provider_reference(self):
+        return _mask_value(self.provider_reference, keep_start=6, keep_end=4)
+
+    @property
+    def masked_provider_payment_id(self):
+        return _mask_value(self.provider_payment_id, keep_start=6, keep_end=4)
+
+    @property
     def masked_provider_identifier(self):
-        return self.masked_stripe_session_id or self.masked_stripe_payment_intent_id
+        return self.masked_provider_reference or self.masked_provider_payment_id
+
+    @property
+    def stripe_session_id(self):
+        if self.method != self.Method.STRIPE:
+            return ''
+        return self.provider_reference
+
+    @stripe_session_id.setter
+    def stripe_session_id(self, value):
+        if self.method in {'', self.Method.STRIPE}:
+            self.method = self.method or self.Method.STRIPE
+            self.provider_reference = value or ''
+
+    @property
+    def stripe_payment_intent_id(self):
+        if self.method != self.Method.STRIPE:
+            return ''
+        return self.provider_payment_id
+
+    @stripe_payment_intent_id.setter
+    def stripe_payment_intent_id(self, value):
+        if self.method in {'', self.Method.STRIPE}:
+            self.method = self.method or self.Method.STRIPE
+            self.provider_payment_id = value or ''
 
 
 class PaymentCallback(models.Model):

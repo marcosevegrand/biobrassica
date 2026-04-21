@@ -1,8 +1,11 @@
 import ipaddress
+import json
 import logging
 import re
 from datetime import datetime, timedelta, timezone as dt_timezone
 from decimal import Decimal
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 import stripe
 from django.conf import settings
@@ -10,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from apps.orders.models import Order
 from apps.orders.services import cancel_unpaid_order, transition_order_status
@@ -20,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 PAYMENT_FAILURE_STATUSES = {'failed', 'error', 'cancelled', 'canceled', 'declined', 'refused', 'expired'}
 STRIPE_CHECKOUT_EXPIRY_WINDOW = timedelta(hours=1)
+IFTHENPAY_TIMEOUT_SECONDS = 15
 
 EMAIL_RE = re.compile(r'([A-Z0-9._%+-]+)@([A-Z0-9.-]+\.[A-Z]{2,})', re.IGNORECASE)
 PHONE_RE = re.compile(r'(?<!\d)(\+?\d[\d\s-]{6,}\d)(?!\d)')
@@ -35,6 +40,10 @@ class PaymentTransitionError(PaymentProcessingError):
 
 
 class PaymentDisabledError(PaymentProcessingError):
+    pass
+
+
+class UnsupportedPaymentProviderError(PaymentProcessingError):
     pass
 
 
@@ -217,6 +226,37 @@ def _append_order_note(order, note):
     return True
 
 
+def _format_amount(amount: Decimal) -> str:
+    return f'{amount:.2f}'
+
+
+def _provider_data(payment) -> dict:
+    data = payment.provider_data if isinstance(payment.provider_data, dict) else {}
+    return dict(data)
+
+
+def _store_provider_fields(
+    payment,
+    *,
+    provider_reference='',
+    provider_payment_id='',
+    checkout_url='',
+    expires_at=None,
+    provider_data=None,
+):
+    payment.provider_reference = provider_reference
+    payment.provider_payment_id = provider_payment_id
+    payment.provider_data = provider_data or {}
+    payment.checkout_url = checkout_url
+    payment.expires_at = expires_at
+    try:
+        payment.full_clean()
+    except ValidationError as error:
+        _raise_payment_validation_error(error)
+    payment.save(update_fields=['provider_reference', 'provider_payment_id', 'provider_data', 'checkout_url', 'expires_at'])
+    return payment
+
+
 def transition_payment_status(payment, new_status, *, reason='', source=''):
     if payment.status == new_status:
         if reason and payment.last_error != reason:
@@ -339,8 +379,9 @@ def reset_payment(order, method):
 
     payment.method = method
     payment.amount = order.total
-    payment.stripe_session_id = ''
-    payment.stripe_payment_intent_id = ''
+    payment.provider_reference = ''
+    payment.provider_payment_id = ''
+    payment.provider_data = {}
     payment.checkout_url = ''
     payment.last_error = ''
     payment.paid_at = None
@@ -357,17 +398,34 @@ def reset_payment(order, method):
     return payment
 
 
+def configure_provider_payment(
+    payment,
+    *,
+    provider_reference='',
+    provider_payment_id='',
+    checkout_url='',
+    expires_at=None,
+    provider_data=None,
+):
+    return _store_provider_fields(
+        payment,
+        provider_reference=provider_reference,
+        provider_payment_id=provider_payment_id,
+        checkout_url=checkout_url,
+        expires_at=expires_at,
+        provider_data=provider_data,
+    )
+
+
 def configure_stripe_checkout(payment, *, session_id, checkout_url, payment_intent_id='', expires_at=None):
-    payment.stripe_session_id = session_id
-    payment.stripe_payment_intent_id = payment_intent_id
-    payment.checkout_url = checkout_url
-    payment.expires_at = expires_at or (timezone.now() + STRIPE_CHECKOUT_EXPIRY_WINDOW)
-    try:
-        payment.full_clean()
-    except ValidationError as error:
-        _raise_payment_validation_error(error)
-    payment.save(update_fields=['stripe_session_id', 'stripe_payment_intent_id', 'checkout_url', 'expires_at'])
-    return payment
+    return configure_provider_payment(
+        payment,
+        provider_reference=session_id,
+        provider_payment_id=payment_intent_id,
+        checkout_url=checkout_url,
+        expires_at=expires_at or (timezone.now() + STRIPE_CHECKOUT_EXPIRY_WINDOW),
+        provider_data=_provider_data(payment),
+    )
 
 
 def mark_payment_refunded(payment, *, reason='stripe refund'):
@@ -384,9 +442,81 @@ def mark_payment_refunded(payment, *, reason='stripe refund'):
     return changed
 
 
-class StripeService:
+class BasePaymentService:
+    method = ''
+
+    def checkout_option(self):
+        raise NotImplementedError
+
+    def payment_status_context(self, payment):
+        raise NotImplementedError
+
+    def initiate_payment(self, *, order, payment, success_url: str, cancel_url: str, status_url: str) -> str:
+        raise NotImplementedError
+
+    def refresh_pending_payment(self, payment):
+        return 'pending'
+
+
+class StripeService(BasePaymentService):
+    method = Payment.Method.STRIPE
+
+    def checkout_option(self):
+        return {
+            'method': self.method,
+            'title': 'Stripe',
+            'badge': 'STR',
+            'description': _('Pagamento por cartão numa página segura hospedada pela Stripe'),
+            'submit_label': _('Continuar para pagamento'),
+        }
+
+    def payment_status_context(self, payment):
+        return {
+            'title': 'Stripe',
+            'description': _('Conclua o pagamento na página segura da Stripe. Depois de terminar, esta página é atualizada automaticamente pela confirmação do pagamento.'),
+            'action_url': payment.checkout_url,
+            'action_label': _('Abrir checkout seguro'),
+            'detail_rows': [
+                (_('Valor'), f'{payment.amount:.2f}€'),
+                (_('Sessão'), payment.masked_provider_reference or '—'),
+            ],
+        }
+
     def _client_options(self):
         return {'api_key': settings.STRIPE_SECRET_KEY}
+
+    def initiate_payment(self, *, order, payment, success_url: str, cancel_url: str, status_url: str) -> str:
+        response = self.create_checkout_session(
+            order=order,
+            payment=payment,
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+        configure_stripe_checkout(
+            payment,
+            session_id=response['session_id'],
+            payment_intent_id=response.get('payment_intent_id', ''),
+            checkout_url=response['checkout_url'],
+            expires_at=response.get('expires_at'),
+        )
+        return payment.checkout_url
+
+    def refresh_pending_payment(self, payment):
+        if payment.status != Payment.Status.PENDING or not payment.provider_reference:
+            return 'pending'
+
+        session = self.retrieve_checkout_session(payment.provider_reference)
+        if getattr(session, 'payment_status', '') == 'paid':
+            with transaction.atomic():
+                locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=payment.pk)
+                finalize_successful_payment(locked_payment, source='stripe_checkout_poll')
+            return 'paid'
+        if getattr(session, 'status', '') == 'expired':
+            with transaction.atomic():
+                locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=payment.pk)
+                expire_pending_payment(locked_payment, reason='stripe checkout expired (poll)')
+            return 'expired'
+        return 'pending'
 
     def create_checkout_session(self, *, order, payment, success_url: str, cancel_url: str) -> dict:
         if not payments_are_enabled():
@@ -460,4 +590,140 @@ class StripeService:
         )
 
 
+def build_ifthenpay_order_reference(order) -> str:
+    order_reference = str(order.pk)
+    if len(order_reference) > 15:
+        raise PaymentProcessingError('O identificador da encomenda excede o limite suportado pela Ifthenpay.')
+    return order_reference
+
+
+def normalize_mbway_mobile_number(phone: str) -> str:
+    digits = re.sub(r'\D+', '', phone or '')
+    if digits.startswith('00'):
+        digits = digits[2:]
+
+    if digits.startswith('351') and len(digits) == 12:
+        subscriber_number = digits[3:]
+    elif len(digits) == 9 and digits.startswith('9'):
+        subscriber_number = digits
+    else:
+        raise PaymentProcessingError(_('Indique um telemóvel válido para receber o pedido MB WAY.'))
+
+    if len(subscriber_number) != 9:
+        raise PaymentProcessingError(_('Indique um telemóvel válido para receber o pedido MB WAY.'))
+
+    return f'351#{subscriber_number}'
+
+
+class IfthenpayMbWayService(BasePaymentService):
+    method = Payment.Method.IFTHENPAY_MBWAY
+
+    def checkout_option(self):
+        return {
+            'method': self.method,
+            'title': 'Ifthenpay MB WAY',
+            'badge': 'MBW',
+            'description': _('Pedido de pagamento MB WAY enviado para o telemóvel indicado no checkout'),
+            'submit_label': _('Criar pedido MB WAY'),
+        }
+
+    def payment_status_context(self, payment):
+        provider_data = _provider_data(payment)
+        mobile_number = provider_data.get('mobile_number') or payment.order.phone
+        return {
+            'title': 'Ifthenpay MB WAY',
+            'description': _('Confirme o pedido MB WAY no seu telemóvel. Esta página mostra o estado do pagamento assim que a confirmação chegar.'),
+            'action_url': '',
+            'action_label': '',
+            'detail_rows': [
+                (_('Valor'), f'{payment.amount:.2f}€'),
+                (_('Telemóvel'), _mask_string(mobile_number, keep_start=3, keep_end=2) or '—'),
+                (_('Pedido'), payment.masked_provider_reference or '—'),
+            ],
+        }
+
+    def initiate_payment(self, *, order, payment, success_url: str, cancel_url: str, status_url: str) -> str:
+        if not payments_are_enabled():
+            raise PaymentDisabledError('Payments are temporarily disabled.')
+
+        mobile_number = normalize_mbway_mobile_number(order.phone)
+        order_reference = build_ifthenpay_order_reference(order)
+        payload = {
+            'mbWayKey': settings.IFTHENPAY_MBWAY_KEY,
+            'orderId': order_reference,
+            'amount': _format_amount(order.total),
+            'mobileNumber': mobile_number,
+            'email': order.email,
+            'description': f'Encomenda {order_reference}',
+        }
+        response_data = self._post_json('/spg/payment/mbway', payload)
+        response_status = str(response_data.get('Status', '')).strip()
+        if response_status != '000':
+            raise PaymentProcessingError(
+                response_data.get('Message') or _('Não foi possível iniciar o pedido MB WAY.')
+            )
+
+        request_id = str(response_data.get('RequestId', '')).strip()
+        if not request_id:
+            raise PaymentProcessingError(_('A Ifthenpay não devolveu o identificador do pedido MB WAY.'))
+
+        configure_provider_payment(
+            payment,
+            provider_reference=request_id,
+            provider_payment_id='',
+            checkout_url='',
+            expires_at=None,
+            provider_data={
+                'mobile_number': mobile_number,
+                'order_reference': order_reference,
+                'message': str(response_data.get('Message', '')).strip(),
+            },
+        )
+        return status_url
+
+    def _post_json(self, path: str, payload: dict) -> dict:
+        body = json.dumps(payload).encode('utf-8')
+        request = Request(
+            f'{settings.IFTHENPAY_API_BASE_URL}{path}',
+            data=body,
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            method='POST',
+        )
+        try:
+            with urlopen(request, timeout=IFTHENPAY_TIMEOUT_SECONDS) as response:
+                raw_response = response.read().decode('utf-8')
+        except HTTPError as error:
+            response_body = error.read().decode('utf-8', errors='replace')
+            logger.warning('Ifthenpay MB WAY request failed with HTTP %s: %s', error.code, response_body[:200])
+            raise PaymentProcessingError(_('Não foi possível contactar a Ifthenpay.')) from error
+        except URLError as error:
+            logger.warning('Ifthenpay MB WAY request failed: %s', error)
+            raise PaymentProcessingError(_('Não foi possível contactar a Ifthenpay.')) from error
+
+        try:
+            return json.loads(raw_response or '{}')
+        except json.JSONDecodeError as error:
+            logger.warning('Ifthenpay MB WAY returned invalid JSON: %s', raw_response[:200])
+            raise PaymentProcessingError(_('A Ifthenpay devolveu uma resposta inválida.')) from error
+
+
 stripe_service = StripeService()
+ifthenpay_mbway_service = IfthenpayMbWayService()
+
+PAYMENT_SERVICES = {
+    stripe_service.method: stripe_service,
+    ifthenpay_mbway_service.method: ifthenpay_mbway_service,
+}
+
+
+def get_payment_service(method: str | None = None) -> BasePaymentService:
+    resolved_method = method or settings.PAYMENT_PROVIDER
+    try:
+        return PAYMENT_SERVICES[resolved_method]
+    except KeyError as error:
+        raise UnsupportedPaymentProviderError(f'Unsupported payment provider: {resolved_method}') from error
+
+

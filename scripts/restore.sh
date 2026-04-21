@@ -110,9 +110,7 @@ fi
 echo "[restore] starting full stack"
 "${COMPOSE[@]}" up -d --remove-orphans
 
-for host in marcosevegrand.com loja.marcosevegrand.com admin.marcosevegrand.com; do
-    echo "[restore] health check for $host"
-    curl -fsS -H "Host: $host" http://127.0.0.1/_health/ > /dev/null
-done
+echo "[restore] verifying ingress and upstream health"
+"$PROJECT_DIR/scripts/verify_stack.sh"
 
 echo "[restore] restore verification completed"

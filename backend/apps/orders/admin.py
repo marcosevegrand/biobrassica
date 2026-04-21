@@ -266,8 +266,8 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             [
                 (_('Estado'), payment.status_label),
                 (_('Método'), payment.method_label),
-                (_('Sessão Stripe'), payment.masked_stripe_session_id or '—'),
-                (_('Payment Intent'), payment.masked_stripe_payment_intent_id or '—'),
+                (_('Referência'), payment.masked_provider_reference or '—'),
+                (_('ID no provedor'), payment.masked_provider_payment_id or '—'),
                 (_('Valor'), f'{payment.amount:.2f}€'),
             ],
             footer=_('Os pagamentos confirmados libertam automaticamente as próximas ações do fluxo.'),

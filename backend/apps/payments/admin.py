@@ -40,11 +40,11 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/payments/payment/workflow_overview.html'
     list_display = ('__str__', 'order', 'customer_display', 'method_display', 'status_badge', 'callback_health_display', 'provider_identifier_display', 'amount', 'expires_at', 'paid_at', 'created_at', 'edit_link')
     list_filter = ('method', 'status', 'created_at')
-    search_fields = ('=order__pk', 'stripe_session_id', 'stripe_payment_intent_id')
-    search_help_text = _('Pesquise por encomenda ou identificadores Stripe.')
+    search_fields = ('=order__pk', 'provider_reference', 'provider_payment_id')
+    search_help_text = _('Pesquise por encomenda ou identificadores do provedor.')
     readonly_fields = (
         'order', 'customer_display', 'status_badge', 'order_summary', 'callback_health_summary', 'method_display', 'amount',
-        'stripe_session_id_display', 'stripe_payment_intent_id_display', 'checkout_url', 'last_error', 'expires_at', 'paid_at', 'created_at',
+        'provider_reference_display', 'provider_payment_id_display', 'checkout_url', 'last_error', 'expires_at', 'paid_at', 'created_at',
     )
     list_filter_submit = True
     compressed_fields = True
@@ -54,7 +54,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             'fields': ('order', 'customer_display', 'status_badge', 'order_summary', 'callback_health_summary'),
         }),
         (_('Dados do pagamento'), {
-            'fields': ('method_display', 'amount', 'stripe_session_id_display', 'stripe_payment_intent_id_display', 'checkout_url'),
+            'fields': ('method_display', 'amount', 'provider_reference_display', 'provider_payment_id_display', 'checkout_url'),
         }),
         (_('Auditoria'), {
             'fields': ('expires_at', 'paid_at', 'created_at', 'last_error'),
@@ -127,15 +127,15 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def method_display(self, obj):
         return obj.method_label
 
-    @admin.display(description=_('Sessão Stripe'))
-    def stripe_session_id_display(self, obj):
-        return obj.masked_stripe_session_id or '—'
+    @admin.display(description=_('Referência do provedor'))
+    def provider_reference_display(self, obj):
+        return obj.masked_provider_reference or '—'
 
-    @admin.display(description=_('Payment Intent Stripe'))
-    def stripe_payment_intent_id_display(self, obj):
-        return obj.masked_stripe_payment_intent_id or '—'
+    @admin.display(description=_('ID do pagamento no provedor'))
+    def provider_payment_id_display(self, obj):
+        return obj.masked_provider_payment_id or '—'
 
-    @admin.display(ordering='stripe_session_id', description=_('ID Stripe'))
+    @admin.display(ordering='provider_reference', description=_('ID do provedor'))
     def provider_identifier_display(self, obj):
         return obj.masked_provider_identifier or '—'
 
@@ -185,7 +185,7 @@ class PaymentCallbackAdmin(EditLinkAdminMixin, ModelAdmin):
     list_display = ('pk', 'payment', 'validation_badge', 'validation_message', 'anonymized_ip_display', 'created_at', 'edit_link')
     list_filter = ('is_valid', 'created_at')
     readonly_fields = ('payment', 'sanitized_payload_display', 'anonymized_ip_display', 'is_valid', 'validation_message', 'created_at')
-    search_fields = ('=payment__order__pk', 'payment__stripe_session_id', 'payment__stripe_payment_intent_id', 'provider_event_id', 'validation_message')
+    search_fields = ('=payment__order__pk', 'payment__provider_reference', 'payment__provider_payment_id', 'provider_event_id', 'validation_message')
     list_filter_submit = True
     compressed_fields = True
 
