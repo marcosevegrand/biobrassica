@@ -174,6 +174,14 @@ Because production enables HSTS for subdomains and preload, every public hostnam
 Backup database and media:
 
 ```bash
+./scripts/backup.sh
+```
+
+By default, that writes backups into `~/biobrassica/backups` when the deployed repo lives at `~/biobrassica`.
+
+To override the destination explicitly:
+
+```bash
 ./scripts/backup.sh /path/to/backups
 ```
 

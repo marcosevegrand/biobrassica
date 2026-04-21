@@ -4,9 +4,9 @@
 # Usage:
 #   ./scripts/backup.sh [/path/to/backup/dir]
 #
-# If no directory is given, backups are written to /opt/biobrassica/backups/.
+# If no directory is given, backups are written to the repo-local backups/ directory.
 # Add to cron (daily at 03:00):
-#   0 3 * * * /opt/biobrassica/scripts/backup.sh /opt/biobrassica/backups >> /var/log/biobrassica-backup.log 2>&1
+#   0 3 * * * /home/deploy/biobrassica/scripts/backup.sh >> /var/log/biobrassica-backup.log 2>&1
 #
 # Retention: the script removes backups older than 14 days.
 # For durable off-site storage, pipe the output files to rclone/s3cmd/restic.
@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-BACKUP_DIR="${1:-/opt/biobrassica/backups}"
+BACKUP_DIR="${1:-$PROJECT_DIR/backups}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-biobrassica}"
 COMPOSE_ARGS=(-p "$COMPOSE_PROJECT_NAME" -f "$PROJECT_DIR/docker-compose.yml")
 if [ -f "$PROJECT_DIR/.env" ]; then
