@@ -1,5 +1,4 @@
 from django import forms
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Location
@@ -32,13 +31,10 @@ class CheckoutForm(forms.Form):
         self.allowed_pickup_locations = self._allowed_pickup_locations()
 
     def _build_pickup_choices(self):
-        choices = []
-        for location in Location.objects.filter(is_active=True).order_by('order', 'name'):
-            pickup_value = self._pickup_location_value(location.name)
-            if pickup_value is None or any(value == pickup_value for value, _label in choices):
-                continue
-            choices.append((pickup_value, location.name))
-        return choices or list(Order.PickupLocation.choices)
+        return [
+            (location.pickup_location_code, location.name)
+            for location in Location.objects.filter(is_active=True).exclude(pickup_location_code='').order_by('order', 'name')
+        ]
 
     def _allowed_pickup_locations(self):
         if not self.cart_items:
@@ -47,10 +43,9 @@ class CheckoutForm(forms.Form):
         allowed_sets = []
         for cart_item in self.cart_items:
             location_values = {
-                pickup_value
+                location.pickup_location_code
                 for location in cart_item.product.available_locations.all()
-                for pickup_value in [self._pickup_location_value(location.name)]
-                if pickup_value is not None
+                if location.pickup_location_code
             }
             allowed_sets.append(location_values)
 
@@ -59,14 +54,6 @@ class CheckoutForm(forms.Form):
 
         allowed_values = set.intersection(*allowed_sets) if allowed_sets else set()
         return allowed_values
-
-    def _pickup_location_value(self, location_name):
-        normalized_name = slugify(location_name or '')
-        if 'guimaraes' in normalized_name:
-            return Order.PickupLocation.GUIMARAES
-        if 'braga' in normalized_name:
-            return Order.PickupLocation.BRAGA
-        return None
 
     def clean_name(self):
         return self.cleaned_data['name'].strip()
@@ -113,6 +100,8 @@ class CheckoutForm(forms.Form):
                 self.add_error('shipping_postal_code', _('Use o formato 1234-123.'))
 
             cleaned_data['pickup_location'] = ''
+        elif not self.pickup_choices:
+            raise forms.ValidationError(_('Não existem locais de levantamento configurados neste momento.'))
         elif not cleaned_data.get('pickup_location'):
             raise forms.ValidationError(_('Selecione um local de levantamento.'))
         elif self.allowed_pickup_locations is not None:

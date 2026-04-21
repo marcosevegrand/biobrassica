@@ -17,6 +17,10 @@ class OrderStateTransitionError(OrderWorkflowError):
     pass
 
 
+class CartStateChangedError(OrderWorkflowError):
+    pass
+
+
 @dataclass(slots=True)
 class StockValidationError(OrderWorkflowError):
     items: list[str]
@@ -36,6 +40,13 @@ def _raise_validation_error(error):
     else:
         message = '; '.join(error.messages)
     raise OrderStateTransitionError(message)
+
+
+def _cart_item_snapshot(cart_items):
+    return {
+        cart_item.pk: (cart_item.product_id, cart_item.quantity)
+        for cart_item in cart_items
+    }
 
 
 def transition_order_status(order, new_status):
@@ -112,9 +123,20 @@ def create_order_from_cart(
     notes,
     clear_cart_items=True,
 ):
+    snapshot = _cart_item_snapshot(cart_items)
+
     with transaction.atomic():
-        if not cart_items:
+        locked_cart_items = list(
+            cart.items.select_for_update().select_related('product').order_by('pk')
+        )
+
+        if not locked_cart_items:
             raise StockValidationError([])
+
+        if snapshot != _cart_item_snapshot(locked_cart_items):
+            raise CartStateChangedError('O carrinho foi atualizado durante o checkout.')
+
+        cart_items = locked_cart_items
 
         product_ids = [cart_item.product_id for cart_item in cart_items if cart_item.product_id]
         locked_products = {

@@ -7,10 +7,17 @@
       <span class="text-muted">{% trans "Total:" %}</span>
       <span class="font-serif text-2xl italic ml-2">{{ cart_summary.cart_total|floatformat:2 }}€</span>
     </p>
+    {% if request.user.is_authenticated %}
     <a href="{% url 'orders:checkout' %}"
        class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors">
       {% trans "Finalizar encomenda" %}
     </a>
+    {% else %}
+    <a href="{% url 'accounts:login' %}?next={% url 'orders:checkout' %}"
+       class="inline-block text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors">
+      {% trans "Entrar para finalizar encomenda" %}
+    </a>
+    {% endif %}
   </div>
   {% endif %}
 </div>

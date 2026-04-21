@@ -1,9 +1,8 @@
 import logging
-import secrets
 
+from django.contrib.auth.views import redirect_to_login
 from django.contrib import messages
 from django.db import transaction
-from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.translation import get_language, gettext as _
@@ -12,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items
 from apps.orders.forms import CheckoutForm, PaymentSelectionForm
 from apps.orders.models import Order
-from apps.orders.services import StockValidationError, cancel_unpaid_order, create_order_from_cart, transition_order_status
+from apps.orders.services import CartStateChangedError, StockValidationError, cancel_unpaid_order, create_order_from_cart, transition_order_status
 from apps.core.site_content import payments_are_enabled
 from apps.payments.models import Payment
 from apps.payments.services import (
@@ -32,43 +31,18 @@ def _cart_allows_shipping(items):
     return all(item.product.allow_shipping for item in items)
 
 
-def _guest_order_session_key(order):
-    return f'guest_order_access:{order.pk}'
-
-
-def _store_guest_order_access(request, order):
-    request.session[_guest_order_session_key(order)] = str(order.access_token)
-
-
-def _tokens_match(left, right):
-    if not left or not right:
-        return False
-    return secrets.compare_digest(str(left), str(right))
-
-
-def _has_guest_order_access(request, order):
-    return _tokens_match(request.session.get(_guest_order_session_key(order)), order.access_token)
-
-
 def _order_url(view_name, order):
     return reverse(view_name, kwargs={'order_id': order.pk})
 
 
+def _require_authenticated_user(request, *, next_url=None):
+    if request.user.is_authenticated:
+        return None
+    return redirect_to_login(next_url or request.get_full_path(), reverse('accounts:login'))
+
+
 def _get_order_for_request(request, order_id):
-    order = get_object_or_404(Order.objects.select_related('payment', 'user'), pk=order_id)
-
-    if request.user.is_authenticated and order.user and order.user.pk == request.user.pk:
-        return order, None
-
-    if _has_guest_order_access(request, order):
-        return order, None
-
-    post_token = request.POST.get('token')
-    if _tokens_match(post_token, order.access_token):
-        _store_guest_order_access(request, order)
-        return order, None
-
-    raise Http404
+    return get_object_or_404(Order.objects.select_related('payment', 'user'), pk=order_id, user=request.user)
 
 
 def _get_order_payment(order):
@@ -103,10 +77,12 @@ def _handle_payments_disabled(*, redirect_to, request):
 
 
 def checkout(request, order_id=None):
+    login_redirect = _require_authenticated_user(request)
+    if login_redirect is not None:
+        return login_redirect
+
     if order_id:
-        order, redirect_response = _get_order_for_request(request, order_id)
-        if redirect_response is not None:
-            return redirect_response
+        order = _get_order_for_request(request, order_id)
 
         payment = _get_order_payment(order)
         if order.status == Order.Status.PAID and payment:
@@ -148,6 +124,10 @@ def checkout_confirm(request):
     if request.method != 'POST':
         return redirect('orders:checkout')
 
+    login_redirect = _require_authenticated_user(request, next_url=reverse('orders:checkout'))
+    if login_redirect is not None:
+        return login_redirect
+
     if not payments_are_enabled():
         return _handle_payments_disabled(request=request, redirect_to='orders:checkout')
 
@@ -179,7 +159,7 @@ def checkout_confirm(request):
         order = create_order_from_cart(
             cart=cart,
             cart_items=cart_items,
-            user=request.user if request.user.is_authenticated else None,
+            user=request.user,
             language=lang,
             name=cleaned_data['name'],
             email=cleaned_data['email'],
@@ -202,8 +182,6 @@ def checkout_confirm(request):
         )
 
         transition_order_status(order, Order.Status.PAYMENT_PENDING)
-        if not request.user.is_authenticated:
-            _store_guest_order_access(request, order)
 
         success_url = request.build_absolute_uri(
             f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
@@ -224,6 +202,17 @@ def checkout_confirm(request):
         )
         clear_cart(cart)
         return redirect(payment.checkout_url)
+    except CartStateChangedError:
+        cart_items = list(get_cart_items_queryset(cart))
+        if not cart_items:
+            messages.warning(request, _('O seu carrinho está vazio.'))
+            return redirect('cart:detail')
+
+        cart_can_ship = _cart_allows_shipping(cart_items)
+        form = CheckoutForm(request.POST, cart_can_ship=cart_can_ship, cart_items=cart_items)
+        form.is_valid()
+        form.add_error(None, _('O carrinho foi atualizado durante o checkout. Revise os produtos e tente novamente.'))
+        return render(request, 'orders/checkout.html', _checkout_context(request, cart, cart_items, cart_can_ship, form), status=200)
     except StockValidationError:
         adjust_cart_items_for_stock(cart_items, lang=lang)
         form.add_error(None, _('Alguns produtos já não têm stock suficiente. Revise o carrinho e tente novamente.'))
@@ -254,9 +243,11 @@ def checkout_confirm(request):
 
 @require_http_methods(['GET', 'POST'])
 def payment_select(request, order_id):
-    order, redirect_response = _get_order_for_request(request, order_id)
-    if redirect_response is not None:
-        return redirect_response
+    login_redirect = _require_authenticated_user(request)
+    if login_redirect is not None:
+        return login_redirect
+
+    order = _get_order_for_request(request, order_id)
     current_payment = _get_order_payment(order)
 
     if order.status == Order.Status.PAID and current_payment:
@@ -314,9 +305,11 @@ def payment_select(request, order_id):
 
 
 def payment_status(request, order_id):
-    order, redirect_response = _get_order_for_request(request, order_id)
-    if redirect_response is not None:
-        return redirect_response
+    login_redirect = _require_authenticated_user(request)
+    if login_redirect is not None:
+        return login_redirect
+
+    order = _get_order_for_request(request, order_id)
     payment = _get_order_payment(order)
 
     if not payment:
@@ -352,9 +345,11 @@ def payment_status(request, order_id):
 
 
 def order_complete(request, order_id):
-    order, redirect_response = _get_order_for_request(request, order_id)
-    if redirect_response is not None:
-        return redirect_response
+    login_redirect = _require_authenticated_user(request)
+    if login_redirect is not None:
+        return login_redirect
+
+    order = _get_order_for_request(request, order_id)
     payment = _get_order_payment(order)
 
     if not payment or order.status != Order.Status.PAID or payment.status != Payment.Status.PAID:

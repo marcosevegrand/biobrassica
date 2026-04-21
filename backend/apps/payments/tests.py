@@ -11,6 +11,7 @@ from django.utils import timezone
 from apps.orders.models import Order
 from apps.payments.models import Payment, PaymentCallback
 from apps.payments.services import (
+    finalize_successful_payment,
     PaymentTransitionError,
     StripeService,
     STRIPE_CHECKOUT_EXPIRY_WINDOW,
@@ -54,6 +55,21 @@ class PaymentWorkflowTests(TestCase):
 
         with self.assertRaises(PaymentTransitionError):
             mark_payment_failed(self.payment, reason='late failure')
+
+    @patch('apps.payments.services.send_mail')
+    def test_finalize_successful_payment_schedules_notifications(self, send_mail):
+        with self.captureOnCommitCallbacks(execute=True):
+            with transaction.atomic():
+                locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=self.payment.pk)
+                changed = finalize_successful_payment(locked_payment, source='test_suite')
+
+        self.payment.refresh_from_db()
+        self.order.refresh_from_db()
+
+        self.assertTrue(changed)
+        self.assertEqual(self.payment.status, Payment.Status.PAID)
+        self.assertEqual(self.order.status, Order.Status.PAID)
+        self.assertEqual(send_mail.call_count, 2)
 
     @override_settings(STRIPE_SECRET_KEY='sk_test_key', STRIPE_CURRENCY='eur')
     @patch('apps.payments.services.stripe.checkout.Session.create')

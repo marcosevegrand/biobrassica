@@ -19,10 +19,11 @@ Prerequisites:
 Setup:
 
 ```bash
-make setup-env
-make up
-make init
-make createsuperuser
+make stack ENV=dev ACTION=up ARGS='-d'
+make django ENV=dev CMD='migrate'
+make django ENV=dev CMD='collectstatic --noinput'
+make django ENV=dev CMD='compilemessages'
+make django ENV=dev CMD='createsuperuser'
 ```
 
 Local URLs:
@@ -35,17 +36,21 @@ Local URLs:
 Useful commands:
 
 ```bash
-make init
-make logs
-make logs SERVICE=nginx
-make shell
-make test
-make test PYTEST_MARKERS='fast or contract'
-make lint
-make typecheck
-make messages
-make compilemessages
+make stack ENV=dev ACTION=logs
+make stack ENV=dev ACTION=logs SERVICE=nginx ARGS='-f --tail=200'
+make stack ENV=dev ACTION=ps
+make django ENV=dev CMD='shell'
+make django ENV=dev CMD='test'
+make django ENV=dev CMD='makemessages -l pt -l en -l fr --no-wrap'
+make django ENV=dev CMD='compilemessages'
 ```
+
+The Makefile keeps a deliberately small surface:
+
+- `make stack ...` covers Docker Compose lifecycle work in dev and prod.
+- `make django ...` runs `python manage.py ...` inside the selected Django service.
+- `make backup` and `make restore ...` stay explicit because they are production recovery operations.
+- `ENV=dev|prod` must always be explicit for `make stack ...` and `make django ...`.
 
 ## Production
 
@@ -68,22 +73,23 @@ The production web tier is split into three services:
 Bring the stack up with standard Compose commands:
 
 ```bash
-docker compose -f docker-compose.yml build
-docker compose -f docker-compose.yml up -d
+make stack ENV=prod ACTION=build
+make stack ENV=prod ACTION=up ARGS='-d'
 ```
 
 For targeted releases, build or restart only the site you are changing:
 
 ```bash
-make prod-build PROD_SERVICE=django_shop
-make prod-restart PROD_SERVICE=django_shop
+make stack ENV=prod ACTION=build SERVICE=django_shop
+make stack ENV=prod ACTION=restart SERVICE=django_shop
 ```
 
 Run release tasks explicitly from one Django service instead of on every container start:
 
 ```bash
-make prod-migrate
-make prod-collectstatic
+make django ENV=prod DJANGO_SERVICE=django_website CMD='migrate --noinput'
+make django ENV=prod DJANGO_SERVICE=django_website CMD='collectstatic --noinput'
+make django ENV=prod DJANGO_SERVICE=django_website CMD='compilemessages'
 ```
 
 Before a redeploy that may interrupt checkout, pause payments in one of these ways:
@@ -91,8 +97,8 @@ Before a redeploy that may interrupt checkout, pause payments in one of these wa
 ```bash
 # Hard-disable from the server environment, then restart the affected Django service(s)
 PAYMENTS_FORCE_DISABLED=1
-make prod-restart PROD_SERVICE=django_shop
-make prod-restart PROD_SERVICE=django_admin
+make stack ENV=prod ACTION=restart SERVICE=django_shop
+make stack ENV=prod ACTION=restart SERVICE=django_admin
 ```
 
 Or use the admin backoffice and toggle `Pagamentos ativos` in the Website content record. The environment flag wins over the admin toggle and is the safer fallback if the admin host is unavailable.
@@ -137,7 +143,7 @@ docker compose -f docker-compose.yml up -d
 To reset the password of an admin/staff account from the VPS without editing the database manually:
 
 ```bash
-make prod-reset-admin-password EMAIL=admin@example.com PROD_DJANGO_SERVICE=django_admin
+make django ENV=prod DJANGO_SERVICE=django_admin CMD='reset_admin_password admin@example.com'
 ```
 
 The command asks for the new password twice, validates it with Django's password validators, and refuses non-staff accounts unless `--allow-non-staff` is passed manually.
@@ -179,12 +185,13 @@ Restore database, with optional media restore:
 Or via Make:
 
 ```bash
+make backup
 make restore FILE=/path/to/db.sql.gz YES=1
 make restore FILE=/path/to/db.sql.gz MEDIA=/path/to/media.tar.gz YES=1
 ```
 
 ## Notes
 
-- Development uses `.env.dev`, created from `.env.dev.example`.
+- Development uses `.env.dev`, created automatically from `.env.dev.example` when an `ENV=dev` `make stack ...` or `make django ...` command runs.
 - Production uses `.env`, created from `.env.example`.
-- Translation maintenance is supported through `backend/scripts/fill_translations.py` plus `make compilemessages`.
+- Translation maintenance is supported through `backend/scripts/fill_translations.py` plus `make django ENV=dev CMD='compilemessages'`.

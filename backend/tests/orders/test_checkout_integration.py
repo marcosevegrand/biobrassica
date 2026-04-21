@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
@@ -17,11 +18,21 @@ pytestmark = [pytest.mark.django_db, pytest.mark.integration, pytest.mark.stripe
 
 
 def _create_pickup_location():
-    return Location.objects.create(name='Loja Braga', is_active=True, order=0)
+    return Location.objects.create(
+        name='Loja Braga',
+        pickup_location_code=Order.PickupLocation.BRAGA,
+        is_active=True,
+        order=0,
+    )
 
 
 def _build_guest_cart(*, quantity=2, stock=10):
-    cart = CartFactory(session_key='checkout-session')
+    user = get_user_model().objects.create_user(
+        email=f'checkout-{quantity}-{stock}@example.com',
+        username=f'checkout-{quantity}-{stock}',
+        password='testpass123',
+    )
+    cart = CartFactory(user=user, session_key='checkout-session')
     location = _create_pickup_location()
     product = ProductFactory(
         stock=stock,
@@ -30,7 +41,7 @@ def _build_guest_cart(*, quantity=2, stock=10):
     )
     product.available_locations.add(location)
     cart_item = CartItemFactory(cart=cart, product=product, quantity=quantity)
-    return cart, product, cart_item
+    return user, cart, product, cart_item
 
 
 def _checkout_payload(**overrides):
@@ -47,11 +58,8 @@ def _checkout_payload(**overrides):
 
 
 def test_checkout_confirm_creates_payment_pending_order_and_clears_cart(shop_client, monkeypatch):
-    cart, product, _cart_item = _build_guest_cart(quantity=2, stock=10)
-    session = shop_client.session
-    session.save()
-    cart.session_key = session.session_key
-    cart.save(update_fields=['session_key'])
+    user, cart, product, _cart_item = _build_guest_cart(quantity=2, stock=10)
+    shop_client.force_login(user)
 
     def fake_create_checkout_session(**kwargs):
         assert kwargs['order'].email == 'marco@example.com'
@@ -74,7 +82,6 @@ def test_checkout_confirm_creates_payment_pending_order_and_clears_cart(shop_cli
 
     order = Order.objects.get(email='marco@example.com')
     payment = Payment.objects.get(order=order)
-    session = shop_client.session
 
     product.refresh_from_db()
 
@@ -88,15 +95,12 @@ def test_checkout_confirm_creates_payment_pending_order_and_clears_cart(shop_cli
     assert order.items.count() == 1
     assert CartItem.objects.filter(cart=cart).count() == 0
     assert product.stock == 8
-    assert session[f'guest_order_access:{order.pk}'] == str(order.access_token)
+    assert order.user == user
 
 
 def test_checkout_confirm_restores_cart_and_cancels_order_when_stripe_fails(shop_client, monkeypatch):
-    cart, product, cart_item = _build_guest_cart(quantity=2, stock=10)
-    session = shop_client.session
-    session.save()
-    cart.session_key = session.session_key
-    cart.save(update_fields=['session_key'])
+    user, cart, product, cart_item = _build_guest_cart(quantity=2, stock=10)
+    shop_client.force_login(user)
 
     def fail_create_checkout_session(**_kwargs):
         raise RuntimeError('stripe unavailable')
@@ -122,11 +126,8 @@ def test_checkout_confirm_restores_cart_and_cancels_order_when_stripe_fails(shop
 
 
 def test_checkout_confirm_caps_cart_quantities_and_renders_error_when_stock_changed(shop_client):
-    cart, product, cart_item = _build_guest_cart(quantity=5, stock=2)
-    session = shop_client.session
-    session.save()
-    cart.session_key = session.session_key
-    cart.save(update_fields=['session_key'])
+    user, cart, product, cart_item = _build_guest_cart(quantity=5, stock=2)
+    shop_client.force_login(user)
 
     response = shop_client.post(
         reverse('orders:confirm', urlconf='config.urls_shop'),
@@ -140,3 +141,14 @@ def test_checkout_confirm_caps_cart_quantities_and_renders_error_when_stock_chan
     assert cart_item.quantity == 2
     assert 'Alguns produtos já não têm stock suficiente' in response.content.decode()
     assert CartItem.objects.filter(cart=cart).count() == 1
+
+
+def test_checkout_requires_login(shop_client):
+    _user, _cart, _product, _cart_item = _build_guest_cart(quantity=2, stock=10)
+
+    response = shop_client.get(reverse('orders:checkout', urlconf='config.urls_shop'))
+
+    assert response.status_code == 302
+    assert response['Location'].endswith(
+        f"{reverse('accounts:login', urlconf='config.urls_shop')}?next={reverse('orders:checkout', urlconf='config.urls_shop')}"
+    )

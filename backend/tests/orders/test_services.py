@@ -4,7 +4,7 @@ import pytest
 
 from apps.orders.models import Order, OrderItem
 from apps.payments.models import Payment
-from apps.orders.services import StockValidationError, cancel_unpaid_order, create_order_from_cart
+from apps.orders.services import CartStateChangedError, StockValidationError, cancel_unpaid_order, create_order_from_cart
 from tests.factories.cart import CartFactory, CartItemFactory
 from tests.factories.catalog import ProductFactory
 from tests.factories.orders import OrderFactory
@@ -85,7 +85,7 @@ def test_create_order_from_cart_raises_when_stock_is_insufficient():
     assert Order.objects.count() == 0
 
 
-def test_create_order_from_cart_keeps_totals_consistent_with_created_items_when_cart_changes():
+def test_create_order_from_cart_rejects_cart_changes_after_snapshot():
     cart = CartFactory()
     product = ProductFactory(
         price=Decimal('9.50'),
@@ -98,27 +98,30 @@ def test_create_order_from_cart_keeps_totals_consistent_with_created_items_when_
     cart_item.quantity = 3
     cart_item.save(update_fields=['quantity'])
 
-    order = create_order_from_cart(
-        cart=cart,
-        cart_items=cart_items_snapshot,
-        user=None,
-        language='pt',
-        name='Marco',
-        email='marco@example.com',
-        phone='912345678',
-        fulfillment_method=Order.FulfillmentMethod.PICKUP,
-        pickup_location=Order.PickupLocation.BRAGA,
-        shipping_address_line1='',
-        shipping_address_line2='',
-        shipping_city='',
-        shipping_postal_code='',
-        notes='Sem sacos',
-    )
+    with pytest.raises(CartStateChangedError):
+        create_order_from_cart(
+            cart=cart,
+            cart_items=cart_items_snapshot,
+            user=None,
+            language='pt',
+            name='Marco',
+            email='marco@example.com',
+            phone='912345678',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            shipping_address_line1='',
+            shipping_address_line2='',
+            shipping_city='',
+            shipping_postal_code='',
+            notes='Sem sacos',
+        )
 
-    line_total = sum((item.subtotal for item in order.items.all()), Decimal('0.00'))
+    product.refresh_from_db()
+    cart_item.refresh_from_db()
 
-    assert order.subtotal == line_total
-    assert order.total == line_total
+    assert product.stock == 10
+    assert cart_item.quantity == 3
+    assert Order.objects.count() == 0
 
 
 def test_cancel_unpaid_order_restores_stock_and_cancels_order():

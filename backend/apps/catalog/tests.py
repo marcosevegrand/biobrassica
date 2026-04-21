@@ -1,6 +1,8 @@
+from io import StringIO
 import shutil
 import tempfile
 
+from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
@@ -553,3 +555,14 @@ class CatalogSupportAdminWorkflowTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'Ativos')
 		self.assertContains(response, 'Sem descrição')
+
+
+class CatalogSystemCheckTests(TestCase):
+	def test_check_warns_when_active_location_is_missing_pickup_code(self):
+		Location.objects.create(name='Loja Braga', is_active=True, order=1)
+		stdout = StringIO()
+		stderr = StringIO()
+
+		call_command('check', stdout=stdout, stderr=stderr)
+
+		self.assertIn('catalog.W001', stderr.getvalue())

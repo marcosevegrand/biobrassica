@@ -1,10 +1,12 @@
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from apps.orders.models import Order
 from apps.payments.models import Payment
+from tests.factories.accounts import UserFactory
 from tests.factories.orders import OrderFactory
 from tests.factories.payments import PaymentFactory
 
@@ -12,15 +14,18 @@ from tests.factories.payments import PaymentFactory
 pytestmark = [pytest.mark.django_db, pytest.mark.integration, pytest.mark.stripe]
 
 
-def _grant_guest_access(client, order):
-    session = client.session
-    session.save()
-    session[f'guest_order_access:{order.pk}'] = str(order.access_token)
-    session.save()
+def _login_checkout_user(client):
+    user = get_user_model().objects.create_user(
+        email='payment-status@example.com',
+        username='payment-status',
+        password='testpass123',
+    )
+    client.force_login(user)
+    return user
 
 
-def _create_guest_order_with_payment():
-    order = OrderFactory(status=Order.Status.PAYMENT_PENDING, user=None)
+def _create_order_with_payment(*, user):
+    order = OrderFactory(status=Order.Status.PAYMENT_PENDING, user=user)
     payment = PaymentFactory(
         order=order,
         status=Payment.Status.PENDING,
@@ -32,8 +37,8 @@ def _create_guest_order_with_payment():
 
 
 def test_payment_status_polling_paid_session_marks_payment_paid_and_redirects_to_complete(shop_client, monkeypatch):
-    order, payment = _create_guest_order_with_payment()
-    _grant_guest_access(shop_client, order)
+    user = _login_checkout_user(shop_client)
+    order, payment = _create_order_with_payment(user=user)
     scheduled = []
 
     monkeypatch.setattr(
@@ -59,8 +64,8 @@ def test_payment_status_polling_paid_session_marks_payment_paid_and_redirects_to
 
 
 def test_payment_status_polling_expired_session_marks_payment_expired_and_renders_status_page(shop_client, monkeypatch):
-    order, payment = _create_guest_order_with_payment()
-    _grant_guest_access(shop_client, order)
+    user = _login_checkout_user(shop_client)
+    order, payment = _create_order_with_payment(user=user)
 
     monkeypatch.setattr(
         'apps.orders.views.stripe_service.retrieve_checkout_session',
@@ -82,8 +87,8 @@ def test_payment_status_polling_expired_session_marks_payment_expired_and_render
 
 
 def test_payment_status_missing_payment_redirects_to_payment_select(shop_client):
-    order = OrderFactory(status=Order.Status.PAYMENT_PENDING, user=None)
-    _grant_guest_access(shop_client, order)
+    user = _login_checkout_user(shop_client)
+    order = OrderFactory(status=Order.Status.PAYMENT_PENDING, user=user)
 
     response = shop_client.get(
         reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop'),
@@ -96,8 +101,8 @@ def test_payment_status_missing_payment_redirects_to_payment_select(shop_client)
 
 
 def test_payment_status_polling_exception_leaves_payment_pending_and_renders_page(shop_client, monkeypatch):
-    order, payment = _create_guest_order_with_payment()
-    _grant_guest_access(shop_client, order)
+    user = _login_checkout_user(shop_client)
+    order, payment = _create_order_with_payment(user=user)
 
     def raise_error(session_id):
         raise RuntimeError('Stripe API unavailable')
@@ -115,3 +120,17 @@ def test_payment_status_polling_exception_leaves_payment_pending_and_renders_pag
     assert payment.status == Payment.Status.PENDING
     assert order.status == Order.Status.PAYMENT_PENDING
     assert 'Estado do Pagamento' in response.content.decode()
+
+
+def test_payment_status_requires_login(shop_client):
+    user = UserFactory()
+    order = OrderFactory(status=Order.Status.PAYMENT_PENDING, user=user)
+
+    response = shop_client.get(
+        reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop'),
+    )
+
+    assert response.status_code == 302
+    assert response['Location'].endswith(
+        f"{reverse('accounts:login', urlconf='config.urls_shop')}?next={reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop')}"
+    )

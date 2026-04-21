@@ -11,9 +11,22 @@ from django.db.models import Q
 from apps.core.translations import get_translated_attr
 
 
+PICKUP_LOCATION_CODE_CHOICES = [
+    ('braga', 'Braga'),
+    ('guimaraes', 'Guimaraes'),
+]
+
+
 class Location(models.Model):
     """CRUD-managed pickup / availability locations."""
     name = models.CharField('nome', max_length=100, help_text='Ex: Loja Braga, Loja Guimarães')
+    pickup_location_code = models.CharField(
+        'código de levantamento',
+        max_length=20,
+        blank=True,
+        choices=PICKUP_LOCATION_CODE_CHOICES,
+        help_text='Liga a localização a uma opção fixa de levantamento usada no checkout.',
+    )
     address = models.TextField('morada', blank=True)
     image = models.ImageField('imagem', upload_to='locations/', blank=True)
     phone = models.CharField('telefone', max_length=20, blank=True)
@@ -27,6 +40,13 @@ class Location(models.Model):
         ordering = ['order', 'name']
         verbose_name = 'localização'
         verbose_name_plural = 'localizações'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['pickup_location_code'],
+                condition=~Q(pickup_location_code=''),
+                name='catalog_unique_location_pickup_location_code',
+            ),
+        ]
 
     def __str__(self):
         return self.name

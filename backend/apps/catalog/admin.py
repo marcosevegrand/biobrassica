@@ -35,7 +35,7 @@ from apps.core.admin_helpers import (
 @admin.register(Location)
 class LocationAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/catalog/location/workflow_overview.html'
-    list_display = ('order_controls', 'name', 'location_readiness_badge', 'product_count_display', 'address_short', 'is_active', 'edit_link')
+    list_display = ('order_controls', 'name', 'pickup_location_code_display', 'location_readiness_badge', 'product_count_display', 'address_short', 'is_active', 'edit_link')
     list_editable = ('is_active',)
     search_fields = ('name', 'address')
     search_help_text = _('Pesquise por nome, morada, telefone ou email da loja.')
@@ -46,7 +46,7 @@ class LocationAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
 
     fieldsets = (
         (_('Operação'), {
-            'fields': ('name', 'is_active', 'location_operations_panel'),
+            'fields': ('name', 'pickup_location_code', 'is_active', 'location_operations_panel'),
         }),
         (_('Contacto e presença'), {
             'fields': ('address', 'phone', 'email', 'opening_hours', 'map_embed_url', 'image', 'image_preview'),
@@ -108,10 +108,16 @@ class LocationAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
     def product_count_display(self, obj):
         return getattr(obj, 'product_count', obj.products.count())
 
+    @admin.display(ordering='pickup_location_code', description=_('Checkout'))
+    def pickup_location_code_display(self, obj):
+        return obj.get_pickup_location_code_display() if obj.pickup_location_code else '—'
+
     @admin.display(description=_('Prontidão'))
     def location_readiness_badge(self, obj):
         if not obj.is_active:
             return render_status_badge(_('Inativa'), 'warning')
+        if not obj.pickup_location_code:
+            return render_status_badge(_('Rever checkout'), 'warning')
         if not obj.image or not obj.map_embed_url:
             return render_status_badge(_('Rever contactos'), 'warning')
         return render_status_badge(_('Pronta'), 'success')
@@ -125,6 +131,7 @@ class LocationAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
             _('Pickup e contactos'),
             [
                 (_('Estado'), _('Ativa') if obj.is_active else _('Inativa')),
+                (_('Checkout'), obj.get_pickup_location_code_display() if obj.pickup_location_code else _('Em falta')),
                 (_('Produtos ligados'), getattr(obj, 'product_count', obj.products.count())),
                 (_('Telefone'), obj.phone or _('Por preencher')),
                 (_('Email'), obj.email or _('Por preencher')),
