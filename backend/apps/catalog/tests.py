@@ -1,3 +1,6 @@
+import shutil
+import tempfile
+
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
@@ -19,7 +22,22 @@ GIF_BYTES = (
 )
 
 
-class ProductModelTests(TestCase):
+class TempMediaRootMixin:
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls._temp_media_root = tempfile.mkdtemp()
+		cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_root)
+		cls._media_override.enable()
+
+	@classmethod
+	def tearDownClass(cls):
+		cls._media_override.disable()
+		shutil.rmtree(cls._temp_media_root, ignore_errors=True)
+		super().tearDownClass()
+
+
+class ProductModelTests(TempMediaRootMixin, TestCase):
 	def setUp(self):
 		self.category = Category.objects.create(slug='mercearia')
 		CategoryTranslation.objects.create(
@@ -106,9 +124,41 @@ class ProductModelTests(TestCase):
 		self.assertIn('O produto precisa de stock para estar ativo.', ctx.exception.messages)
 		self.assertIn('O produto precisa de pelo menos uma localização para levantamento.', ctx.exception.messages)
 
+	def test_preview_only_active_product_allows_zero_stock(self):
+		location = Location.objects.create(name='Loja Braga', is_active=True, order=1)
+		product = Product.objects.create(
+			category=self.category,
+			slug='produto-preview',
+			brand='Casa do Tahini',
+			price='5.90',
+			quantity='250 g',
+			stock=0,
+			bio_code='PT-BIO-03',
+			is_active=False,
+			is_preview_only=True,
+		)
+		ProductTranslation.objects.create(
+			product=product,
+			language='pt',
+			name='Tahini preview',
+			description='Descrição',
+			allergens='Sésamo',
+			ingredients='Sementes de sésamo',
+		)
+		ProductImage.objects.create(
+			product=product,
+			image=SimpleUploadedFile('preview.gif', GIF_BYTES, content_type='image/gif'),
+			alt_text='Tahini preview',
+			is_primary=True,
+		)
+		product.available_locations.add(location)
+
+		product.is_active = True
+		product.full_clean()
+
 
 @override_settings(ROOT_URLCONF='config.urls_shop')
-class ProductDetailViewTests(TestCase):
+class ProductDetailViewTests(TempMediaRootMixin, TestCase):
 	def setUp(self):
 		self.category = Category.objects.create(slug='despensa')
 		CategoryTranslation.objects.create(
@@ -155,6 +205,20 @@ class ProductDetailViewTests(TestCase):
 		self.assertContains(response, '500 g')
 		self.assertContains(response, 'PT-BIO-03')
 
+	def test_product_detail_shows_preview_only_state(self):
+		self.product.is_preview_only = True
+		self.product.stock = 0
+		self.product.save(update_fields=['is_preview_only', 'stock'])
+
+		response = self.client.get(
+			reverse('catalog:product_detail', kwargs={'slug': self.product.slug}),
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Produto em pré-visualização')
+		self.assertContains(response, 'Disponível para consulta no catálogo, sem compra online de momento.')
+
 	def test_product_detail_stays_within_expected_query_budget(self):
 		with CaptureQueriesContext(connection) as queries:
 			response = self.client.get(
@@ -166,7 +230,7 @@ class ProductDetailViewTests(TestCase):
 		self.assertLessEqual(len(queries), 10)
 
 
-class CatalogConstraintTests(TestCase):
+class CatalogConstraintTests(TempMediaRootMixin, TestCase):
 	def setUp(self):
 		self.category = Category.objects.create(slug='mercearia')
 		CategoryTranslation.objects.create(
@@ -325,9 +389,38 @@ class CatalogListViewTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'Pesquisa PT')
 
+	def test_product_list_keeps_preview_only_products_visible(self):
+		product = Product.objects.create(
+			category=self.category,
+			slug='produto-preview',
+			brand='Biobrassica',
+			price='4.20',
+			quantity='200 g',
+			stock=0,
+			is_preview_only=True,
+			bio_code='PT-BIO-98',
+		)
+		ProductTranslation.objects.create(
+			product=product,
+			language='pt',
+			name='Produto preview',
+			description='Visível mas não comprável',
+			allergens='Sem alergénios',
+			ingredients='Ingredientes PT',
+		)
+
+		response = self.client.get(
+			reverse('catalog:product_list'),
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Produto preview')
+		self.assertContains(response, 'Pré-visualização')
+
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
-class ProductAdminWorkflowTests(TestCase):
+class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
 	def setUp(self):
 		user_model = get_user_model()
 		self.admin_user = cast(Any, user_model._default_manager).create_superuser(
@@ -366,6 +459,7 @@ class ProductAdminWorkflowTests(TestCase):
 		response = self.client.get(reverse('admin:catalog_product_changelist'))
 
 		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Pré-visualização')
 		self.assertContains(response, 'Sem stock')
 		self.assertContains(response, 'Baixo stock')
 		self.assertContains(response, 'Sem imagem principal')

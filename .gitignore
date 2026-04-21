@@ -32,6 +32,8 @@ backend/static/css/output.css
 
 # Docker volumes
 *.sql.gz
+certbot/conf/
+certbot/www/
 
 # Logs
 *.log

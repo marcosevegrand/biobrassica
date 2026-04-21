@@ -13,16 +13,19 @@ from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart
 from apps.orders.forms import CheckoutForm, PaymentSelectionForm
 from apps.orders.models import Order
 from apps.orders.services import StockValidationError, cancel_unpaid_order, create_order_from_cart, transition_order_status
+from apps.core.site_content import payments_are_enabled
 from apps.payments.models import Payment
 from apps.payments.services import (
+    PaymentDisabledError,
     configure_stripe_checkout,
     expire_pending_payment,
-    mark_payment_paid,
+    finalize_successful_payment,
     reset_payment,
     stripe_service,
 )
 
 logger = logging.getLogger(__name__)
+PAYMENTS_DISABLED_MESSAGE = _('Os pagamentos estão temporariamente indisponíveis. Tente novamente dentro de instantes.')
 
 
 def _cart_allows_shipping(items):
@@ -79,6 +82,7 @@ def _payment_select_context(order, form):
     return {
         'order': order,
         'form': form,
+        'payments_enabled': payments_are_enabled(),
     }
 
 
@@ -89,7 +93,13 @@ def _checkout_context(request, cart, items, cart_can_ship, form):
         'form': form,
         'pickup_locations': list(form.fields['pickup_location'].choices),
         'cart_can_ship': cart_can_ship,
+        'payments_enabled': payments_are_enabled(),
     }
+
+
+def _handle_payments_disabled(*, redirect_to, request):
+    messages.error(request, PAYMENTS_DISABLED_MESSAGE)
+    return redirect(redirect_to)
 
 
 def checkout(request, order_id=None):
@@ -111,7 +121,9 @@ def checkout(request, order_id=None):
         messages.warning(request, _('O seu carrinho está vazio.'))
         return redirect('cart:detail')
 
-    remove_inactive_cart_items(cart)
+    removed_count = remove_inactive_cart_items(cart)
+    if removed_count:
+        messages.warning(request, _('Alguns produtos deixaram de estar disponíveis para compra e foram removidos do carrinho.'))
     items = list(get_cart_items_queryset(cart))
     if not items:
         messages.warning(request, _('O seu carrinho está vazio.'))
@@ -136,12 +148,17 @@ def checkout_confirm(request):
     if request.method != 'POST':
         return redirect('orders:checkout')
 
+    if not payments_are_enabled():
+        return _handle_payments_disabled(request=request, redirect_to='orders:checkout')
+
     cart = get_cart_for_request(request)
 
     if not cart or cart.item_count == 0:
         return redirect('cart:detail')
 
-    remove_inactive_cart_items(cart)
+    removed_count = remove_inactive_cart_items(cart)
+    if removed_count:
+        messages.warning(request, _('Alguns produtos deixaram de estar disponíveis para compra e foram removidos do carrinho.'))
     cart_items = list(get_cart_items_queryset(cart))
     if not cart_items:
         messages.warning(request, _('O seu carrinho está vazio.'))
@@ -213,6 +230,15 @@ def checkout_confirm(request):
         cart_items = list(get_cart_items_queryset(cart))
         cart_can_ship = _cart_allows_shipping(cart_items) if cart_items else False
         return render(request, 'orders/checkout.html', _checkout_context(request, cart, cart_items, cart_can_ship, form), status=200)
+    except PaymentDisabledError:
+        if order is not None:
+            try:
+                cancel_unpaid_order(order)
+            except Exception:
+                logger.exception('Failed to cancel order %s after payments were disabled', order.pk)
+        if payment is not None:
+            payment.delete()
+        return _handle_payments_disabled(request=request, redirect_to='orders:checkout')
     except Exception:
         if order is not None:
             try:
@@ -239,6 +265,9 @@ def payment_select(request, order_id):
     if request.method == 'GET':
         form = PaymentSelectionForm(initial={'payment_method': Payment.Method.STRIPE})
         return render(request, 'orders/payment_select.html', _payment_select_context(order, form))
+
+    if not payments_are_enabled():
+        return _handle_payments_disabled(request=request, redirect_to=_order_url('orders:payment_select', order))
 
     form = PaymentSelectionForm(request.POST)
     if not form.is_valid():
@@ -275,6 +304,9 @@ def payment_select(request, order_id):
                 expires_at=response.get('expires_at'),
             )
             return redirect(payment.checkout_url)
+    except PaymentDisabledError:
+        messages.error(request, PAYMENTS_DISABLED_MESSAGE)
+        return redirect(_order_url('orders:payment_select', order))
     except Exception:
         logger.exception('Failed to initiate payment for order %s', order.pk)
         messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
@@ -301,7 +333,9 @@ def payment_status(request, order_id):
             logger.exception('Failed to fetch Stripe Checkout session for payment %s', payment.pk)
         else:
             if getattr(session, 'payment_status', '') == 'paid':
-                mark_payment_paid(payment, source='stripe_checkout_poll')
+                with transaction.atomic():
+                    locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=payment.pk)
+                    finalize_successful_payment(locked_payment, source='stripe_checkout_poll')
                 messages.success(request, _('Pagamento confirmado com sucesso.'))
                 return redirect(_order_url('orders:complete', order))
             if getattr(session, 'status', '') == 'expired':

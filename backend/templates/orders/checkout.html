@@ -13,6 +13,12 @@
       <form method="post" action="{% url 'orders:confirm' %}" x-data="{ fulfillmentMethod: '{{ form.fulfillment_method.value|default:'pickup'|escapejs }}' }">
         {% csrf_token %}
 
+        {% if not payments_enabled %}
+        <div class="mb-6 rounded-sm border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p>{% trans "Os pagamentos estão temporariamente indisponíveis. Pode rever a encomenda, mas o pagamento será retomado dentro de instantes." %}</p>
+        </div>
+        {% endif %}
+
         {% if form.non_field_errors %}
         <div class="mb-6 rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           {% for error in form.non_field_errors %}
@@ -145,8 +151,9 @@
         </div>
 
         <button type="submit"
-                class="mt-8 w-full text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors">
-          {% trans "Continuar para pagamento" %}
+                class="mt-8 w-full text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors {% if not payments_enabled %}opacity-50 cursor-not-allowed{% endif %}"
+                {% if not payments_enabled %}disabled{% endif %}>
+          {% if payments_enabled %}{% trans "Continuar para pagamento" %}{% else %}{% trans "Pagamentos temporariamente indisponíveis" %}{% endif %}
         </button>
       </form>
     </div>

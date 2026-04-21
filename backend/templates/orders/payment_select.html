@@ -9,6 +9,12 @@
   <p class="text-muted mb-12">{% trans "Encomenda" %} #{{ order.pk }} — {{ order.total|floatformat:2 }}€</p>
   <p class="text-sm text-muted mb-6">{% trans "O pagamento é processado de forma segura pela Stripe." %}</p>
 
+  {% if not payments_enabled %}
+  <div class="mb-6 rounded-sm border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+    <p>{% trans "Os pagamentos estão temporariamente indisponíveis. Volte a tentar dentro de instantes." %}</p>
+  </div>
+  {% endif %}
+
   {% if form.non_field_errors or form.payment_method.errors %}
   <div class="mb-6 rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-800">
     {% for error in form.non_field_errors %}
@@ -36,8 +42,9 @@
         </div>
         <div class="mt-4">
           <button type="submit"
-                  class="mt-3 w-full text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors">
-            {% trans "Continuar para pagamento" %}
+                  class="mt-3 w-full text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors {% if not payments_enabled %}opacity-50 cursor-not-allowed{% endif %}"
+                  {% if not payments_enabled %}disabled{% endif %}>
+            {% if payments_enabled %}{% trans "Continuar para pagamento" %}{% else %}{% trans "Pagamentos temporariamente indisponíveis" %}{% endif %}
           </button>
         </div>
       </div>

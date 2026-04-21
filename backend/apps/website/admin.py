@@ -1,5 +1,6 @@
 """Website admin customisations."""
 
+from django.conf import settings
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -7,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 
 from apps.core.admin_helpers import EditLinkAdminMixin, OrderableAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
+from apps.core.site_content import get_payments_availability
 from apps.website.models import TeamMember, WebsiteContent
 
 
@@ -95,12 +97,12 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 
 @admin.register(WebsiteContent)
 class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
-	list_display = ('__str__', 'updated_at', 'edit_link')
+	list_display = ('__str__', 'payments_status_badge', 'updated_at', 'edit_link')
 	readonly_fields = ('website_operations_panel',)
 	compressed_fields = True
 	fieldsets = (
 		(_('Operação'), {
-			'fields': ('website_operations_panel',),
+			'fields': ('payments_enabled', 'website_operations_panel'),
 		}),
 		(_('Empresa e apoio'), {
 			'fields': ('company_legal_name', 'company_address', 'company_nif', 'support_email'),
@@ -140,6 +142,26 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 	def has_delete_permission(self, request, obj=None):
 		return False
 
+	def get_changeform_submit_actions(self, request, obj):
+		if obj.payments_enabled:
+			return [{'action_name': '_disable_payments', 'description': _('Desativar pagamentos')}]
+		return [{'action_name': '_enable_payments', 'description': _('Ativar pagamentos')}]
+
+	def handle_changeform_submit_action(self, request, obj, action_name):
+		if action_name == '_disable_payments' and obj.payments_enabled:
+			obj.payments_enabled = False
+			obj.save(update_fields=['payments_enabled', 'updated_at'])
+			self.message_user(request, _('Pagamentos desativados.'), level=messages.SUCCESS)
+			return HttpResponseRedirect(request.path)
+
+		if action_name == '_enable_payments' and not obj.payments_enabled:
+			obj.payments_enabled = True
+			obj.save(update_fields=['payments_enabled', 'updated_at'])
+			self.message_user(request, _('Pagamentos ativados.'), level=messages.SUCCESS)
+			return HttpResponseRedirect(request.path)
+
+		return None
+
 	def get_changeform_custom_tools(self, request, obj):
 		return [
 			{
@@ -156,14 +178,32 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			},
 		]
 
+	@admin.display(description=_('Pagamentos'))
+	def payments_status_badge(self, obj):
+		availability = get_payments_availability(content=obj)
+		if availability['enabled']:
+			return render_status_badge(_('Ativos'), 'success')
+		if availability['source'] == 'settings' or getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
+			return render_status_badge(_('Bloqueados no servidor'), 'danger')
+		return render_status_badge(_('Desativados'), 'warning')
+
 	@admin.display(description=_('Resumo do website'))
 	def website_operations_panel(self, obj):
 		if obj is None:
 			return _('Guarde o conteúdo para centralizar a gestão editorial do website.')
 
+		availability = get_payments_availability(content=obj)
+		if availability['enabled']:
+			payments_state = _('Ativos')
+		elif availability['source'] == 'settings' or getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
+			payments_state = _('Bloqueados no servidor')
+		else:
+			payments_state = _('Desativados no backoffice')
+
 		return render_summary_panel(
 			_('Operação editorial'),
 			[
+				(_('Pagamentos'), payments_state),
 				(_('Empresa'), obj.company_legal_name or _('Usa fallback')),
 				(_('Morada legal'), obj.company_address or _('Usa fallback')),
 				(_('Email de apoio'), obj.support_email or _('Usa fallback')),
@@ -175,5 +215,5 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 				(_('Contactos'), _('Configurado') if obj.contacts_hero_title else _('Usa fallback')),
 				(_('WhatsApp'), obj.whatsapp_number or _('Usa fallback')),
 			],
-			footer=_('Este registo centraliza os principais blocos estáticos do website para manutenção no backoffice.'),
+			footer=_('Este registo centraliza os principais blocos estáticos do website e permite pausar pagamentos no backoffice.'),
 		)

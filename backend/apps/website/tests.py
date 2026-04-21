@@ -1,3 +1,6 @@
+import shutil
+import tempfile
+
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -17,7 +20,22 @@ GIF_BYTES = (
 )
 
 
-class WebsiteTestCase(TestCase):
+class TempMediaRootMixin:
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._temp_media_root = tempfile.mkdtemp()
+        cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_root)
+        cls._media_override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._media_override.disable()
+        shutil.rmtree(cls._temp_media_root, ignore_errors=True)
+        super().tearDownClass()
+
+
+class WebsiteTestCase(TempMediaRootMixin, TestCase):
     def tearDown(self):
         translation.activate(settings.LANGUAGE_CODE)
         super().tearDown()
@@ -251,9 +269,23 @@ class WebsiteContentAdminTests(WebsiteTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Operação editorial')
+        self.assertContains(response, 'Pagamentos')
         self.assertContains(response, 'Email de apoio')
         self.assertContains(response, 'Gerir equipa')
         self.assertContains(response, 'Gerir lojas')
+
+    def test_website_content_change_form_can_disable_payments(self):
+        response = self.client.post(
+            reverse('admin:website_websitecontent_change', args=[self.content.pk]),
+            {'_disable_payments': '1'},
+            follow=True,
+        )
+
+        self.content.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.content.payments_enabled)
+        self.assertContains(response, 'Pagamentos desativados.')
 
 
 class WebsiteContentSingletonTests(WebsiteTestCase):

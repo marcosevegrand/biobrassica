@@ -1,5 +1,25 @@
+from django.conf import settings
 from django.http import Http404
 from django.utils import translation
+
+
+SITE_URLCONFS = {
+    'website': 'config.urls_website',
+    'shop': 'config.urls_shop',
+    'admin': 'config.urls_admin',
+}
+
+
+def resolve_site_role(host):
+    forced_site_role = getattr(settings, 'SITE_ROLE', '')
+    if forced_site_role in SITE_URLCONFS:
+        return forced_site_role, SITE_URLCONFS[forced_site_role]
+
+    if host.startswith('loja.'):
+        return 'shop', SITE_URLCONFS['shop']
+    if host.startswith('admin.'):
+        return 'admin', SITE_URLCONFS['admin']
+    return 'website', SITE_URLCONFS['website']
 
 
 class SubdomainMiddleware:
@@ -16,17 +36,7 @@ class SubdomainMiddleware:
 
     def __call__(self, request):
         host = request.get_host().split(':')[0].lower()
-        request.subdomain = None
-
-        if host.startswith('loja.'):
-            request.urlconf = 'config.urls_shop'
-            request.subdomain = 'shop'
-        elif host.startswith('admin.'):
-            request.urlconf = 'config.urls_admin'
-            request.subdomain = 'admin'
-        else:
-            request.urlconf = 'config.urls_website'
-            request.subdomain = 'website'
+        request.subdomain, request.urlconf = resolve_site_role(host)
 
         if request.subdomain == 'admin':
             previous_language = translation.get_language()
@@ -55,6 +65,10 @@ class SubdomainSecurityMiddleware:
 
     def __call__(self, request):
         subdomain = getattr(request, 'subdomain', None)
+        if not subdomain:
+            host = request.get_host().split(':')[0].lower()
+            subdomain, _ = resolve_site_role(host)
+            request.subdomain = subdomain
         path = request.path
 
         # Block /admin/ access from shop or website subdomains

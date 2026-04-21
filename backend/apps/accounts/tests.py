@@ -1,10 +1,13 @@
+from io import StringIO
 from django.test import TestCase, override_settings
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.core.management import call_command, CommandError
 from typing import cast
 from decimal import Decimal
 from django.contrib import admin
+from unittest.mock import patch
 
 from apps.accounts.models import Address, User as AccountUser
 from apps.cart.models import Cart, CartItem
@@ -397,3 +400,32 @@ class AccountsAdminWorkflowTests(TestCase):
 		customer = user_admin.get_queryset(request).get(pk=self.customer.pk)
 
 		self.assertEqual(customer.lifetime_revenue, Decimal('20.00'))
+
+
+class ResetAdminPasswordCommandTests(TestCase):
+	def test_reset_admin_password_updates_staff_account(self):
+		user = User.objects.create_user(
+			email='admin-reset@biobrassica.pt',
+			username='admin-reset',
+			password='OldPass123!',
+			is_staff=True,
+		)
+		stdout = StringIO()
+
+		with patch('apps.accounts.management.commands.reset_admin_password.getpass.getpass', side_effect=['NovaPass123!', 'NovaPass123!']):
+			call_command('reset_admin_password', user.email, stdout=stdout)
+
+		user.refresh_from_db()
+		self.assertTrue(user.check_password('NovaPass123!'))
+		self.assertIn(f'Password updated for {user.email}.', stdout.getvalue())
+
+	def test_reset_admin_password_rejects_non_staff_account(self):
+		user = User.objects.create_user(
+			email='cliente-reset@biobrassica.pt',
+			username='cliente-reset',
+			password='OldPass123!',
+			is_staff=False,
+		)
+
+		with self.assertRaises(CommandError):
+			call_command('reset_admin_password', user.email)

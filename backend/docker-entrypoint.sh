@@ -2,6 +2,8 @@
 set -eu
 
 if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
+    collectstatic_on_start="${DJANGO_COLLECTSTATIC_ON_START:-0}"
+
     for var in \
         DJANGO_SECRET_KEY \
         DB_PASSWORD \
@@ -23,7 +25,9 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
             exit 1
         fi
 
-        /usr/local/bin/python manage.py collectstatic --noinput
+        if [ "$collectstatic_on_start" = "1" ]; then
+            /usr/local/bin/python manage.py collectstatic --noinput
+        fi
     fi
 fi
 

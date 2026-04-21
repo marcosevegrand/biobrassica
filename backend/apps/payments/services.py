@@ -14,6 +14,7 @@ from django.utils import timezone
 from apps.orders.models import Order
 from apps.orders.services import cancel_unpaid_order, transition_order_status
 from apps.payments.models import Payment
+from apps.core.site_content import payments_are_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,10 @@ class PaymentProcessingError(Exception):
 
 
 class PaymentTransitionError(PaymentProcessingError):
+    pass
+
+
+class PaymentDisabledError(PaymentProcessingError):
     pass
 
 
@@ -258,6 +263,13 @@ def mark_payment_paid(payment, *, source: str) -> bool:
     return True
 
 
+def finalize_successful_payment(payment, *, source: str) -> bool:
+    changed = mark_payment_paid(payment, source=source)
+    if changed:
+        schedule_payment_notifications(payment)
+    return changed
+
+
 def mark_payment_failed(payment, *, reason: str) -> bool:
     changed = transition_payment_status(payment, payment.Status.FAILED, reason=reason, source='payment_failure')
 
@@ -377,6 +389,9 @@ class StripeService:
         return {'api_key': settings.STRIPE_SECRET_KEY}
 
     def create_checkout_session(self, *, order, payment, success_url: str, cancel_url: str) -> dict:
+        if not payments_are_enabled():
+            raise PaymentDisabledError('Payments are temporarily disabled.')
+
         # Get order items with product details
         order_items = order.items.all()
         

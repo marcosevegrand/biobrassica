@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import DecimalField, ExpressionWrapper, F, Sum
+from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Coalesce
 
 from apps.cart.models import Cart, CartItem
@@ -40,7 +40,7 @@ def get_or_create_cart_for_request(request):
 
 def get_cart_items_queryset(cart):
     return (
-        cart.items.filter(product__is_active=True)
+        cart.items.filter(product__is_active=True, product__is_preview_only=False)
         .select_related('product')
         .prefetch_related('product__translations', 'product__images')
     )
@@ -57,7 +57,7 @@ def get_cart_totals(cart):
             'cart_total': Decimal('0'),
         }
 
-    totals = cart.items.filter(product__is_active=True).aggregate(
+    totals = cart.items.filter(product__is_active=True, product__is_preview_only=False).aggregate(
         cart_item_count=Coalesce(Sum('quantity'), 0),
         cart_total=Coalesce(
             Sum(
@@ -88,8 +88,8 @@ def get_cart_summary(cart, *, preview_limit=3):
 
 
 def add_product_to_cart(cart, product, *, quantity):
-    if not product.is_active:
-        raise ValueError('Cannot add an inactive product to cart.')
+    if not product.is_active or product.is_preview_only:
+        raise ValueError('Cannot add an unavailable product to cart.')
 
     with transaction.atomic():
         item = CartItem.objects.select_for_update().filter(cart=cart, product=product).first()
@@ -113,6 +113,9 @@ def add_product_to_cart(cart, product, *, quantity):
 def set_cart_item_quantity(item, *, quantity):
     with transaction.atomic():
         locked_item = CartItem.objects.select_for_update().select_related('product').get(pk=item.pk)
+        if not locked_item.product.is_active or locked_item.product.is_preview_only:
+            locked_item.delete()
+            return None, False
         final_quantity, was_capped = _cap_quantity_to_stock(locked_item.product, quantity)
 
         if final_quantity <= 0:
@@ -144,6 +147,10 @@ def merge_anonymous_cart_into_user_cart(request, user):
         }
 
         for item in anonymous_items:
+            if not item.product.is_active or item.product.is_preview_only:
+                item.delete()
+                continue
+
             existing_item = existing_items.get(item.product.pk)
 
             if existing_item:
@@ -174,7 +181,9 @@ def clear_cart(cart):
 
 
 def remove_inactive_cart_items(cart):
-    deleted_count, _ = cart.items.filter(product__is_active=False).delete()
+    deleted_count, _ = cart.items.filter(
+        Q(product__is_active=False) | Q(product__is_preview_only=True)
+    ).delete()
     return deleted_count
 
 

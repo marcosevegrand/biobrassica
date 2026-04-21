@@ -38,7 +38,7 @@ def test_stripe_completed_webhook_marks_payment_paid_and_stores_sanitized_callba
             },
         },
     )
-    monkeypatch.setattr('apps.payments.views.schedule_payment_notifications', lambda payment: scheduled.append(payment.pk))
+    monkeypatch.setattr('apps.payments.services.schedule_payment_notifications', lambda payment: scheduled.append(payment.pk))
 
     response = shop_client.post(
         reverse('stripe_callback', urlconf='config.urls_shop'),

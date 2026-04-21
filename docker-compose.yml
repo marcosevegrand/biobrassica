@@ -1,24 +1,44 @@
+x-django-service: &django-service
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+    target: production
+  user: "10001:10001"
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  volumes:
+    - media_files:/app/media
+    - static_files:/app/staticfiles
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "/app/docker-healthcheck.sh"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 30s
+
 services:
-  # --- Django backend (serves all 3 subdomains) ---
-  django:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: production
-    user: "10001:10001"
-    read_only: true
-    tmpfs:
-      - /tmp
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+  # --- Django backend (one runtime per public host) ---
+  django_website:
+    <<: *django-service
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
       - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
       - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-marcosevegrand.com,www.marcosevegrand.com,loja.marcosevegrand.com,admin.marcosevegrand.com}
+      - SITE_ROLE=website
+      - HEALTHCHECK_HOST=${WEBSITE_HOST:-marcosevegrand.com}
+      - ALLOWED_HOSTS=${WEBSITE_ALLOWED_HOSTS:-marcosevegrand.com,www.marcosevegrand.com}
       - DB_NAME=${DB_NAME:-biobrassica}
       - DB_USER=${DB_USER:-biobrassica}
       - DB_PASSWORD=${DB_PASSWORD:-}
@@ -30,27 +50,71 @@ services:
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
       - STRIPE_CURRENCY=${STRIPE_CURRENCY:-eur}
+      - PAYMENTS_FORCE_DISABLED=${PAYMENTS_FORCE_DISABLED:-0}
       - EMAIL_HOST=${EMAIL_HOST:-}
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
       - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
-    volumes:
-      - media_files:/app/media
-      - static_files:/app/staticfiles
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "/app/docker-healthcheck.sh"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+
+  django_shop:
+    <<: *django-service
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
+      - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
+      - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
+      - SITE_ROLE=shop
+      - HEALTHCHECK_HOST=${SHOP_HOST:-loja.marcosevegrand.com}
+      - ALLOWED_HOSTS=${SHOP_ALLOWED_HOSTS:-loja.marcosevegrand.com}
+      - DB_NAME=${DB_NAME:-biobrassica}
+      - DB_USER=${DB_USER:-biobrassica}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - SHOP_BASE_URL=${SHOP_BASE_URL:-https://loja.marcosevegrand.com}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - STRIPE_CURRENCY=${STRIPE_CURRENCY:-eur}
+      - PAYMENTS_FORCE_DISABLED=${PAYMENTS_FORCE_DISABLED:-0}
+      - EMAIL_HOST=${EMAIL_HOST:-}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
+      - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
+
+  django_admin:
+    <<: *django-service
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
+      - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
+      - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
+      - SITE_ROLE=admin
+      - HEALTHCHECK_HOST=${ADMIN_HOST:-admin.marcosevegrand.com}
+      - ALLOWED_HOSTS=${ADMIN_ALLOWED_HOSTS:-admin.marcosevegrand.com}
+      - DB_NAME=${DB_NAME:-biobrassica}
+      - DB_USER=${DB_USER:-biobrassica}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - SHOP_BASE_URL=${SHOP_BASE_URL:-https://loja.marcosevegrand.com}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - STRIPE_CURRENCY=${STRIPE_CURRENCY:-eur}
+      - PAYMENTS_FORCE_DISABLED=${PAYMENTS_FORCE_DISABLED:-0}
+      - EMAIL_HOST=${EMAIL_HOST:-}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
+      - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
 
   # --- PostgreSQL ---
   db:
@@ -85,13 +149,20 @@ services:
     image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - static_files:/var/www/static:ro
       - media_files:/var/www/media:ro
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
     depends_on:
-      django:
+      django_website:
+        condition: service_healthy
+      django_shop:
+        condition: service_healthy
+      django_admin:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -99,6 +170,15 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["tools"]
+    ports:
+      - "80:80"
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
 
 volumes:
   pg_data:

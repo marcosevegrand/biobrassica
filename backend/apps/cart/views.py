@@ -19,6 +19,9 @@ from apps.cart.services import (
 from apps.catalog.models import Product
 
 
+UNAVAILABLE_CART_ITEMS_MESSAGE = _('Alguns produtos deixaram de estar disponíveis para compra e foram removidos do carrinho.')
+
+
 def _render_cart_count(cart_summary, request):
     return render_to_string(
         'cart/_cart_count.html',
@@ -112,7 +115,9 @@ def _cart_htmx_response(*, request, cart, cart_summary, item=None, open_popup=Fa
 def cart_detail(request):
     lang = get_language() or 'pt'
     cart = get_or_create_cart_for_request(request)
-    remove_inactive_cart_items(cart)
+    removed_count = remove_inactive_cart_items(cart)
+    if removed_count:
+        messages.warning(request, UNAVAILABLE_CART_ITEMS_MESSAGE)
     items = get_cart_items_queryset(cart)
     cart_summary = get_cart_summary(cart)
 
@@ -143,7 +148,10 @@ def add_to_cart(request, product_id):
     try:
         item, was_capped = add_product_to_cart(cart, product, quantity=form.cleaned_data['quantity'])
     except ValueError:
-        messages.error(request, _('Este produto já não está disponível.'))
+        if product.is_preview_only:
+            messages.error(request, _('Este produto está disponível apenas para pré-visualização.'))
+        else:
+            messages.error(request, _('Este produto já não está disponível.'))
         return redirect('cart:detail')
 
     if item is None:
@@ -173,7 +181,9 @@ def update_cart_item(request, item_id):
         return redirect('cart:detail')
 
     updated_item, was_capped = set_cart_item_quantity(item, quantity=form.cleaned_data['quantity'])
-    if updated_item is None and item.product.stock <= 0:
+    if updated_item is None and (not item.product.is_active or item.product.is_preview_only):
+        messages.warning(request, UNAVAILABLE_CART_ITEMS_MESSAGE)
+    elif updated_item is None and item.product.stock <= 0:
         messages.warning(request, _('Este produto está esgotado.'))
     elif was_capped:
         messages.warning(request, _('A quantidade foi ajustada ao stock disponível.'))

@@ -1,4 +1,4 @@
-.PHONY: help setup-env setup init up down build restart status logs shell migrate makemigrations createsuperuser collectstatic seed css-build messages compilemessages test lint format typecheck check backup restore prod-config stripe-listen
+.PHONY: help setup-env setup init up down build restart status logs shell migrate makemigrations createsuperuser collectstatic seed css-build messages compilemessages test lint format typecheck check backup restore prod-build prod-up prod-restart prod-logs prod-shell prod-migrate prod-collectstatic prod-reset-admin-password prod-config stripe-listen
 
 .DEFAULT_GOAL := help
 
@@ -12,6 +12,10 @@ PYTEST_ARGS ?=
 COMPOSE_PROD := docker compose -f docker-compose.yml
 COMPOSE_DEV := docker compose --env-file $(ENV_FILE) -f docker-compose.yml -f docker-compose.dev.yml
 DJANGO_EXEC := $(COMPOSE_DEV) exec django
+PROD_SERVICE ?= django_website
+PROD_DJANGO_SERVICE ?= django_website
+PROD_LOG_ARGS ?= -f --tail=200
+PROD_DJANGO_EXEC := $(COMPOSE_PROD) exec $(PROD_DJANGO_SERVICE)
 
 help: ## Show available commands
 	@echo ""
@@ -30,6 +34,8 @@ help: ## Show available commands
 	@echo "    make init"
 	@echo "    make logs SERVICE=nginx"
 	@echo "    make test PYTEST_MARKERS='fast or contract'"
+	@echo "    make prod-build PROD_SERVICE=django_shop"
+	@echo "    make prod-restart PROD_SERVICE=django_admin"
 	@echo ""
 
 
@@ -116,6 +122,31 @@ backup: ## Backup the production database and media
 restore: ## Restore production data; usage: make restore FILE=/path/to/db.sql.gz [MEDIA=/path/to/media.tar.gz] [YES=1]
 	@test -n "$(FILE)" || (echo "Usage: make restore FILE=/path/to/db.sql.gz [MEDIA=/path/to/media.tar.gz] [YES=1]" && exit 1)
 	./scripts/restore.sh --db "$(FILE)" $(if $(MEDIA),--media "$(MEDIA)") $(if $(filter 1,$(YES)),--yes)
+
+prod-build: ## Build one production service; override with PROD_SERVICE=name
+	$(COMPOSE_PROD) build $(PROD_SERVICE)
+
+prod-up: ## Start one production service; override with PROD_SERVICE=name
+	$(COMPOSE_PROD) up -d $(PROD_SERVICE)
+
+prod-restart: ## Restart one production service; override with PROD_SERVICE=name
+	$(COMPOSE_PROD) restart $(PROD_SERVICE)
+
+prod-logs: ## Follow production logs; override with PROD_SERVICE=name or PROD_LOG_ARGS='--tail=50'
+	$(COMPOSE_PROD) logs $(PROD_LOG_ARGS) $(PROD_SERVICE)
+
+prod-shell: ## Open a production Django shell; override with PROD_DJANGO_SERVICE=name
+	$(PROD_DJANGO_EXEC) python manage.py shell
+
+prod-migrate: ## Run production migrations; override with PROD_DJANGO_SERVICE=name
+	$(PROD_DJANGO_EXEC) python manage.py migrate --noinput
+
+prod-collectstatic: ## Collect production static files explicitly; override with PROD_DJANGO_SERVICE=name
+	$(PROD_DJANGO_EXEC) python manage.py collectstatic --noinput
+
+prod-reset-admin-password: ## Reset a production admin password; usage: make prod-reset-admin-password EMAIL=admin@example.com [PROD_DJANGO_SERVICE=django_admin]
+	@test -n "$(EMAIL)" || (echo "Usage: make prod-reset-admin-password EMAIL=admin@example.com [PROD_DJANGO_SERVICE=django_admin]" && exit 1)
+	$(PROD_DJANGO_EXEC) python manage.py reset_admin_password "$(EMAIL)"
 
 prod-config: ## Print the production Compose config
 	$(COMPOSE_PROD) config

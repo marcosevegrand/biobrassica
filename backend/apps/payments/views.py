@@ -8,14 +8,13 @@ import stripe
 
 from apps.payments.models import Payment, PaymentCallback
 from apps.payments.services import (
+    finalize_successful_payment,
     PaymentTransitionError,
     anonymize_ip_address,
     expire_pending_payment,
     mark_payment_failed,
-    mark_payment_paid,
     mark_payment_refunded,
     sanitize_callback_payload,
-    schedule_payment_notifications,
     stripe_service,
 )
 
@@ -116,8 +115,7 @@ def stripe_callback(request):
                 locked_payment.save(update_fields=updated_fields)
 
             if event_type in {'checkout.session.completed', 'checkout.session.async_payment_succeeded'}:
-                if mark_payment_paid(locked_payment, source='stripe_webhook'):
-                    schedule_payment_notifications(locked_payment)
+                finalize_successful_payment(locked_payment, source='stripe_webhook')
             elif event_type == 'checkout.session.expired':
                 expire_pending_payment(locked_payment, reason='stripe checkout expired')
             elif event_type in {'payment_intent.payment_failed', 'checkout.session.async_payment_failed'}:

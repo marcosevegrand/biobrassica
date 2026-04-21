@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -294,6 +295,85 @@ class OrderCheckoutFlowTests(TestCase):
         self.assertRedirects(response, reverse('cart:detail'))
         self.assertFalse(Order.objects.filter(email='marco@example.com').exists())
         self.assertEqual(CartItem.objects.filter(cart=cart).count(), 0)
+
+    @patch('apps.orders.views.stripe_service.create_checkout_session')
+    def test_checkout_confirm_rejects_preview_only_products_left_in_cart(self, create_checkout_session):
+        create_checkout_session.return_value = {
+            'session_id': 'cs_test_100',
+            'payment_intent_id': 'pi_test_100',
+            'checkout_url': 'https://checkout.stripe.com/pay/cs_test_100',
+        }
+        cart = self._create_guest_cart()
+        self.product.is_preview_only = True
+        self.product.save(update_fields=['is_preview_only'])
+
+        response = self.client.post(
+            reverse('orders:confirm'),
+            {
+                'name': 'Marco',
+                'email': 'marco@example.com',
+                'pickup_location': Order.PickupLocation.BRAGA,
+            },
+            HTTP_HOST='loja.lvh.me',
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('cart:detail'))
+        self.assertContains(response, 'Alguns produtos deixaram de estar disponíveis para compra e foram removidos do carrinho.')
+        self.assertFalse(Order.objects.filter(email='marco@example.com').exists())
+        self.assertEqual(CartItem.objects.filter(cart=cart).count(), 0)
+
+    @override_settings(PAYMENTS_FORCE_DISABLED=True)
+    @patch('apps.orders.views.stripe_service.create_checkout_session')
+    def test_checkout_confirm_rejects_when_payments_are_disabled(self, create_checkout_session):
+        self._create_guest_cart()
+
+        response = self.client.post(
+            reverse('orders:confirm'),
+            {
+                'name': 'Marco',
+                'email': 'marco@example.com',
+                'pickup_location': Order.PickupLocation.BRAGA,
+            },
+            HTTP_HOST='loja.lvh.me',
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('orders:checkout'))
+        self.assertContains(response, 'Os pagamentos estão temporariamente indisponíveis.')
+        self.assertFalse(Order.objects.filter(email='marco@example.com').exists())
+        create_checkout_session.assert_not_called()
+
+    @override_settings(PAYMENTS_FORCE_DISABLED=True)
+    def test_payment_select_rejects_when_payments_are_disabled(self):
+        user = get_user_model().objects.create_user(
+            email='cliente@example.com',
+            username='cliente',
+            password='testpass123',
+        )
+        order = Order.objects.create(
+            user=user,
+            name='Cliente',
+            email=user.email,
+            phone='912345678',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal='19.00',
+            total='19.00',
+            status=Order.Status.PENDING,
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse('orders:payment_select', kwargs={'order_id': order.pk}),
+            {'payment_method': Payment.Method.STRIPE},
+            HTTP_HOST='loja.lvh.me',
+            follow=True,
+        )
+
+        self.assertRedirects(response, reverse('orders:payment_select', kwargs={'order_id': order.pk}))
+        self.assertContains(response, 'Os pagamentos estão temporariamente indisponíveis.')
+        self.assertFalse(Payment.objects.filter(order=order).exists())
 
     def test_checkout_confirm_shows_postal_code_field_errors(self):
         self._create_guest_cart()

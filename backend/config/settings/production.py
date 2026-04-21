@@ -3,7 +3,7 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401, F403
-from .base import env_list
+from .base import SITE_ROLE, env_list
 
 
 def required_env(name):
@@ -15,9 +15,18 @@ def required_env(name):
 DEBUG = False
 SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
 
+PRODUCTION_ALLOWED_HOSTS_BY_ROLE = {
+    'website': 'marcosevegrand.com,www.marcosevegrand.com',
+    'shop': 'loja.marcosevegrand.com',
+    'admin': 'admin.marcosevegrand.com',
+}
+
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
-    'marcosevegrand.com,www.marcosevegrand.com,loja.marcosevegrand.com,admin.marcosevegrand.com',
+    PRODUCTION_ALLOWED_HOSTS_BY_ROLE.get(
+        SITE_ROLE,
+        'marcosevegrand.com,www.marcosevegrand.com,loja.marcosevegrand.com,admin.marcosevegrand.com',
+    ),
 )
 
 DB_PASSWORD = required_env('DB_PASSWORD')

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -124,13 +125,16 @@ def create_order_from_cart(
 
         for cart_item in cart_items:
             product = locked_products.get(cart_item.product_id)
-            if product is None or not product.is_active or product.stock < cart_item.quantity:
+            if product is None or not product.is_purchasable or product.stock < cart_item.quantity:
                 stock_errors.append(cart_item.product.get_name(language))
 
         if stock_errors:
             raise StockValidationError(stock_errors)
 
-        total = cart.total
+        total = sum(
+            (cart_item.product.price * cart_item.quantity for cart_item in cart_items),
+            Decimal('0.00'),
+        )
         order = Order(
             user=user,
             name=name,

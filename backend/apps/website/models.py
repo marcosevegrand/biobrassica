@@ -70,6 +70,11 @@ class TeamMember(models.Model):
 
 
 class WebsiteContent(models.Model):
+    payments_enabled = models.BooleanField(
+        _('pagamentos ativos'),
+        default=True,
+        help_text=_('Desative temporariamente para bloquear novos pagamentos e novas sessões Stripe.'),
+    )
     company_legal_name = models.CharField(_('designação legal'), max_length=255, blank=True)
     company_address = models.TextField(_('morada legal'), blank=True)
     company_nif = models.CharField(_('NIF da empresa'), max_length=20, blank=True)

@@ -27,6 +27,17 @@ def env_required(name, default=None):
     raise ImproperlyConfigured(f'Missing required environment variable: {name}')
 
 
+SITE_URLCONFS = {
+    'website': 'config.urls_website',
+    'shop': 'config.urls_shop',
+    'admin': 'config.urls_admin',
+}
+
+SITE_ROLE = os.environ.get('SITE_ROLE', '').strip().lower()
+if SITE_ROLE and SITE_ROLE not in SITE_URLCONFS:
+    raise ImproperlyConfigured('SITE_ROLE must be one of: website, shop, admin')
+
+
 SECRET_KEY = env_required('DJANGO_SECRET_KEY', 'django-insecure-dev-only-change-in-production')
 
 INSTALLED_APPS = [
@@ -65,7 +76,7 @@ MIDDLEWARE = [
     'django_htmx.middleware.HtmxMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls_website'
+ROOT_URLCONF = SITE_URLCONFS.get(SITE_ROLE, 'config.urls_website')
 
 TEMPLATES = [
     {
@@ -131,6 +142,7 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'eur').strip().lower() or 'eur'
+PAYMENTS_FORCE_DISABLED = env_bool('PAYMENTS_FORCE_DISABLED', default=False)
 SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
 
 # Email

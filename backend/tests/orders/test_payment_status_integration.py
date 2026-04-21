@@ -34,11 +34,13 @@ def _create_guest_order_with_payment():
 def test_payment_status_polling_paid_session_marks_payment_paid_and_redirects_to_complete(shop_client, monkeypatch):
     order, payment = _create_guest_order_with_payment()
     _grant_guest_access(shop_client, order)
+    scheduled = []
 
     monkeypatch.setattr(
         'apps.orders.views.stripe_service.retrieve_checkout_session',
         lambda session_id: SimpleNamespace(payment_status='paid', status='complete'),
     )
+    monkeypatch.setattr('apps.payments.services.schedule_payment_notifications', lambda payment: scheduled.append(payment.pk))
 
     response = shop_client.get(
         reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop'),
@@ -53,6 +55,7 @@ def test_payment_status_polling_paid_session_marks_payment_paid_and_redirects_to
     )
     assert payment.status == Payment.Status.PAID
     assert order.status == Order.Status.PAID
+    assert scheduled == [payment.pk]
 
 
 def test_payment_status_polling_expired_session_marks_payment_expired_and_renders_status_page(shop_client, monkeypatch):

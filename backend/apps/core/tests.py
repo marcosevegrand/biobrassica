@@ -32,6 +32,21 @@ class SubdomainRoutingTests(TestCase):
 
 		self.assertEqual(response.status_code, 404)
 
+	@override_settings(SITE_ROLE='shop', ROOT_URLCONF='config.urls_shop')
+	def test_site_role_can_force_shop_urls_without_shop_host(self):
+		response = self.client.get('/pt/', HTTP_HOST='lvh.me')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, 'catalog/shop_home.html')
+
+	@override_settings(SITE_ROLE='admin', ROOT_URLCONF='config.urls_admin')
+	def test_site_role_can_force_admin_urls_without_admin_host(self):
+		response = self.client.get('/', HTTP_HOST='lvh.me')
+
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response['Location'], '/admin/')
+		self.assertEqual(response.headers.get('Content-Language'), 'pt')
+
 
 @override_settings(ROOT_URLCONF='config.urls_shop')
 class HealthEndpointTests(TestCase):

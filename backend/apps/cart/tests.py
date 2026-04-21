@@ -75,6 +75,20 @@ class CartViewTests(TestCase):
 		item = CartItem.objects.get(product=self.product)
 		self.assertEqual(item.quantity, 5)
 
+	def test_add_to_cart_rejects_preview_only_product(self):
+		self.product.is_preview_only = True
+		self.product.save(update_fields=['is_preview_only'])
+
+		response = self.client.post(
+			reverse('cart:add', kwargs={'product_id': self.product.pk}),
+			HTTP_HOST='loja.lvh.me',
+			follow=True,
+		)
+
+		self.assertRedirects(response, reverse('cart:detail'))
+		self.assertContains(response, 'Este produto está disponível apenas para pré-visualização.')
+		self.assertFalse(CartItem.objects.filter(product=self.product).exists())
+
 	def test_add_to_cart_rejects_malformed_quantity(self):
 		response = self.client.post(
 			reverse('cart:add', kwargs={'product_id': self.product.pk}),
@@ -268,6 +282,20 @@ class CartViewTests(TestCase):
 		self.assertEqual(cart.item_count, 2)
 		self.assertEqual(cart.total, Decimal('19.00'))
 
+	def test_cart_detail_removes_preview_only_products_with_message(self):
+		session = self.client.session
+		session.save()
+		cart = Cart.objects.create(session_key=session.session_key)
+		CartItem.objects.create(cart=cart, product=self.product, quantity=2)
+		self.product.is_preview_only = True
+		self.product.save(update_fields=['is_preview_only'])
+
+		response = self.client.get(reverse('cart:detail'), HTTP_HOST='loja.lvh.me')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Alguns produtos deixaram de estar disponíveis para compra e foram removidos do carrinho.')
+		self.assertFalse(CartItem.objects.filter(cart=cart).exists())
+
 	def test_cart_queryset_excludes_inactive_products(self):
 		inactive_product = self._create_product('feijao-inativo', 'Feijão inativo', Decimal('2.00'))
 		cart = Cart.objects.create(session_key='inactive-queryset-session')
@@ -276,6 +304,20 @@ class CartViewTests(TestCase):
 
 		inactive_product.is_active = False
 		inactive_product.save(update_fields=['is_active'])
+
+		items = list(get_cart_items_queryset(cart))
+
+		self.assertEqual(len(items), 1)
+		self.assertEqual(items[0].product_id, self.product.pk)
+
+	def test_cart_queryset_excludes_preview_only_products(self):
+		preview_product = self._create_product('feijao-preview', 'Feijão preview', Decimal('2.00'))
+		cart = Cart.objects.create(session_key='preview-queryset-session')
+		CartItem.objects.create(cart=cart, product=self.product, quantity=1)
+		CartItem.objects.create(cart=cart, product=preview_product, quantity=1)
+
+		preview_product.is_preview_only = True
+		preview_product.save(update_fields=['is_preview_only'])
 
 		items = list(get_cart_items_queryset(cart))
 

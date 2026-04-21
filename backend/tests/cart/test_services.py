@@ -91,6 +91,19 @@ def test_merge_anonymous_cart_into_user_cart_moves_new_products_and_sums_existin
     assert merged_cart.items.get(product=extra_product).quantity == 3
 
 
+def test_merge_anonymous_cart_into_user_cart_discards_preview_only_products():
+    user = UserFactory()
+    anonymous_cart = CartFactory(session_key='merge-preview-session')
+    preview_product = ProductFactory(is_preview_only=True, translation={'name': 'Produto Preview'})
+    CartItemFactory(cart=anonymous_cart, product=preview_product, quantity=2)
+    request = make_request(user=user, session=SessionStub('merge-preview-session'))
+
+    merged_cart = merge_anonymous_cart_into_user_cart(request, user)
+
+    assert merged_cart.items.count() == 0
+    assert not Cart.objects.filter(pk=anonymous_cart.pk).exists()
+
+
 def test_remove_inactive_cart_items_deletes_only_inactive_products():
     cart = CartFactory()
     active_product = ProductFactory(is_active=True)
@@ -103,6 +116,20 @@ def test_remove_inactive_cart_items_deletes_only_inactive_products():
     assert deleted_count == 1
     assert cart.items.filter(product=active_product).count() == 1
     assert cart.items.filter(product=inactive_product).count() == 0
+
+
+def test_remove_inactive_cart_items_deletes_preview_only_products_too():
+    cart = CartFactory()
+    active_product = ProductFactory(is_active=True)
+    preview_product = ProductFactory(is_preview_only=True)
+    CartItemFactory(cart=cart, product=active_product, quantity=1)
+    CartItemFactory(cart=cart, product=preview_product, quantity=2)
+
+    deleted_count = remove_inactive_cart_items(cart)
+
+    assert deleted_count == 1
+    assert cart.items.filter(product=active_product).count() == 1
+    assert cart.items.filter(product=preview_product).count() == 0
 
 
 def test_cart_allows_shipping_returns_false_when_any_item_blocks_shipping():

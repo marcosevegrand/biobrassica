@@ -29,6 +29,7 @@ services:
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
       - STRIPE_CURRENCY=${STRIPE_CURRENCY:-eur}
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
+      - PAYMENTS_FORCE_DISABLED=${PAYMENTS_FORCE_DISABLED:-0}
     depends_on:
       db:
         condition: service_healthy

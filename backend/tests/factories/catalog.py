@@ -41,6 +41,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     quantity = '1 un'
     stock = 10
     is_active = True
+    is_preview_only = False
     is_highlight = False
     allow_shipping = True
     bio_code = factory.Sequence(lambda n: f'PT-BIO-{n + 3:02d}')

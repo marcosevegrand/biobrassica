@@ -446,15 +446,15 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/catalog/product/workflow_overview.html'
 
     form = ProductAdminForm
-    list_display = ('__str__', 'brand', 'category', 'price', 'quantity', 'stock', 'stock_badge', 'replenishment_priority', 'catalog_health_display', 'allow_shipping', 'is_active', 'is_highlight', 'edit_link')
-    list_filter = (ProductOpsQueueFilter, 'category', 'allow_shipping', 'is_active', 'is_highlight', 'available_locations')
+    list_display = ('__str__', 'brand', 'category', 'price', 'quantity', 'stock', 'stock_badge', 'availability_badge', 'replenishment_priority', 'catalog_health_display', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'edit_link')
+    list_filter = (ProductOpsQueueFilter, 'category', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'available_locations')
     list_editable = ('price', 'quantity', 'allow_shipping', 'stock', 'is_highlight')
     search_fields = ('slug', 'brand', 'bio_code', 'translations__name')
     search_help_text = _('Pesquise por slug, marca, código bio ou nome traduzido do produto.')
     prepopulated_fields = {'slug': ()}
     filter_horizontal = ('available_locations',)
     inlines = [ProductTranslationInline, ProductImageInline]
-    readonly_fields = ('catalog_readiness_panel', 'replenishment_panel', 'stock_badge', 'created_at', 'updated_at')
+    readonly_fields = ('catalog_readiness_panel', 'replenishment_panel', 'stock_badge', 'availability_badge', 'created_at', 'updated_at')
     list_filter_submit = True
     compressed_fields = True
 
@@ -463,7 +463,7 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             'fields': ('category', 'slug', 'brand', 'bio_code', 'is_active', 'is_highlight', 'catalog_readiness_panel')
         }),
         (_('Venda e disponibilidade'), {
-            'fields': ('price', 'quantity', 'stock', 'stock_badge', 'replenishment_panel', 'allow_shipping', 'available_locations')
+            'fields': ('price', 'quantity', 'stock', 'stock_badge', 'availability_badge', 'replenishment_panel', 'is_preview_only', 'allow_shipping', 'available_locations')
         }),
         (_('Datas'), {
             'fields': ('created_at', 'updated_at')
@@ -477,6 +477,7 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             **(extra_context or {}),
             'workflow_metric_cards': [
                 {'label': _('Ativos'), 'value': queryset.filter(is_active=True).count(), 'context': _('Catálogo visível'), 'link': f'{base_url}?is_active__exact=1'},
+                {'label': _('Pré-visualização'), 'value': queryset.filter(is_active=True, is_preview_only=True).count(), 'context': _('Visíveis sem compra online'), 'link': f'{base_url}?is_preview_only__exact=1'},
                 {'label': _('Sem stock'), 'value': queryset.filter(is_active=True, stock=0).count(), 'context': _('Rutura imediata'), 'link': f'{base_url}?ops_queue=out-of-stock'},
                 {'label': _('Baixo stock'), 'value': queryset.filter(is_active=True, stock__gt=0, stock__lt=5).count(), 'context': _('Reposição desta semana'), 'link': f'{base_url}?ops_queue=low-stock'},
                 {'label': _('Sem imagem principal'), 'value': queryset.filter(primary_image_count=0).count(), 'context': _('Bloqueia merchandising'), 'link': f'{base_url}?ops_queue=missing-image'},
@@ -524,14 +525,14 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     def get_changeform_submit_actions(self, request, obj):
         actions = []
-        if obj.is_active and obj.stock == 0:
+        if obj.is_active and obj.stock == 0 and not obj.is_preview_only:
             actions.append({'action_name': '_deactivate_until_restock', 'description': _('Desativar até reposição')})
         if not obj.is_active and self._can_reactivate_product(obj):
             actions.append({'action_name': '_reactivate_product', 'description': _('Reativar produto')})
         return actions
 
     def handle_changeform_submit_action(self, request, obj, action_name):
-        if action_name == '_deactivate_until_restock' and obj.is_active and obj.stock == 0:
+        if action_name == '_deactivate_until_restock' and obj.is_active and obj.stock == 0 and not obj.is_preview_only:
             obj.is_active = False
             obj.save(update_fields=['is_active', 'updated_at'])
             self.message_user(request, _('Produto desativado até reposição.'), level=messages.SUCCESS)
@@ -589,14 +590,26 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     @admin.display(ordering='stock', description=_('Stock'))
     def stock_badge(self, obj):
+        if obj.is_preview_only and obj.stock <= 0:
+            return render_status_badge(_('Pré-visualização'), 'info')
         if obj.stock <= 0:
             return render_status_badge(_('Sem stock'), 'danger')
         if obj.stock < 5:
             return render_status_badge(_('Baixo (%(stock)s)') % {'stock': obj.stock}, 'warning')
         return render_status_badge(_('OK (%(stock)s)') % {'stock': obj.stock}, 'success')
 
+    @admin.display(description=_('Disponibilidade'))
+    def availability_badge(self, obj):
+        if obj.is_preview_only:
+            return render_status_badge(_('Pré-visualização'), 'info')
+        if obj.is_active:
+            return render_status_badge(_('Comprável'), 'success')
+        return render_status_badge(_('Oculto'), 'warning')
+
     @admin.display(description=_('Reposição'))
     def replenishment_priority(self, obj):
+        if obj.is_preview_only:
+            return render_status_badge(_('Em vitrina'), 'info')
         if obj.stock <= 0 and obj.is_active:
             return render_status_badge(_('Rutura'), 'danger')
         if obj.stock < 5 and obj.is_active:
@@ -607,14 +620,16 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     @admin.display(description=_('Prontidão'))
     def catalog_health_display(self, obj):
-        if obj.stock <= 0:
-            return render_status_badge(_('Sem stock'), 'danger')
         if getattr(obj, 'pt_translation_count', 0) == 0:
             return render_status_badge(_('Sem PT'), 'danger')
         if getattr(obj, 'primary_image_count', 0) == 0:
             return render_status_badge(_('Sem imagem'), 'warning')
         if getattr(obj, 'location_count', 0) == 0:
             return render_status_badge(_('Sem localizações'), 'warning')
+        if obj.is_preview_only:
+            return render_status_badge(_('Pré-visualização'), 'info')
+        if obj.stock <= 0:
+            return render_status_badge(_('Sem stock'), 'danger')
         return render_status_badge(_('Pronto'), 'success')
 
     @admin.display(description=_('Checklist de publicação'))

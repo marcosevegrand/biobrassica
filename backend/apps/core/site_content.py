@@ -140,6 +140,33 @@ def get_website_defaults(*, lang=None, content=None, contact_locations=None):
     }
 
 
+def get_payments_availability(*, content=None):
+    if getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
+        return {
+            'enabled': False,
+            'source': 'settings',
+        }
+
+    resolved_content = content
+    if resolved_content is None:
+        resolved_content = WebsiteContent.objects.filter(pk=1).only('payments_enabled').first()
+
+    if resolved_content is None:
+        return {
+            'enabled': True,
+            'source': 'default',
+        }
+
+    return {
+        'enabled': bool(getattr(resolved_content, 'payments_enabled', True)),
+        'source': 'database',
+    }
+
+
+def payments_are_enabled(*, content=None):
+    return get_payments_availability(content=content)['enabled']
+
+
 def get_website_content(lang=None):
     content = WebsiteContent.objects.filter(pk=1).first()
     if content is None:

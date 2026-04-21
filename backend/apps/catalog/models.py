@@ -110,6 +110,11 @@ class Product(models.Model):
     )
     stock = models.PositiveIntegerField('stock', default=0)
     is_active = models.BooleanField('ativo', default=True)
+    is_preview_only = models.BooleanField(
+        'apenas pré-visualização',
+        default=False,
+        help_text='Quando ativo, o produto permanece visível no catálogo mas não pode ser comprado.',
+    )
     is_highlight = models.BooleanField('em destaque', default=False)
     allow_shipping = models.BooleanField(
         'permite envio',
@@ -168,7 +173,7 @@ class Product(models.Model):
     def get_activation_blockers(self):
         blockers = []
 
-        if self.stock <= 0:
+        if self.stock <= 0 and not self.is_preview_only:
             blockers.append('O produto precisa de stock para estar ativo.')
 
         if not self.pk:
@@ -211,6 +216,14 @@ class Product(models.Model):
     @property
     def in_stock(self):
         return self.stock > 0
+
+    @property
+    def is_purchasable(self):
+        return self.is_active and not self.is_preview_only
+
+    @property
+    def can_add_to_cart(self):
+        return self.is_purchasable and self.in_stock
 
 
 class ProductTranslation(models.Model):
