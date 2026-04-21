@@ -77,11 +77,11 @@ make stack ENV=prod ACTION=build
 make stack ENV=prod ACTION=up ARGS='-d'
 ```
 
-For targeted releases, build or restart only the site you are changing:
+For targeted releases, build and recreate only the site you are changing:
 
 ```bash
 make stack ENV=prod ACTION=build SERVICE=django_shop
-make stack ENV=prod ACTION=restart SERVICE=django_shop
+make stack ENV=prod ACTION=up SERVICE=django_shop ARGS='-d'
 ```
 
 Run release tasks explicitly from one Django service instead of on every container start:
@@ -92,13 +92,15 @@ make django ENV=prod DJANGO_SERVICE=django_website CMD='collectstatic --noinput'
 make django ENV=prod DJANGO_SERVICE=django_website CMD='compilemessages'
 ```
 
+In production, `make django ...` runs as a one-off container from the selected service image, so it still works before the web containers are up.
+
 Before a redeploy that may interrupt checkout, pause payments in one of these ways:
 
 ```bash
 # Hard-disable from the server environment, then restart the affected Django service(s)
 PAYMENTS_FORCE_DISABLED=1
-make stack ENV=prod ACTION=restart SERVICE=django_shop
-make stack ENV=prod ACTION=restart SERVICE=django_admin
+make stack ENV=prod ACTION=up SERVICE=django_shop ARGS='-d'
+make stack ENV=prod ACTION=up SERVICE=django_admin ARGS='-d'
 ```
 
 Or use the admin backoffice and toggle `Pagamentos ativos` in the Website content record. The environment flag wins over the admin toggle and is the safer fallback if the admin host is unavailable.

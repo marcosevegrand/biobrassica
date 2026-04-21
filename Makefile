@@ -16,9 +16,11 @@ YES ?=
 ifeq ($(ENV),prod)
 COMPOSE := docker compose -f docker-compose.yml
 DEFAULT_DJANGO_SERVICE := django_website
+DJANGO_COMMAND = $(COMPOSE) run --rm $(DJANGO_SERVICE) python manage.py $(CMD)
 else ifeq ($(ENV),dev)
 COMPOSE := docker compose --env-file $(ENV_FILE) -f docker-compose.yml -f docker-compose.dev.yml
 DEFAULT_DJANGO_SERVICE := django
+DJANGO_COMMAND = $(COMPOSE) exec $(DJANGO_SERVICE) python manage.py $(CMD)
 endif
 
 DJANGO_SERVICE := $(if $(strip $(DJANGO_SERVICE)),$(DJANGO_SERVICE),$(DEFAULT_DJANGO_SERVICE))
@@ -87,7 +89,7 @@ django: ## Run python manage.py CMD=... [ENV=dev|prod] [DJANGO_SERVICE=name]
 	$(call require_env,django,CMD='migrate --noinput' [DJANGO_SERVICE=name])
 	@test -n "$(strip $(CMD))" || (echo "Usage: make django ENV=dev|prod CMD='migrate --noinput' [DJANGO_SERVICE=name]" && exit 1)
 	$(call ensure_dev_env)
-	$(COMPOSE) exec $(DJANGO_SERVICE) python manage.py $(CMD)
+	$(DJANGO_COMMAND)
 
 backup: ## Backup the production database and media
 	./scripts/backup.sh
