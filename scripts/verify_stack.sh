@@ -29,8 +29,47 @@ health_checks=(
     "admin.marcosevegrand.com|django_admin"
 )
 
+cert_files=(
+    "$PROJECT_DIR/certbot/conf/live/marcosevegrand.com/fullchain.pem"
+    "$PROJECT_DIR/certbot/conf/live/marcosevegrand.com/privkey.pem"
+)
+
 log_step() {
     echo "[verify] $*"
+}
+
+report_missing_certificates() {
+    local missing=0
+    local cert_file
+
+    for cert_file in "${cert_files[@]}"; do
+        if [ ! -r "$cert_file" ]; then
+            if [ "$missing" -eq 0 ]; then
+                log_step "missing TLS files required by nginx:"
+            fi
+            printf '[verify]   %s\n' "$cert_file"
+            missing=1
+        fi
+    done
+
+    return "$missing"
+}
+
+ensure_running_nginx() {
+    if "${COMPOSE[@]}" ps --status running --services | grep -qx 'nginx'; then
+        return 0
+    fi
+
+    log_step "nginx is not running"
+    if report_missing_certificates; then
+        :
+    else
+        log_step "TLS files are present; inspect nginx logs below"
+    fi
+
+    log_step "recent nginx logs"
+    "${COMPOSE[@]}" logs --tail=100 nginx || true
+    exit 1
 }
 
 check_http_redirect() {
@@ -99,6 +138,8 @@ fi
 
 log_step "compose status"
 "${COMPOSE[@]}" ps
+
+ensure_running_nginx
 
 log_step "validating nginx configuration"
 "${COMPOSE[@]}" exec -T nginx nginx -t
