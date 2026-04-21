@@ -62,9 +62,9 @@ ensure_running_nginx() {
 
     log_step "nginx is not running"
     if report_missing_certificates; then
-        :
-    else
         log_step "TLS files are present; inspect nginx logs below"
+    else
+        log_step "restore the existing certbot/conf directory or issue a new certificate before restarting nginx"
     fi
 
     log_step "recent nginx logs"
