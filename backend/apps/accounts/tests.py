@@ -19,6 +19,58 @@ from apps.payments.models import Payment
 User = AccountUser
 
 
+class AddressValidationTests(TestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(
+			email='moradas@biobrassica.pt',
+			username='moradas',
+			password='S3guraPass123',
+		)
+
+	def test_address_full_clean_normalizes_country_code(self):
+		address = Address(
+			user=self.user,
+			name='Casa',
+			line1='Rua das Flores 10',
+			city='Braga',
+			postal_code='4700-111',
+			country='pt',
+		)
+
+		address.full_clean()
+
+		self.assertEqual(address.country, Address.Country.PORTUGAL)
+
+	def test_address_full_clean_rejects_invalid_country(self):
+		address = Address(
+			user=self.user,
+			name='Casa',
+			line1='Rua das Flores 10',
+			city='Braga',
+			postal_code='4700-111',
+			country='ES',
+		)
+
+		with self.assertRaises(ValidationError) as ctx:
+			address.full_clean()
+
+		self.assertIn('country', ctx.exception.message_dict)
+
+	def test_address_full_clean_rejects_invalid_postal_code(self):
+		address = Address(
+			user=self.user,
+			name='Casa',
+			line1='Rua das Flores 10',
+			city='Braga',
+			postal_code='4700111',
+		)
+
+		with self.assertRaises(ValidationError) as ctx:
+			address.full_clean()
+
+		self.assertIn('postal_code', ctx.exception.message_dict)
+
+
 @override_settings(ROOT_URLCONF='config.urls_shop')
 class RegistrationViewTests(TestCase):
 	def setUp(self):
@@ -359,6 +411,8 @@ class AccountsAdminWorkflowTests(TestCase):
 		self.assertContains(response, 'Resumo da morada')
 		self.assertContains(response, 'Abrir cliente')
 		self.assertContains(response, 'Histórico de encomendas')
+		self.assertContains(response, 'name="country"', html=False)
+		self.assertContains(response, 'Portugal')
 
 	def test_user_admin_lifetime_revenue_excludes_refunded_orders(self):
 		paid_order = Order.objects.create(

@@ -6,6 +6,7 @@ from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from typing import Any, cast
 from unfold.admin import ModelAdmin, TabularInline
 
 from apps.orders.models import Order, OrderItem
@@ -201,7 +202,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return obj.status not in {Order.Status.CANCELLED, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED}
 
     def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
+        return bool(cast(Any, request.user).is_superuser)
 
     @admin.display(ordering='items_count', description=_('Itens'))
     def items_count_display(self, obj):
@@ -275,9 +276,8 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     @admin.display(description=_('Resumo operacional'))
     def workflow_summary(self, obj):
-        next_steps = ', '.join(
-            Order.Status(step).label for step in obj.valid_next_statuses()
-        ) or _('Sem transições disponíveis')
+        next_step_labels = [str(Order.Status(step).label) for step in obj.valid_next_statuses()]
+        next_steps = ', '.join(next_step_labels) or str(_('Sem transições disponíveis'))
         return render_summary_panel(
             _('Fluxo da encomenda'),
             [
@@ -309,7 +309,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 (_('Método'), obj.get_fulfillment_method_display()),
                 (_('Levantamento'), obj.get_pickup_location_display() if obj.pickup_location else '—'),
                 (_('Morada'), obj.shipping_address_display or '—'),
-                (_('Idioma'), obj.language.upper()),
+                (_('Idioma'), obj.get_language_display()),
             ],
         )
 

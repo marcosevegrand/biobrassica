@@ -6,10 +6,11 @@ from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Coalesce
 
 from apps.cart.models import Cart, CartItem
+from apps.core.limits import MAX_PURCHASE_QUANTITY
 
 
 def _cap_quantity_to_stock(product, requested_quantity):
-    available_stock = max(product.stock, 0)
+    available_stock = min(max(product.stock, 0), MAX_PURCHASE_QUANTITY)
     final_quantity = min(requested_quantity, available_stock)
     was_capped = final_quantity != requested_quantity
     return final_quantity, was_capped

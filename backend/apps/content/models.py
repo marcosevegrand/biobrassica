@@ -1,12 +1,41 @@
+import json
+
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from typing import Any, cast
 
 from apps.core.translations import get_translated_attr, translation_proxy
 from apps.content.sanitization import sanitize_html
+
+
+def _normalize_string_list(value, *, field_name):
+    if value in (None, ''):
+        return []
+
+    if isinstance(value, str):
+        try:
+            decoded_value = json.loads(value)
+        except (TypeError, ValueError):
+            items = value.splitlines() if '\n' in value else value.split(',')
+        else:
+            return _normalize_string_list(decoded_value, field_name=field_name)
+    elif isinstance(value, (list, tuple)):
+        items = value
+    else:
+        raise ValidationError({field_name: _('Use uma lista de texto.')})
+
+    normalized_items = []
+    for item in items:
+        if not isinstance(item, str):
+            raise ValidationError({field_name: _('Use apenas valores de texto.')})
+        item = item.strip()
+        if item:
+            normalized_items.append(item)
+    return normalized_items
 
 
 class BlogPost(models.Model):
@@ -39,19 +68,30 @@ class BlogPost(models.Model):
 
     def clean(self):
         super().clean()
+        translations = cast(Any, self).translations
+        errors = {}
+
+        try:
+            self.tags = _normalize_string_list(self.tags, field_name='tags')
+        except ValidationError as error:
+            errors.update(error.message_dict)
 
         if not self.is_published:
+            if errors:
+                raise ValidationError(errors)
             return
 
-        errors = []
-        has_pt_translation = self.pk and self.translations.filter(language='pt').exists()
+        publish_errors = []
+        has_pt_translation = self.pk and translations.filter(language='pt').exists()
         if not has_pt_translation:
-            errors.append(_('adicionar tradução PT'))
+            publish_errors.append(_('adicionar tradução PT'))
         if not self.cover_image:
-            errors.append(_('carregar imagem de capa'))
+            publish_errors.append(_('carregar imagem de capa'))
 
+        if publish_errors:
+            errors['__all__'] = publish_errors
         if errors:
-            raise ValidationError({'__all__': errors})
+            raise ValidationError(errors)
 
     def get_title(self, lang=None):
         return get_translated_attr(self, 'title', default=self.slug, lang=lang)
@@ -143,24 +183,35 @@ class Recipe(models.Model):
 
     def clean(self):
         super().clean()
+        translations = cast(Any, self).translations
+        errors = {}
+
+        try:
+            self.tags = _normalize_string_list(self.tags, field_name='tags')
+        except ValidationError as error:
+            errors.update(error.message_dict)
 
         if not self.is_published:
+            if errors:
+                raise ValidationError(errors)
             return
 
-        errors = []
-        has_pt_translation = self.pk and self.translations.filter(language='pt').exists()
+        publish_errors = []
+        has_pt_translation = self.pk and translations.filter(language='pt').exists()
         if not has_pt_translation:
-            errors.append(_('adicionar tradução PT'))
+            publish_errors.append(_('adicionar tradução PT'))
         else:
             if not self.get_ingredients(lang='pt'):
-                errors.append(_('preencher ingredientes PT'))
+                publish_errors.append(_('preencher ingredientes PT'))
             if not self.get_instructions(lang='pt'):
-                errors.append(_('preencher passos PT'))
+                publish_errors.append(_('preencher passos PT'))
         if not self.cover_image:
-            errors.append(_('carregar imagem de capa'))
+            publish_errors.append(_('carregar imagem de capa'))
 
+        if publish_errors:
+            errors['__all__'] = publish_errors
         if errors:
-            raise ValidationError({'__all__': errors})
+            raise ValidationError(errors)
 
     def get_title(self, lang=None):
         return get_translated_attr(self, 'title', default=self.slug, lang=lang)
@@ -241,3 +292,24 @@ class RecipeTranslation(models.Model):
 
     def __str__(self):
         return f'{self.title} ({self.language})'
+
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        try:
+            self.ingredients = _normalize_string_list(self.ingredients, field_name='ingredients')
+        except ValidationError as error:
+            errors.update(error.message_dict)
+
+        try:
+            self.instructions = _normalize_string_list(self.instructions, field_name='instructions')
+        except ValidationError as error:
+            errors.update(error.message_dict)
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean(validate_unique=False, validate_constraints=False)
+        return super().save(*args, **kwargs)

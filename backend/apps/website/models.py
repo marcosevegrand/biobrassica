@@ -1,9 +1,28 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import translation
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.validators import normalize_portuguese_nif, validate_portuguese_nif
 from apps.core.translations import DEFAULT_LANGUAGE, normalized_language
+
+
+def normalize_whatsapp_number(value):
+    digits = ''.join(character for character in str(value or '') if character.isdigit())
+    if digits == '':
+        return ''
+
+    national_number = ''
+    if len(digits) == 9 and digits.startswith('9'):
+        national_number = digits
+    elif len(digits) == 12 and digits.startswith('351') and digits[3] == '9':
+        national_number = digits[3:]
+
+    if not national_number:
+        raise ValidationError(_('Indique um número WhatsApp português válido.'))
+
+    return f'+351 {national_number[:3]} {national_number[3:6]} {national_number[6:]}'
 
 
 class LocalizedWebsiteContent:
@@ -64,6 +83,11 @@ class TeamMember(models.Model):
         ordering = ['order', 'name']
         verbose_name = _('membro da equipa')
         verbose_name_plural = _('membros da equipa')
+
+    def clean(self):
+        super().clean()
+        self.name = str(self.name or '').strip()
+        self.role = ' '.join(str(self.role or '').split())
 
     def __str__(self):
         return self.name
@@ -130,10 +154,36 @@ class WebsiteContent(models.Model):
     def __str__(self):
         return 'Conteúdo do website'
 
+    def clean_fields(self, exclude=None):
+        for field in self._meta.fields:
+            value = getattr(self, field.attname, None)
+            if isinstance(value, str):
+                setattr(self, field.attname, value.strip())
+        self.support_email = str(self.support_email or '').lower()
+        return super().clean_fields(exclude=exclude)
+
+    def clean(self):
+        super().clean()
+        errors = {}
+        self.company_nif = normalize_portuguese_nif(self.company_nif)
+        try:
+            validate_portuguese_nif(self.company_nif)
+        except ValidationError as error:
+            errors['company_nif'] = error.messages
+
+        try:
+            self.whatsapp_number = normalize_whatsapp_number(self.whatsapp_number)
+        except ValidationError as error:
+            errors['whatsapp_number'] = error.messages
+
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs):
         self.pk = 1
         if kwargs.get('force_insert') and type(self).objects.filter(pk=1).exists():
             kwargs['force_insert'] = False
+        self.full_clean(validate_unique=False, validate_constraints=False)
         return super().save(*args, **kwargs)
 
     def for_language(self, lang=None):

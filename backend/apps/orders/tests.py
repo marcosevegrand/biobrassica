@@ -2,8 +2,10 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from typing import Any, cast
 
 from apps.cart.models import Cart, CartItem
 from apps.catalog.models import Category, CategoryTranslation, Location, Product, ProductTranslation
@@ -12,15 +14,49 @@ from apps.orders.services import create_order_from_cart
 from apps.payments.models import Payment
 
 
+class OrderValidationTests(TestCase):
+    def test_order_full_clean_normalizes_supported_language(self):
+        order = Order(
+            name='Marco',
+            email='marco@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            language='EN',
+            subtotal='9.50',
+            total='9.50',
+        )
+
+        order.full_clean()
+
+        self.assertEqual(order.language, Order.Language.EN)
+
+    def test_order_full_clean_rejects_unsupported_language(self):
+        order = Order(
+            name='Marco',
+            email='marco@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            language='es',
+            subtotal='9.50',
+            total='9.50',
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            order.full_clean()
+
+        self.assertIn('language', ctx.exception.message_dict)
+
+
 @override_settings(ROOT_URLCONF='config.urls_shop')
 class OrderCheckoutFlowTests(TestCase):
     def setUp(self):
-        self.user = get_user_model().objects.create_user(
+        user_manager = cast(Any, get_user_model()._default_manager)
+        self.user = user_manager.create_user(
             email='checkout@example.com',
             username='checkout',
             password='testpass123',
         )
-        self.other_user = get_user_model().objects.create_user(
+        self.other_user = user_manager.create_user(
             email='other@example.com',
             username='other',
             password='testpass123',
@@ -379,7 +415,7 @@ class OrderCheckoutFlowTests(TestCase):
 
     @override_settings(PAYMENTS_FORCE_DISABLED=True)
     def test_payment_select_rejects_when_payments_are_disabled(self):
-        user = get_user_model().objects.create_user(
+        user = cast(Any, get_user_model()._default_manager).create_user(
             email='cliente@example.com',
             username='cliente',
             password='testpass123',

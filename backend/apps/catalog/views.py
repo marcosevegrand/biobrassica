@@ -73,7 +73,7 @@ def product_detail(request, slug):
         product_detail_queryset(lang=lang),
         slug=slug,
     )
-    related = display_product_queryset(lang=lang).filter(category_id=product.category_id).exclude(pk=product.pk)[:4]
+    related = display_product_queryset(lang=lang).filter(category=product.category).exclude(pk=product.pk)[:4]
 
     return render(request, 'catalog/product_detail.html', {
         'product': product,

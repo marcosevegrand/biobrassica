@@ -156,3 +156,44 @@ def test_unknown_stripe_payment_is_recorded_without_failing_delivery(shop_client
     assert callback.payment is None
     assert callback.is_valid is False
     assert callback.validation_message == 'payment not found'
+
+
+def test_stripe_refunded_webhook_does_not_reprocess_already_refunded_payment(shop_client, monkeypatch):
+    order = OrderFactory(status=Order.Status.CANCELLED)
+    payment = PaymentFactory(
+        order=order,
+        status=Payment.Status.REFUNDED,
+        stripe_session_id='cs_webhook_refunded',
+        stripe_payment_intent_id='pi_webhook_refunded',
+    )
+    called = []
+
+    monkeypatch.setattr(
+        'apps.payments.views.stripe_service.construct_webhook_event',
+        lambda payload, signature: {
+            'id': 'evt_webhook_refunded',
+            'type': 'charge.refunded',
+            'data': {
+                'object': {
+                    'id': 'pi_webhook_refunded',
+                    'payment_intent': 'pi_webhook_refunded',
+                    'metadata': {},
+                },
+            },
+        },
+    )
+    monkeypatch.setattr('apps.payments.views.mark_payment_refunded', lambda payment: called.append(payment.pk))
+
+    response = shop_client.post(
+        reverse('stripe_callback', urlconf='config.urls_shop'),
+        data='{}',
+        content_type='application/json',
+        HTTP_STRIPE_SIGNATURE='test-signature',
+    )
+
+    callback = PaymentCallback.objects.get(provider_event_id='evt_webhook_refunded')
+
+    assert response.status_code == 200
+    assert callback.payment == payment
+    assert callback.is_valid is True
+    assert called == []

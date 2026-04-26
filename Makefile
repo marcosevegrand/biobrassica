@@ -1,4 +1,4 @@
-.PHONY: help stack django backup restore verify
+.PHONY: help stack redeploy django backup restore verify
 
 .DEFAULT_GOAL := help
 
@@ -43,6 +43,7 @@ help: ## Show the minimal command surface
 	@printf "  Targets\n"
 	@printf "    \033[36mhelp\033[0m     Show this help\n"
 	@printf "    \033[36mstack\033[0m    Docker Compose lifecycle via explicit ENV=dev|prod\n"
+	@printf "    \033[36mredeploy\033[0m Rebuild and recreate the full Compose stack\n"
 	@printf "    \033[36mdjango\033[0m   Run python manage.py CMD=... via explicit ENV=dev|prod\n"
 	@printf "    \033[36mbackup\033[0m   Backup the production database and media\n"
 	@printf "    \033[36mrestore\033[0m  Restore production data from FILE=... with optional MEDIA=...\n"
@@ -85,6 +86,11 @@ stack: ## Run a Compose action via ACTION=... [SERVICE=...] [ARGS='...'] [ENV=de
 	esac
 	$(call ensure_dev_env)
 	$(COMPOSE) $(ACTION) $(ARGS) $(SERVICE)
+
+redeploy: ## Rebuild and recreate the full Compose stack [ENV=dev|prod] [ARGS='...']
+	$(call require_env,redeploy,[ARGS='...'])
+	$(call ensure_dev_env)
+	$(COMPOSE) up --build -d --force-recreate --remove-orphans $(ARGS)
 
 django: ## Run python manage.py CMD=... [ENV=dev|prod] [DJANGO_SERVICE=name]
 	$(call require_env,django,CMD='migrate --noinput' [DJANGO_SERVICE=name])

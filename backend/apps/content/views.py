@@ -1,3 +1,4 @@
+from django.db import connection
 from django.shortcuts import render, get_object_or_404
 from django.utils.translation import get_language
 
@@ -13,6 +14,22 @@ BLOG_POSTS_PER_PAGE = 9
 RECIPES_PER_PAGE = 9
 
 
+def _filter_queryset_by_tag(queryset, *, tag):
+    normalized_tag = (tag or '').strip()
+    if not normalized_tag:
+        return queryset
+
+    if connection.features.supports_json_field_contains:
+        return queryset.filter(tags__contains=[normalized_tag])
+
+    matching_ids = [
+        instance.pk
+        for instance in queryset
+        if normalized_tag in getattr(instance, 'tags_list', [])
+    ]
+    return queryset.filter(pk__in=matching_ids)
+
+
 def blog_list(request):
     """List published blog posts."""
     lang = get_language() or 'pt'
@@ -20,7 +37,7 @@ def blog_list(request):
 
     tag = request.GET.get('tag')
     if tag:
-        posts = posts.filter(tags__contains=[tag])
+        posts = _filter_queryset_by_tag(posts, tag=tag)
 
     pagination = paginate_queryset(request, posts, per_page=BLOG_POSTS_PER_PAGE)
 
@@ -53,7 +70,7 @@ def recipe_list(request):
 
     tag = request.GET.get('tag')
     if tag:
-        recipes = recipes.filter(tags__contains=[tag])
+        recipes = _filter_queryset_by_tag(recipes, tag=tag)
 
     pagination = paginate_queryset(request, recipes, per_page=RECIPES_PER_PAGE)
 

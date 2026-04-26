@@ -57,11 +57,44 @@
                     </div>
                 {% endif %}
 
+                {% if adminform %}
+                    <section class="rounded-3xl border border-stone-200/80 bg-gradient-to-br from-white via-stone-50 to-emerald-50/70 p-5 shadow-sm">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                            <div class="space-y-1">
+                                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">{% trans "Navegação do formulário" %}</p>
+                                <h2 class="text-lg font-semibold text-stone-900">{% trans "Salte para a secção certa antes de gravar." %}</h2>
+                            </div>
+                            <p class="max-w-3xl text-sm leading-6 text-stone-600">{% trans "Use este índice para rever publicação, operação, conteúdo e blocos relacionais sem percorrer um formulário longo de ponta a ponta." %}</p>
+                        </div>
+
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            {% for fieldset in adminform %}
+                                {% if "tab" not in fieldset.classes %}
+                                    <a href="#fieldset-{{ forloop.counter }}" class="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition hover:border-emerald-300 hover:text-emerald-700">
+                                        {% if fieldset.name %}
+                                            {{ fieldset.name }}
+                                        {% else %}
+                                            {% trans "Geral" %}
+                                        {% endif %}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                            {% for inline_admin_formset in inline_admin_formsets %}
+                                <a href="#inline-{{ forloop.counter }}" class="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition hover:border-emerald-300 hover:text-emerald-700">
+                                    {{ inline_admin_formset.opts.verbose_name_plural|capfirst }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
+
                 {% block field_sets %}
                     {% with has_conditional_display=adminform.model_admin.conditional_fields %}
                         {% for fieldset in adminform %}
                             {% if "tab" not in fieldset.classes %}
-                                {% include 'admin/includes/fieldset.html' %}
+                                <section id="fieldset-{{ forloop.counter }}" class="scroll-mt-28">
+                                    {% include 'admin/includes/fieldset.html' %}
+                                </section>
                             {% endif %}
                         {% endfor %}
 
@@ -73,13 +106,15 @@
 
                 {% block inline_field_sets %}
                     {% for inline_admin_formset in inline_admin_formsets %}
-                        {% if request.headers.hx_request  %}
-                            {% if inline_admin_formset.formset.get_pagination_key in request.GET %}
+                        <section id="inline-{{ forloop.counter }}" class="scroll-mt-28">
+                            {% if request.headers.hx_request  %}
+                                {% if inline_admin_formset.formset.get_pagination_key in request.GET %}
+                                    {% include inline_admin_formset.opts.template %}
+                                {% endif %}
+                            {% else %}
                                 {% include inline_admin_formset.opts.template %}
                             {% endif %}
-                        {% else %}
-                            {% include inline_admin_formset.opts.template %}
-                        {% endif %}
+                        </section>
                     {% endfor %}
                 {% endblock %}
 

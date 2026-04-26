@@ -4,9 +4,12 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+
+from apps.core.limits import MAX_PURCHASE_QUANTITY
 
 
 class Cart(models.Model):
@@ -56,7 +59,10 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey('catalog.Product', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(MAX_PURCHASE_QUANTITY)],
+    )
 
     class Meta:
         verbose_name = _('item do carrinho')
@@ -65,6 +71,10 @@ class CartItem(models.Model):
             models.UniqueConstraint(
                 fields=['cart', 'product'],
                 name='cart_unique_product_per_cart',
+            ),
+            models.CheckConstraint(
+                condition=Q(quantity__gte=1) & Q(quantity__lte=MAX_PURCHASE_QUANTITY),
+                name='cart_item_quantity_range',
             ),
         ]
 

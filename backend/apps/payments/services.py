@@ -4,6 +4,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone as dt_timezone
 from decimal import Decimal
+from typing import Any, Literal, cast
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -230,6 +231,15 @@ def _format_amount(amount: Decimal) -> str:
     return f'{amount:.2f}'
 
 
+def _sanitize_payment_error(reason: str) -> str:
+    normalized_reason = ' '.join(str(reason or '').split())
+    if not normalized_reason:
+        return ''
+
+    redacted_reason = _redact_free_text(normalized_reason)
+    return redacted_reason[:255]
+
+
 def _provider_data(payment) -> dict:
     data = payment.provider_data if isinstance(payment.provider_data, dict) else {}
     return dict(data)
@@ -258,9 +268,11 @@ def _store_provider_fields(
 
 
 def transition_payment_status(payment, new_status, *, reason='', source=''):
+    safe_reason = _sanitize_payment_error(reason)
+
     if payment.status == new_status:
-        if reason and payment.last_error != reason:
-            payment.last_error = reason
+        if safe_reason and payment.last_error != safe_reason:
+            payment.last_error = safe_reason
             payment.save(update_fields=['last_error'])
         return False
 
@@ -277,7 +289,7 @@ def transition_payment_status(payment, new_status, *, reason='', source=''):
         payment.last_error = ''
     else:
         payment.paid_at = None
-        payment.last_error = reason
+        payment.last_error = safe_reason
 
     try:
         payment.full_clean()
@@ -366,36 +378,38 @@ def expire_stale_pending_payments(*, payment=None, now=None):
 
 
 def reset_payment(order, method):
-    payment, _ = Payment.objects.get_or_create(
-        order=order,
-        defaults={
-            'method': method,
-            'amount': order.total,
-        },
-    )
+    with transaction.atomic():
+        locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        payment, _ = Payment.objects.select_for_update().get_or_create(
+            order=locked_order,
+            defaults={
+                'method': method,
+                'amount': locked_order.total,
+            },
+        )
 
-    if payment.status != Payment.Status.PENDING:
-        transition_payment_status(payment, Payment.Status.PENDING, source='payment_reset')
+        if payment.status != Payment.Status.PENDING:
+            transition_payment_status(payment, Payment.Status.PENDING, source='payment_reset')
 
-    payment.method = method
-    payment.amount = order.total
-    payment.provider_reference = ''
-    payment.provider_payment_id = ''
-    payment.provider_data = {}
-    payment.checkout_url = ''
-    payment.last_error = ''
-    payment.paid_at = None
-    payment.expires_at = None
-    try:
-        payment.full_clean()
-    except ValidationError as error:
-        _raise_payment_validation_error(error)
-    payment.save()
+        payment.method = method
+        payment.amount = locked_order.total
+        payment.provider_reference = ''
+        payment.provider_payment_id = ''
+        payment.provider_data = {}
+        payment.checkout_url = ''
+        payment.last_error = ''
+        payment.paid_at = None
+        payment.expires_at = None
+        try:
+            payment.full_clean()
+        except ValidationError as error:
+            _raise_payment_validation_error(error)
+        payment.save()
 
-    if order.status != Order.Status.PAYMENT_PENDING:
-        transition_order_status(order, Order.Status.PAYMENT_PENDING)
+        if locked_order.status != Order.Status.PAYMENT_PENDING:
+            transition_order_status(locked_order, Order.Status.PAYMENT_PENDING)
 
-    return payment
+        return payment
 
 
 def configure_provider_payment(
@@ -430,13 +444,14 @@ def configure_stripe_checkout(payment, *, session_id, checkout_url, payment_inte
 
 def mark_payment_refunded(payment, *, reason='stripe refund'):
     changed = transition_payment_status(payment, Payment.Status.REFUNDED, reason=reason, source='stripe_refund')
+    safe_reason = _sanitize_payment_error(reason)
 
     order = payment.order
     if changed and order.status == Order.Status.PAID:
         cancel_unpaid_order(order)
     elif changed and order.status in {Order.Status.PREPARING, Order.Status.READY}:
         timestamp = timezone.localtime().strftime('%d/%m/%Y %H:%M')
-        _append_order_note(order, f'Reembolso registado em {timestamp}: {reason}. Rever operação manualmente.')
+        _append_order_note(order, f'Reembolso registado em {timestamp}: {safe_reason}. Rever operação manualmente.')
 
     logger.info('Payment %s marked as refunded: %s', payment.pk, reason)
     return changed
@@ -454,7 +469,7 @@ class BasePaymentService:
     def initiate_payment(self, *, order, payment, success_url: str, cancel_url: str, status_url: str) -> str:
         raise NotImplementedError
 
-    def refresh_pending_payment(self, payment):
+    def refresh_pending_payment(self, payment) -> Literal['pending', 'paid', 'expired']:
         return 'pending'
 
 
@@ -569,7 +584,7 @@ class StripeService(BasePaymentService):
                 'order_id': str(order.pk),
                 'payment_id': str(payment.pk),
             },
-            line_items=line_items,
+            line_items=cast(Any, line_items),
             **self._client_options(),
         )
         return {
@@ -713,14 +728,14 @@ class IfthenpayMbWayService(BasePaymentService):
 stripe_service = StripeService()
 ifthenpay_mbway_service = IfthenpayMbWayService()
 
-PAYMENT_SERVICES = {
+PAYMENT_SERVICES: dict[str, BasePaymentService] = {
     stripe_service.method: stripe_service,
     ifthenpay_mbway_service.method: ifthenpay_mbway_service,
 }
 
 
 def get_payment_service(method: str | None = None) -> BasePaymentService:
-    resolved_method = method or settings.PAYMENT_PROVIDER
+    resolved_method = str(method or settings.PAYMENT_PROVIDER)
     try:
         return PAYMENT_SERVICES[resolved_method]
     except KeyError as error:

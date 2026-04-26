@@ -16,7 +16,7 @@ from apps.core.admin_helpers import EditLinkAdminMixin, WorkflowAdminMixin, rend
 class AddressInline(TabularInline):
     model = Address
     extra = 0
-    fields = ('name', 'line1', 'city', 'postal_code', 'is_default')
+    fields = ('name', 'line1', 'city', 'postal_code', 'country', 'is_default')
     show_change_link = True
 
 
@@ -260,8 +260,8 @@ class UserAdmin(WorkflowAdminMixin, EditLinkAdminMixin, BaseUserAdmin):
 class AddressAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/accounts/address/workflow_overview.html'
 
-    list_display = ('name', 'user', 'city', 'postal_code', 'address_status_badge', 'is_default', 'user_order_count_display', 'edit_link')
-    list_filter = ('city', 'is_default')
+    list_display = ('name', 'user', 'city', 'country_display', 'postal_code', 'address_status_badge', 'is_default', 'user_order_count_display', 'edit_link')
+    list_filter = ('city', 'country', 'is_default')
     search_fields = ('name', 'line1', 'city', 'postal_code', 'user__email')
     search_help_text = _('Pesquise por cliente, nome da morada, cidade ou código postal.')
     list_filter_submit = True
@@ -313,6 +313,10 @@ class AddressAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             return render_status_badge(_('Predefinida'), 'success')
         return render_status_badge(_('Secundária'), 'info')
 
+    @admin.display(ordering='country', description=_('País'))
+    def country_display(self, obj):
+        return obj.get_country_display()
+
     @admin.display(ordering='user_order_count', description=_('Encomendas cliente'))
     def user_order_count_display(self, obj):
         return getattr(obj, 'user_order_count', obj.user.orders.count())
@@ -331,7 +335,7 @@ class AddressAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 (_('Linha 2'), obj.line2 or '—'),
                 (_('Cidade'), obj.city),
                 (_('Código postal'), obj.postal_code),
-                (_('País'), obj.country),
+                (_('País'), obj.get_country_display()),
                 (_('Encomendas do cliente'), getattr(obj, 'user_order_count', obj.user.orders.count())),
             ],
             footer=_('Abra o cliente para ajustar preferências ou usar o histórico de encomendas como contexto de suporte.'),

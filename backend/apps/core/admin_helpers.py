@@ -195,7 +195,7 @@ class WorkflowAdminMixin:
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         obj = None
         if object_id is not None:
-            obj = self.get_object(request, unquote(object_id))
+            obj = cast(Any, self).get_object(request, unquote(object_id))
 
         if request.method == 'POST' and obj is not None:
             action_names = {
@@ -210,7 +210,7 @@ class WorkflowAdminMixin:
                         return response
                     break
 
-        return super().changeform_view(request, object_id=object_id, form_url=form_url, extra_context=extra_context)
+        return cast(Any, super()).changeform_view(request, object_id=object_id, form_url=form_url, extra_context=extra_context)
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         custom_tools = list(context.get('custom_object_tools') or [])
@@ -222,7 +222,7 @@ class WorkflowAdminMixin:
 
         context['custom_object_tools'] = custom_tools
         context['actions_submit_line'] = submit_actions
-        return super().render_change_form(request, context, add=add, change=change, form_url=form_url, obj=obj)
+        return cast(Any, super()).render_change_form(request, context, add=add, change=change, form_url=form_url, obj=obj)
 
 
 class OrderableAdminMixin:

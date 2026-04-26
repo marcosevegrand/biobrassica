@@ -9,11 +9,13 @@ from unfold.admin import ModelAdmin
 
 from apps.core.admin_helpers import EditLinkAdminMixin, OrderableAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
 from apps.core.site_content import get_payments_availability
+from apps.website.forms import TeamMemberAdminForm, WebsiteContentAdminForm
 from apps.website.models import TeamMember, WebsiteContent
 
 
 @admin.register(TeamMember)
 class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin, ModelAdmin):
+	form = TeamMemberAdminForm
 	list_before_template = 'admin/website/teammember/workflow_overview.html'
 	list_display = ('order_controls', 'name', 'role', 'visibility_badge', 'is_active', 'edit_link')
 	list_editable = ('is_active',)
@@ -26,7 +28,7 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 
 	fieldsets = (
 		(_('Presença pública'), {
-			'fields': ('name', 'role', 'is_active', 'team_member_panel'),
+			'fields': ('name', ('role_choice', 'role_custom'), 'is_active', 'team_member_panel'),
 		}),
 		(_('Imagem'), {
 			'fields': ('photo', 'photo_preview'),
@@ -97,6 +99,7 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 
 @admin.register(WebsiteContent)
 class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
+	form = WebsiteContentAdminForm
 	list_display = ('__str__', 'payments_status_badge', 'updated_at', 'edit_link')
 	readonly_fields = ('website_operations_panel',)
 	compressed_fields = True
@@ -105,7 +108,7 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			'fields': ('payments_enabled', 'website_operations_panel'),
 		}),
 		(_('Empresa e apoio'), {
-			'fields': ('company_legal_name', 'company_address', 'company_nif', 'support_email'),
+			'fields': ('company_legal_name', 'company_address', ('company_nif', 'support_email')),
 		}),
 		(_('Home'), {
 			'fields': (
@@ -130,7 +133,7 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			),
 		}),
 		(_('Contactos'), {
-			'fields': ('contacts_hero_title', 'contacts_hero_body', 'whatsapp_number'),
+			'fields': (('contacts_hero_title', 'whatsapp_number'), 'contacts_hero_body'),
 		}),
 	)
 

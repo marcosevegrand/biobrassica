@@ -13,6 +13,7 @@ def required_env(name):
     raise ImproperlyConfigured(f'Missing required production environment variable: {name}')
 
 DEBUG = False
+SECRET_KEY = required_env('DJANGO_SECRET_KEY')
 SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
 
 PRODUCTION_ALLOWED_HOSTS_BY_ROLE = {
@@ -99,6 +100,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_SSL_REDIRECT = True
 SECURE_REDIRECT_EXEMPT = [r'^_health/$']
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 if DJANGO_HTTPS_MODE == 'proxy':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     USE_X_FORWARDED_HOST = True

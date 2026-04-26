@@ -1,3 +1,5 @@
+# pyright: reportPrivateImportUsage=false, reportIncompatibleVariableOverride=false
+
 import factory
 
 from apps.cart.models import Cart, CartItem

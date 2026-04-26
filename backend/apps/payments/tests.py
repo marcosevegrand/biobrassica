@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 from typing import Any, cast
 from unittest.mock import Mock, patch
@@ -116,7 +117,7 @@ class PaymentWorkflowTests(TestCase):
         self.assertGreaterEqual(self.payment.expires_at, before_call + STRIPE_CHECKOUT_EXPIRY_WINDOW)
 
     def test_expire_stale_pending_payments_reverts_order_to_pending(self):
-        self.payment.expires_at = timezone.now() - timezone.timedelta(minutes=5)
+        self.payment.expires_at = timezone.now() - timedelta(minutes=5)
         self.payment.save(update_fields=['expires_at'])
 
         expired_count = expire_stale_pending_payments()
@@ -213,6 +214,21 @@ class PaymentWorkflowTests(TestCase):
         self.assertEqual(self.payment.status, Payment.Status.REFUNDED)
         self.assertEqual(self.order.status, Order.Status.PREPARING)
         self.assertIn('Reembolso registado', self.order.notes)
+
+    def test_mark_payment_failed_sanitizes_and_truncates_last_error(self):
+        reason = 'card declined for marco@example.com ' + ('x' * 400)
+
+        changed = mark_payment_failed(self.payment, reason=reason)
+
+        self.payment.refresh_from_db()
+        self.order.refresh_from_db()
+
+        self.assertTrue(changed)
+        self.assertEqual(self.payment.status, Payment.Status.FAILED)
+        self.assertEqual(self.order.status, Order.Status.PENDING)
+        self.assertIn('ma***@example.com', self.payment.last_error)
+        self.assertNotIn('marco@example.com', self.payment.last_error)
+        self.assertLessEqual(len(self.payment.last_error), 255)
 
 
 class PaymentConstraintTests(TestCase):

@@ -154,6 +154,50 @@ class ContentConstraintTests(TestCase):
         self.assertIn('adicionar tradução PT', ctx.exception.messages)
         self.assertIn('carregar imagem de capa', ctx.exception.messages)
 
+    def test_blogpost_full_clean_normalizes_tag_string(self):
+        post = BlogPost(slug='tags-normalizadas', tags='bio, sazonal, bio')
+
+        post.full_clean()
+
+        self.assertEqual(post.tags, ['bio', 'sazonal', 'bio'])
+
+    def test_blogpost_full_clean_rejects_non_text_tag_items(self):
+        post = BlogPost(slug='tags-invalidas', tags=['bio', {'bad': 'value'}])
+
+        with self.assertRaises(ValidationError) as ctx:
+            post.full_clean()
+
+        self.assertIn('tags', ctx.exception.message_dict)
+
+    def test_recipe_translation_full_clean_normalizes_string_lists(self):
+        translation = RecipeTranslation(
+            recipe=self.recipe,
+            language='en',
+            title='Soup',
+            description='Description',
+            ingredients='1 onion\n2 carrots',
+            instructions='Chop\nCook',
+        )
+
+        translation.full_clean()
+
+        self.assertEqual(translation.ingredients, ['1 onion', '2 carrots'])
+        self.assertEqual(translation.instructions, ['Chop', 'Cook'])
+
+    def test_recipe_translation_full_clean_rejects_nested_json_items(self):
+        translation = RecipeTranslation(
+            recipe=self.recipe,
+            language='en',
+            title='Soup',
+            ingredients=['1 onion'],
+            instructions=[{'step': 'Cook'}],
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            translation.full_clean()
+
+        self.assertIn('instructions', ctx.exception.message_dict)
+
 
 class ContentIndexTests(TestCase):
     def test_blogpost_tags_uses_named_gin_index(self):

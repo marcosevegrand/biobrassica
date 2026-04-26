@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from typing import Any, cast
 from unfold.admin import ModelAdmin, TabularInline
 
 from apps.content.forms import (
@@ -86,11 +87,12 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
-        if obj.is_published and obj.published_at is None:
-            obj.published_at = timezone.now()
-        if not obj.is_published:
-            obj.published_at = None
-        super().save_model(request, obj, form, change)
+        blog_post = cast(BlogPost, obj)
+        if blog_post.is_published and blog_post.published_at is None:
+            blog_post.published_at = timezone.now()
+        if not blog_post.is_published:
+            blog_post.published_at = None
+        super().save_model(request, blog_post, form, change)
 
     def get_changeform_submit_actions(self, request, obj):
         if obj.is_published:
@@ -159,7 +161,7 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def _blog_publish_blockers(self, obj):
         return self._publication_blockers(obj)
 
-    def _publication_blockers(self, obj):
+    def _publication_blockers(self, obj: Any):
         original_is_published = obj.is_published
         original_published_at = getattr(obj, 'published_at', None)
         obj.is_published = True

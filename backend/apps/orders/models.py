@@ -5,8 +5,13 @@ from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+
+from apps.core.limits import MAX_PURCHASE_QUANTITY
+from apps.core.translations import normalized_language
 
 if TYPE_CHECKING:
     from apps.payments.models import Payment
@@ -48,6 +53,11 @@ class Order(models.Model):
         PICKUP = 'pickup', _('Levantamento na loja')
         SHIPPING = 'shipping', _('Envio ao domicílio')
 
+    class Language(models.TextChoices):
+        PT = 'pt', _('Português')
+        EN = 'en', _('Inglês')
+        FR = 'fr', _('Francês')
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -72,7 +82,7 @@ class Order(models.Model):
     shipping_address_line2 = models.CharField(_('morada (cont.)'), max_length=255, blank=True)
     shipping_city = models.CharField(_('cidade'), max_length=100, blank=True)
     shipping_postal_code = models.CharField(_('código postal'), max_length=10, blank=True)
-    language = models.CharField(_('idioma'), max_length=2, default='pt')
+    language = models.CharField(_('idioma'), max_length=2, choices=Language.choices, default=Language.PT)
     subtotal = models.DecimalField(_('subtotal'), max_digits=10, decimal_places=2)
     total = models.DecimalField(_('total'), max_digits=10, decimal_places=2)
     notes = models.TextField(_('notas'), blank=True)
@@ -102,6 +112,10 @@ class Order(models.Model):
         self._original_status = self.status
         return result
 
+    def clean_fields(self, exclude=None):
+        self.language = normalized_language(self.language, fallback=self.Language.PT).lower()
+        return super().clean_fields(exclude=exclude)
+
     def valid_next_statuses(self):
         return ORDER_STATUS_TRANSITIONS.get(self.status, set())
 
@@ -113,6 +127,10 @@ class Order(models.Model):
 
         errors = {}
         original_status = getattr(self, '_original_status', None)
+        self.language = normalized_language(self.language, fallback=self.Language.PT).lower()
+
+        if self.language not in self.Language.values:
+            errors['language'] = _('Selecione um idioma suportado.')
 
         if original_status and self.status != original_status and not self.can_transition_to(self.status):
             errors['status'] = _('Transição de estado inválida para a encomenda.')
@@ -148,7 +166,7 @@ class Order(models.Model):
 
     @property
     def status_display_class(self):
-        status_classes: Mapping[str, str] = {
+        status_classes = {
             self.Status.PENDING: 'bg-stone-100 text-stone-700',
             self.Status.PAYMENT_PENDING: 'bg-amber-100 text-amber-800',
             self.Status.PAID: 'bg-emerald-100 text-emerald-800',
@@ -193,11 +211,20 @@ class OrderItem(models.Model):
     )
     product_name = models.CharField(_('nome do produto'), max_length=255)
     price = models.DecimalField(_('preço'), max_digits=8, decimal_places=2)
-    quantity = models.PositiveIntegerField(_('quantidade'))
+    quantity = models.PositiveIntegerField(
+        _('quantidade'),
+        validators=[MinValueValidator(1), MaxValueValidator(MAX_PURCHASE_QUANTITY)],
+    )
 
     class Meta:
         verbose_name = _('item da encomenda')
         verbose_name_plural = _('itens da encomenda')
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(quantity__gte=1) & Q(quantity__lte=MAX_PURCHASE_QUANTITY),
+                name='orders_item_quantity_range',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.quantity}x {self.product_name}'

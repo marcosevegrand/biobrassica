@@ -455,7 +455,7 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     form = ProductAdminForm
     list_display = ('__str__', 'brand', 'category', 'price', 'quantity', 'stock', 'stock_badge', 'availability_badge', 'replenishment_priority', 'catalog_health_display', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'edit_link')
     list_filter = (ProductOpsQueueFilter, 'category', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'available_locations')
-    list_editable = ('price', 'quantity', 'allow_shipping', 'stock', 'is_highlight')
+    list_editable = ('price', 'allow_shipping', 'stock', 'is_highlight')
     search_fields = ('slug', 'brand', 'bio_code', 'translations__name')
     search_help_text = _('Pesquise por slug, marca, código bio ou nome traduzido do produto.')
     prepopulated_fields = {'slug': ()}
@@ -467,10 +467,10 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     fieldsets = (
         (_('Publicação e merchandising'), {
-            'fields': ('category', 'slug', 'brand', 'bio_code', 'is_active', 'is_highlight', 'catalog_readiness_panel')
+            'fields': ('category', 'slug', ('brand_choice', 'brand_custom'), 'bio_code', 'is_active', 'is_highlight', 'catalog_readiness_panel')
         }),
         (_('Venda e disponibilidade'), {
-            'fields': ('price', 'quantity', 'stock', 'stock_badge', 'availability_badge', 'replenishment_panel', 'is_preview_only', 'allow_shipping', 'available_locations')
+            'fields': ('price', ('quantity_value', 'quantity_unit'), 'stock', 'stock_badge', 'availability_badge', 'replenishment_panel', 'is_preview_only', 'allow_shipping', 'available_locations')
         }),
         (_('Datas'), {
             'fields': ('created_at', 'updated_at')

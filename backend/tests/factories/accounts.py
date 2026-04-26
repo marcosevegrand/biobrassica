@@ -1,3 +1,5 @@
+# pyright: reportPrivateImportUsage=false, reportIncompatibleVariableOverride=false
+
 import factory
 from django.contrib.auth import get_user_model
 

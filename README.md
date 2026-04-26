@@ -48,9 +48,45 @@ make django ENV=dev CMD='compilemessages'
 The Makefile keeps a deliberately small surface:
 
 - `make stack ...` covers Docker Compose lifecycle work in dev and prod.
+- `make redeploy ENV=...` rebuilds and recreates the full Compose stack in one step.
 - `make django ...` runs `python manage.py ...` inside the selected Django service.
 - `make backup` and `make restore ...` stay explicit because they are production recovery operations.
 - `ENV=dev|prod` must always be explicit for `make stack ...` and `make django ...`.
+
+## Validation
+
+Canonical local validation uses `backend/.venv` together with the SQLite test settings in [backend/config/settings/test_sqlite.py](backend/config/settings/test_sqlite.py).
+
+One-time setup:
+
+```bash
+python -m venv backend/.venv
+backend/.venv/bin/python -m pip install --upgrade pip
+backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
+backend/.venv/bin/python -m playwright install chromium
+```
+
+If `compilemessages` is not available on your machine, install GNU gettext first.
+
+Run the full local validation workflow:
+
+```bash
+cd backend
+DJANGO_SETTINGS_MODULE=config.settings.test_sqlite DJANGO_ALLOW_INSECURE_DEFAULTS=1 .venv/bin/python manage.py compilemessages
+cd ..
+backend/.venv/bin/python -m pyright
+cd backend
+DJANGO_SETTINGS_MODULE=config.settings.test_sqlite DJANGO_ALLOW_INSECURE_DEFAULTS=1 .venv/bin/python -m pytest -q
+```
+
+The full pytest run already includes the Playwright browser suite. For faster UI-only debugging, run just the browser slice:
+
+```bash
+cd backend
+DJANGO_SETTINGS_MODULE=config.settings.test_sqlite DJANGO_ALLOW_INSECURE_DEFAULTS=1 .venv/bin/python -m pytest tests/browser -q
+```
+
+CI uses the same SQLite settings, compiles locale catalogs before tests, installs Playwright Chromium, and runs `pyright` plus the full pytest suite via [/.github/workflows/validate.yml](.github/workflows/validate.yml).
 
 ## Production
 
@@ -84,6 +120,12 @@ Bring the stack up with standard Compose commands:
 ```bash
 make stack ENV=prod ACTION=build
 make stack ENV=prod ACTION=up ARGS='-d'
+```
+
+Or rebuild and recreate every service in one command:
+
+```bash
+make redeploy ENV=prod
 ```
 
 For targeted releases, build and recreate only the site you are changing:

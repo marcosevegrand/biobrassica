@@ -1,4 +1,7 @@
+# pyright: reportPrivateImportUsage=false, reportIncompatibleVariableOverride=false
+
 from decimal import Decimal
+from typing import Any, cast
 
 import factory
 
@@ -18,15 +21,16 @@ class CategoryFactory(factory.django.DjangoModelFactory):
         if not create:
             return
 
+        category = cast(Any, self)
         data = extracted or {}
         CategoryTranslation.objects.create(
-            category=self,
+            category=category,
             language=data.get('language', 'pt'),
-            name=data.get('name', self.slug.replace('-', ' ').title()),
-            description=data.get('description', f'Descrição de {self.slug}'),
+            name=data.get('name', str(category.slug).replace('-', ' ').title()),
+            description=data.get('description', f'Descrição de {category.slug}'),
         )
-        if hasattr(self, '_translation_fallback_cache'):
-            delattr(self, '_translation_fallback_cache')
+        if hasattr(category, '_translation_fallback_cache'):
+            delattr(category, '_translation_fallback_cache')
 
 
 class ProductFactory(factory.django.DjangoModelFactory):
@@ -51,14 +55,15 @@ class ProductFactory(factory.django.DjangoModelFactory):
         if not create:
             return
 
+        product = cast(Any, self)
         data = extracted or {}
         ProductTranslation.objects.create(
-            product=self,
+            product=product,
             language=data.get('language', 'pt'),
-            name=data.get('name', self.slug.replace('-', ' ').title()),
-            description=data.get('description', f'Descrição de {self.slug}'),
+            name=data.get('name', str(product.slug).replace('-', ' ').title()),
+            description=data.get('description', f'Descrição de {product.slug}'),
             allergens=data.get('allergens', 'Sem alergénios declarados.'),
-            ingredients=data.get('ingredients', f'Ingredientes de {self.slug}'),
+            ingredients=data.get('ingredients', f'Ingredientes de {product.slug}'),
         )
-        if hasattr(self, '_translation_fallback_cache'):
-            delattr(self, '_translation_fallback_cache')
+        if hasattr(product, '_translation_fallback_cache'):
+            delattr(product, '_translation_fallback_cache')

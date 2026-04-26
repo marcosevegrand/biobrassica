@@ -1,4 +1,5 @@
 import getpass
+from typing import Any, cast
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -20,9 +21,10 @@ class Command(BaseCommand):
         email = (options['email'] or '').strip().lower()
         allow_non_staff = bool(options['allow_non_staff'])
         user_model = get_user_model()
+        manager = cast(Any, user_model._default_manager)
 
         try:
-            user = user_model._default_manager.get(email=email)
+            user = manager.get(email=email)
         except user_model.DoesNotExist as error:
             raise CommandError(f'No user found with email {email}.') from error
 

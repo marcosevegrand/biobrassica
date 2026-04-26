@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -99,6 +100,16 @@ class CartViewTests(TestCase):
 		self.assertRedirects(response, reverse('cart:detail'))
 		self.assertFalse(CartItem.objects.filter(product=self.product).exists())
 
+	def test_add_to_cart_rejects_excessive_quantity(self):
+		response = self.client.post(
+			reverse('cart:add', kwargs={'product_id': self.product.pk}),
+			{'quantity': '100'},
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		self.assertRedirects(response, reverse('cart:detail'))
+		self.assertFalse(CartItem.objects.filter(product=self.product).exists())
+
 	def test_repeated_add_caps_quantity_at_available_stock(self):
 		self.product.stock = 4
 		self.product.save(update_fields=['stock'])
@@ -116,6 +127,24 @@ class CartViewTests(TestCase):
 
 		item = CartItem.objects.get(product=self.product)
 		self.assertEqual(item.quantity, 4)
+
+	def test_repeated_add_caps_quantity_at_purchase_limit(self):
+		self.product.stock = 150
+		self.product.save(update_fields=['stock'])
+
+		self.client.post(
+			reverse('cart:add', kwargs={'product_id': self.product.pk}),
+			{'quantity': 99},
+			HTTP_HOST='loja.lvh.me',
+		)
+		self.client.post(
+			reverse('cart:add', kwargs={'product_id': self.product.pk}),
+			{'quantity': 99},
+			HTTP_HOST='loja.lvh.me',
+		)
+
+		item = CartItem.objects.get(product=self.product)
+		self.assertEqual(item.quantity, 99)
 
 	def test_update_quantity_caps_value_at_available_stock(self):
 		session = self.client.session
@@ -308,7 +337,7 @@ class CartViewTests(TestCase):
 		items = list(get_cart_items_queryset(cart))
 
 		self.assertEqual(len(items), 1)
-		self.assertEqual(items[0].product_id, self.product.pk)
+		self.assertEqual(items[0].product.pk, self.product.pk)
 
 	def test_cart_queryset_excludes_preview_only_products(self):
 		preview_product = self._create_product('feijao-preview', 'Feijão preview', Decimal('2.00'))
@@ -322,7 +351,7 @@ class CartViewTests(TestCase):
 		items = list(get_cart_items_queryset(cart))
 
 		self.assertEqual(len(items), 1)
-		self.assertEqual(items[0].product_id, self.product.pk)
+		self.assertEqual(items[0].product.pk, self.product.pk)
 
 	def test_merge_anonymous_cart_rolls_back_if_delete_fails(self):
 		user_model = get_user_model()
@@ -419,6 +448,13 @@ class CartConstraintTests(TestCase):
 		with self.assertRaises(IntegrityError):
 			with transaction.atomic():
 				CartItem.objects.create(cart=cart, product=self.product, quantity=2)
+
+	def test_cart_item_quantity_above_limit_is_rejected(self):
+		cart = Cart.objects.create(session_key='quantity-limit-session')
+		item = CartItem(cart=cart, product=self.product, quantity=100)
+
+		with self.assertRaises(ValidationError):
+			item.full_clean()
 
 
 class CartSummaryTests(TestCase):

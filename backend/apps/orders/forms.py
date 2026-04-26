@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from typing import Any, cast
 
 from apps.catalog.models import Location
 from apps.orders.models import Order, PT_POSTAL_CODE_RE
@@ -27,8 +28,10 @@ class CheckoutForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.cart_can_ship = cart_can_ship
         self.cart_items = list(cart_items or [])
+        phone_field = cast(forms.CharField, self.fields['phone'])
+        phone_field.required = settings.PAYMENT_PROVIDER == Payment.Method.IFTHENPAY_MBWAY
         self.pickup_choices = self._build_pickup_choices()
-        self.fields['pickup_location'].choices = self.pickup_choices
+        cast(forms.ChoiceField, self.fields['pickup_location']).choices = self.pickup_choices
         self.allowed_pickup_locations = self._allowed_pickup_locations()
 
     def _build_pickup_choices(self):
@@ -78,7 +81,7 @@ class CheckoutForm(forms.Form):
         return self.cleaned_data['shipping_postal_code'].strip()
 
     def clean(self):
-        cleaned_data = super().clean()
+        cleaned_data: dict[str, Any] = super().clean() or {}
         fulfillment_method = cleaned_data.get('fulfillment_method') or Order.FulfillmentMethod.PICKUP
         cleaned_data['fulfillment_method'] = fulfillment_method
 
@@ -106,13 +109,13 @@ class CheckoutForm(forms.Form):
         elif not cleaned_data.get('pickup_location'):
             raise forms.ValidationError(_('Selecione um local de levantamento.'))
         elif self.allowed_pickup_locations is not None:
-            pickup_location = cleaned_data['pickup_location']
+            pickup_location = str(cleaned_data.get('pickup_location') or '')
             if not self.allowed_pickup_locations:
                 self.add_error('pickup_location', _('Os produtos deste carrinho não estão disponíveis para levantamento nas lojas configuradas.'))
             elif pickup_location not in self.allowed_pickup_locations:
                 self.add_error('pickup_location', _('Este local não está disponível para todos os produtos do carrinho.'))
 
-        if settings.PAYMENT_PROVIDER == Payment.Method.IFTHENPAY_MBWAY and not cleaned_data.get('phone'):
+        if cast(forms.CharField, self.fields['phone']).required and not cleaned_data.get('phone'):
             self.add_error('phone', _('Indique um telemóvel para receber o pedido MB WAY.'))
 
         return cleaned_data
@@ -128,11 +131,11 @@ class PaymentSelectionForm(forms.Form):
         super().__init__(*args, **kwargs)
         active_method = settings.PAYMENT_PROVIDER
         method_label = dict(Payment.Method.choices).get(active_method, active_method)
-        self.fields['payment_method'].choices = [(active_method, method_label)]
+        cast(forms.ChoiceField, self.fields['payment_method']).choices = [(active_method, method_label)]
         self.active_method = active_method
 
     def clean(self):
-        cleaned_data = super().clean()
+        cleaned_data: dict[str, Any] = super().clean() or {}
         payment_method = cleaned_data.get('payment_method')
         if payment_method and payment_method != self.active_method:
             raise forms.ValidationError(_('Selecione um método de pagamento válido.'))

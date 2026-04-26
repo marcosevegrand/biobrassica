@@ -10,6 +10,16 @@
   <link rel="stylesheet" href="{% static 'css/output.css' %}" />
   {% block extra_css %}{% endblock %}
   {% block head_extra %}{% endblock %}
+    <style>
+      .hidden { display: none !important; }
+      .block { display: block !important; }
+      .flex { display: flex !important; }
+
+      @media (min-width: 1024px) {
+        .lg\:flex { display: flex !important; }
+        .lg\:hidden { display: none !important; }
+      }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col bg-paper text-forest font-sans font-light">
 

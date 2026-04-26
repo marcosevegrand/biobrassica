@@ -5,12 +5,14 @@
     "**/__pycache__",
     "**/.*",
     "backend/staticfiles",
-    "backend/media", ".venv"
+    "backend/media",
+    "backend/.venv",
+    ".venv"
   ],
   "typeCheckingMode": "standard",
   "reportMissingModuleSource": "none",
   "reportMissingImports": "none",
   "extraPaths": ["backend"],
-  "venvPath": ".",
+  "venvPath": "backend",
   "venv": ".venv"
 }

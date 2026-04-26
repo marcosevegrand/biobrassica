@@ -3,6 +3,7 @@ import tempfile
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -10,6 +11,7 @@ from django.utils import translation
 from typing import Any, cast
 
 from apps.catalog.models import Location
+from apps.website.forms import TeamMemberAdminForm
 from apps.website.models import TeamMember
 from apps.website.models import WebsiteContent
 
@@ -23,7 +25,7 @@ GIF_BYTES = (
 class TempMediaRootMixin:
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
+        cast(Any, super()).setUpClass()
         cls._temp_media_root = tempfile.mkdtemp()
         cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_root)
         cls._media_override.enable()
@@ -32,13 +34,62 @@ class TempMediaRootMixin:
     def tearDownClass(cls):
         cls._media_override.disable()
         shutil.rmtree(cls._temp_media_root, ignore_errors=True)
-        super().tearDownClass()
+        cast(Any, super()).tearDownClass()
 
 
 class WebsiteTestCase(TempMediaRootMixin, TestCase):
     def tearDown(self):
         translation.activate(settings.LANGUAGE_CODE)
         super().tearDown()
+
+
+class TeamMemberAdminFormTests(WebsiteTestCase):
+    def test_team_member_admin_form_combines_structured_role_fields(self):
+        form = TeamMemberAdminForm(
+            data={
+                'name': 'Ângela Pereira',
+                'role': '',
+                'role_choice': TeamMemberAdminForm.ROLE_CUSTOM_CHOICE,
+                'role_custom': 'Coordenadora de loja',
+                'order': '1',
+                'is_active': 'on',
+            },
+            files={
+                'photo': SimpleUploadedFile('angela.gif', GIF_BYTES, content_type='image/gif'),
+            },
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        member = form.save(commit=False)
+
+        self.assertEqual(member.role, 'Coordenadora de loja')
+
+
+class WebsiteContentValidationTests(WebsiteTestCase):
+    def test_website_content_full_clean_normalizes_company_and_whatsapp_fields(self):
+        content = WebsiteContent(
+            company_legal_name='  Biobrassica, Lda.  ',
+            company_address=' Rua Central 42, Braga ',
+            company_nif='123 456 789',
+            support_email=' Apoio@Biobrassica.PT ',
+            whatsapp_number='912345678',
+        )
+
+        content.full_clean()
+
+        self.assertEqual(content.company_legal_name, 'Biobrassica, Lda.')
+        self.assertEqual(content.company_address, 'Rua Central 42, Braga')
+        self.assertEqual(content.company_nif, '123456789')
+        self.assertEqual(content.support_email, 'apoio@biobrassica.pt')
+        self.assertEqual(content.whatsapp_number, '+351 912 345 678')
+
+    def test_website_content_full_clean_rejects_invalid_whatsapp_number(self):
+        content = WebsiteContent(whatsapp_number='12345')
+
+        with self.assertRaises(ValidationError) as ctx:
+            content.full_clean()
+
+        self.assertIn('whatsapp_number', ctx.exception.message_dict)
 
 
 @override_settings(ROOT_URLCONF='config.urls_website')
@@ -250,6 +301,13 @@ class TeamMemberAdminWorkflowTests(WebsiteTestCase):
         self.assertFalse(self.member.is_active)
         self.assertContains(response, 'Membro ocultado da página pública.')
 
+    def test_team_member_change_form_uses_structured_role_fields(self):
+        response = self.client.get(reverse('admin:website_teammember_change', args=[self.member.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="role_choice"', html=False)
+        self.assertContains(response, 'name="role_custom"', html=False)
+
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
 class WebsiteContentAdminTests(WebsiteTestCase):
@@ -268,11 +326,27 @@ class WebsiteContentAdminTests(WebsiteTestCase):
         response = self.client.get(reverse('admin:website_websitecontent_change', args=[self.content.pk]))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Navegação do formulário')
         self.assertContains(response, 'Operação editorial')
         self.assertContains(response, 'Pagamentos')
         self.assertContains(response, 'Email de apoio')
         self.assertContains(response, 'Gerir equipa')
         self.assertContains(response, 'Gerir lojas')
+
+    def test_website_content_change_form_rejects_invalid_company_fields(self):
+        response = self.client.post(
+            reverse('admin:website_websitecontent_change', args=[self.content.pk]),
+            {
+                'payments_enabled': 'on',
+                'company_nif': '123',
+                'support_email': 'apoio@biobrassica.pt',
+                'whatsapp_number': '12345',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Indique um NIF português válido.')
+        self.assertContains(response, 'Indique um número WhatsApp português válido.')
 
     def test_website_content_change_form_can_disable_payments(self):
         response = self.client.post(

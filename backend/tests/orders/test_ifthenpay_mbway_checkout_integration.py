@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Any, cast
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -26,7 +27,7 @@ def _create_pickup_location():
 
 
 def _build_guest_cart(*, quantity=2, stock=10):
-    user = get_user_model().objects.create_user(
+    user = cast(Any, get_user_model()._default_manager).create_user(
         email=f'checkout-mbway-{quantity}-{stock}@example.com',
         username=f'checkout-mbway-{quantity}-{stock}',
         password='testpass123',
@@ -116,3 +117,14 @@ def test_checkout_confirm_requires_phone_for_ifthenpay_mbway(shop_client):
     assert Order.objects.count() == 0
     assert CartItem.objects.filter(cart=cart).count() == 1
     assert product.stock == 10
+
+
+@override_settings(PAYMENT_PROVIDER=Payment.Method.IFTHENPAY_MBWAY)
+def test_checkout_renders_phone_as_required_for_ifthenpay_mbway(shop_client):
+    user, cart, product, cart_item = _build_guest_cart(quantity=1, stock=10)
+    shop_client.force_login(user)
+
+    response = shop_client.get(reverse('orders:checkout', urlconf='config.urls_shop'))
+
+    assert response.status_code == 200
+    assert 'name="phone" required' in response.content.decode()

@@ -15,6 +15,7 @@ from django.contrib import admin
 from typing import Any, cast
 from django.utils import translation
 
+from apps.catalog.forms import ProductAdminForm
 from apps.catalog.models import Category, CategoryTranslation, DeliveryMethod, Location, Product, ProductImage, ProductTranslation
 
 
@@ -27,7 +28,7 @@ GIF_BYTES = (
 class TempMediaRootMixin:
 	@classmethod
 	def setUpClass(cls):
-		super().setUpClass()
+		cast(Any, super()).setUpClass()
 		cls._temp_media_root = tempfile.mkdtemp()
 		cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_root)
 		cls._media_override.enable()
@@ -36,7 +37,7 @@ class TempMediaRootMixin:
 	def tearDownClass(cls):
 		cls._media_override.disable()
 		shutil.rmtree(cls._temp_media_root, ignore_errors=True)
-		super().tearDownClass()
+		cast(Any, super()).tearDownClass()
 
 
 class ProductModelTests(TempMediaRootMixin, TestCase):
@@ -60,9 +61,59 @@ class ProductModelTests(TempMediaRootMixin, TestCase):
 		with self.assertRaises(ValidationError) as ctx:
 			product.full_clean()
 
+		self.assertIn('brand', ctx.exception.message_dict)
 		self.assertIn('quantity', ctx.exception.message_dict)
 		self.assertIn('bio_code', ctx.exception.message_dict)
-		self.assertIn('brand', ctx.exception.message_dict)
+
+
+class ProductAdminFormTests(TestCase):
+	def setUp(self):
+		self.category = Category.objects.create(slug='mercearia-admin-form')
+		CategoryTranslation.objects.create(
+			category=self.category,
+			language='pt',
+			name='Mercearia',
+			description='Categoria mercearia',
+		)
+		self.product = Product.objects.create(
+			category=self.category,
+			slug='produto-admin-form',
+			brand='Biobrassica',
+			price='4.90',
+			quantity='250 g',
+			stock=5,
+			is_active=False,
+			bio_code='PT-BIO-03',
+		)
+
+	def test_product_admin_form_prefills_structured_brand_and_quantity_fields(self):
+		form = ProductAdminForm(instance=self.product)
+
+		self.assertEqual(form['brand_choice'].value(), 'Biobrassica')
+		self.assertEqual(form['brand_custom'].value(), '')
+		self.assertEqual(str(form['quantity_value'].value()), '250')
+		self.assertEqual(form['quantity_unit'].value(), 'g')
+
+	def test_product_admin_form_combines_structured_brand_and_quantity_inputs(self):
+		form = ProductAdminForm(data={
+			'category': str(self.category.pk),
+			'slug': 'feijao-bio',
+			'brand': '',
+			'brand_choice': ProductAdminForm.BRAND_CUSTOM_CHOICE,
+			'brand_custom': '  Biobrassica  ',
+			'price': '3.50',
+			'quantity': '',
+			'quantity_value': '500',
+			'quantity_unit': 'g',
+			'stock': '12',
+			'bio_code': 'PT-BIO-04',
+		})
+
+		self.assertTrue(form.is_valid(), form.errors)
+		product = form.save(commit=False)
+
+		self.assertEqual(product.brand, 'Biobrassica')
+		self.assertEqual(product.quantity, '500 g')
 
 	def test_translation_requires_description(self):
 		product = Product.objects.create(
@@ -476,6 +527,10 @@ class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
 		self.assertContains(response, 'Imagens do produto')
 		self.assertContains(response, 'Fila de reposição')
 		self.assertContains(response, 'A galeria começa vazia')
+		self.assertContains(response, 'name="brand_choice"', html=False)
+		self.assertContains(response, 'name="brand_custom"', html=False)
+		self.assertContains(response, 'name="quantity_value"', html=False)
+		self.assertContains(response, 'name="quantity_unit"', html=False)
 
 	def test_product_add_form_starts_without_prefilled_inline_entries(self):
 		response = self.client.get(reverse('admin:catalog_product_add'))
@@ -512,6 +567,7 @@ class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
 	def test_product_admin_does_not_allow_is_active_inline_edit(self):
 		product_admin = admin.site._registry[Product]
 		self.assertNotIn('is_active', product_admin.list_editable)
+		self.assertNotIn('quantity', product_admin.list_editable)
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')

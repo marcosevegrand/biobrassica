@@ -1,3 +1,5 @@
+# pyright: reportPrivateImportUsage=false, reportIncompatibleVariableOverride=false
+
 from decimal import Decimal
 
 import factory

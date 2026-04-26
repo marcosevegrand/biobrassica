@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 import os
 import shutil
 from urllib.parse import urlsplit, urlunsplit
@@ -34,7 +35,7 @@ def shop_live_server_url(live_server) -> str:
 
 
 @pytest.fixture
-def browser_page(shop_live_server_url: str) -> Page:
+def browser_page(shop_live_server_url: str) -> Iterator[Page]:
     previous_async_setting = os.environ.get('DJANGO_ALLOW_ASYNC_UNSAFE')
     os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
     with sync_playwright() as playwright:

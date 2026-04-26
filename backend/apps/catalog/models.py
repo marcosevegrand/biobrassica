@@ -310,11 +310,13 @@ class ProductImage(models.Model):
 
     def clean(self):
         super().clean()
+        product = getattr(self, 'product', None)
 
         if (
             self.is_primary
-            and self.product_id
-            and ProductImage.objects.filter(product_id=self.product_id, is_primary=True)
+            and product is not None
+            and product.pk is not None
+            and ProductImage.objects.filter(product=product, is_primary=True)
             .exclude(pk=self.pk)
             .exists()
         ):

@@ -76,16 +76,16 @@
             class="flex items-center gap-4 mb-8">
         {% csrf_token %}
         <div class="flex items-center border border-stone/40 rounded-sm">
-          <button type="button" onclick="const input=this.nextElementSibling; input.stepDown(); if (Number(input.value) < 1) input.value = 1;"
+            <button type="button" data-cart-quantity-action="decrement" aria-label="{% trans 'Diminuir quantidade' %}"
                   class="px-3 py-2 text-muted hover:text-forest transition-colors">−</button>
           <input type="number" name="quantity" value="1" min="1" max="99"
                  class="w-12 text-center border-x border-stone/40 py-2 text-sm focus:outline-none no-spinner" />
-          <button type="button" onclick="this.previousElementSibling.stepUp();"
+          <button type="button" data-cart-quantity-action="increment" aria-label="{% trans 'Aumentar quantidade' %}"
                   class="px-3 py-2 text-muted hover:text-forest transition-colors">+</button>
         </div>
-        <button type="button" onclick="this.form.querySelector('input[name=quantity]').value=3"
+        <button type="button" data-cart-quantity-action="set" data-cart-quantity-value="3"
           class="text-[10px] uppercase tracking-widest border border-stone/40 px-3 py-2 rounded-sm hover:border-forest hover:text-forest transition-colors">3x</button>
-        <button type="button" onclick="this.form.querySelector('input[name=quantity]').value=6"
+        <button type="button" data-cart-quantity-action="set" data-cart-quantity-value="6"
           class="text-[10px] uppercase tracking-widest border border-stone/40 px-3 py-2 rounded-sm hover:border-forest hover:text-forest transition-colors">6x</button>
         <button type="submit"
                 class="flex-1 text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors {% if not product.can_add_to_cart %}opacity-50 cursor-not-allowed{% endif %}"

@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from typing import Any, cast
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -27,7 +28,7 @@ def _create_pickup_location():
 
 
 def _build_guest_cart(*, quantity=2, stock=10):
-    user = get_user_model().objects.create_user(
+    user = cast(Any, get_user_model()._default_manager).create_user(
         email=f'checkout-{quantity}-{stock}@example.com',
         username=f'checkout-{quantity}-{stock}',
         password='testpass123',

@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Any, cast
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -15,7 +16,7 @@ pytestmark = [pytest.mark.django_db, pytest.mark.integration, pytest.mark.stripe
 
 
 def _login_checkout_user(client):
-    user = get_user_model().objects.create_user(
+    user = cast(Any, get_user_model()._default_manager).create_user(
         email='payment-status@example.com',
         username='payment-status',
         password='testpass123',

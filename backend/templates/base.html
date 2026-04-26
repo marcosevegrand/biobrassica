@@ -9,7 +9,19 @@
   <meta name="description" content="{% block meta_description %}{{ website_defaults.shop_meta_description }}{% endblock %}" />
   <link rel="stylesheet" href="{% static 'css/output.css' %}" />
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <style>
+      .hidden { display: none !important; }
+      .block { display: block !important; }
+      .flex { display: flex !important; }
+      [x-cloak] { display: none !important; }
+
+      @media (min-width: 1024px) {
+        .lg\:flex { display: flex !important; }
+        .lg\:hidden { display: none !important; }
+      }
+    </style>
   {% block head_extra %}{% endblock %}
+    <script src="{% static 'unfold/js/alpine/alpine.js' %}" defer></script>
 </head>
 <body class="min-h-screen flex flex-col bg-paper text-forest font-sans font-light">
 
@@ -24,6 +36,7 @@
   {% include "components/footer_shop.html" %}
 
   <script src="{% static 'js/navbar.js' %}" defer></script>
+  <script src="{% static 'js/quantity-controls.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 
 </body>
