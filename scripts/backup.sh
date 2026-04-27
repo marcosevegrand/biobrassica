@@ -15,6 +15,7 @@ BACKUP_DIR="${1:-$PROJECT_DIR/backups}"
 MEDIA_VOLUME="${COMPOSE_PROJECT_NAME}_media_files"
 DRY_RUN="${BACKUP_DRY_RUN:-0}"
 RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-14}"
+DB_READY_TIMEOUT="${DB_READY_TIMEOUT:-60}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 DB_NAME="$(env_value DB_NAME biobrassica)"
 DB_USER="$(env_value DB_USER biobrassica)"
@@ -34,6 +35,15 @@ fi
 
 log_step "ensuring database container is running"
 "${COMPOSE[@]}" up -d db >/dev/null
+
+log_step "waiting for database readiness"
+wait_started_at=$SECONDS
+while ! "${COMPOSE[@]}" exec -T db pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; do
+    if [ $((SECONDS - wait_started_at)) -ge "$DB_READY_TIMEOUT" ]; then
+        die "database did not become ready within ${DB_READY_TIMEOUT}s"
+    fi
+    sleep 1
+done
 
 log_step "writing database backup"
 "${COMPOSE[@]}" exec -T db pg_dump --clean --if-exists --no-owner --no-privileges -U "$DB_USER" "$DB_NAME" | gzip -c > "$DB_BACKUP"
