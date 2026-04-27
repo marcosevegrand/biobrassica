@@ -1,3 +1,9 @@
+import os
+import stat
+import subprocess
+import tempfile
+from pathlib import Path
+
 from django.core.cache import cache
 from django.conf import settings
 from django.db import connection
@@ -108,6 +114,35 @@ class HealthEndpointTests(TestCase):
 		self.assertEqual(response.status_code, 500)
 		self.assertJSONEqual(response.content, {'status': 'error'})
 		self.assertNotIn('database biobrassica unavailable', response.content.decode())
+
+	def test_docker_healthcheck_uses_role_fallback_when_allowed_hosts_env_is_unset(self):
+		script_path = Path(settings.BASE_DIR) / 'docker-healthcheck.sh'
+
+		with tempfile.TemporaryDirectory() as temp_dir:
+			stub_curl = Path(temp_dir) / 'curl'
+			stub_curl.write_text(
+				"#!/bin/sh\nprintf '%s\\n' \"$@\"\n",
+				encoding='utf-8',
+			)
+			stub_curl.chmod(stub_curl.stat().st_mode | stat.S_IXUSR)
+
+			env = {
+				'PATH': temp_dir,
+				'SITE_ROLE': 'shop',
+				'PRIMARY_DOMAIN': 'example.com',
+			}
+
+			result = subprocess.run(
+				['/bin/sh', str(script_path)],
+				capture_output=True,
+				text=True,
+				env=env,
+				check=False,
+			)
+
+		self.assertEqual(result.returncode, 0, msg=result.stderr)
+		self.assertIn('Host: loja.example.com', result.stdout)
+		self.assertFalse(result.stderr)
 
 
 @override_settings(ROOT_URLCONF='config.urls_website')

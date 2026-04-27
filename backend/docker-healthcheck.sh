@@ -1,7 +1,13 @@
 #!/bin/sh
 set -eu
 
-health_host="${HEALTHCHECK_HOST:-${ALLOWED_HOSTS%%,*}}"
+health_host="${HEALTHCHECK_HOST:-}"
+allowed_hosts="${ALLOWED_HOSTS-}"
+
+if [ -z "$health_host" ] && [ -n "$allowed_hosts" ]; then
+    health_host="${allowed_hosts%%,*}"
+fi
+
 primary_domain="${PRIMARY_DOMAIN:-marcosevegrand.com}"
 site_role="${SITE_ROLE:-website}"
 
