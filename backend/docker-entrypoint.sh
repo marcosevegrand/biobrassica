@@ -12,6 +12,9 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
         ifthenpay_mbway)
             payment_vars="IFTHENPAY_MBWAY_KEY IFTHENPAY_ANTI_PHISHING_KEY"
             ;;
+        mbway_manual)
+            payment_vars=""
+            ;;
         *)
             echo "Invalid PAYMENT_PROVIDER: $payment_provider" >&2
             exit 1
@@ -47,6 +50,10 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
 
         if [ "$collectstatic_on_start" = "1" ]; then
             /usr/local/bin/python manage.py collectstatic --noinput
+        fi
+
+        if [ "${SITE_ROLE:-}" = "admin" ]; then
+            /usr/local/bin/python manage.py create_initial_admin
         fi
     fi
 fi

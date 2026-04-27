@@ -44,6 +44,8 @@ if PAYMENT_PROVIDER == 'stripe':
 elif PAYMENT_PROVIDER == 'ifthenpay_mbway':
     IFTHENPAY_MBWAY_KEY = required_env('IFTHENPAY_MBWAY_KEY')
     IFTHENPAY_ANTI_PHISHING_KEY = required_env('IFTHENPAY_ANTI_PHISHING_KEY')
+elif PAYMENT_PROVIDER == 'mbway_manual':
+    pass
 
 CSRF_TRUSTED_ORIGINS = [
     f'https://{host}'

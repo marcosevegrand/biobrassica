@@ -8,12 +8,14 @@ from apps.payments.models import Payment
 from apps.payments.services import (
     anonymize_ip_address,
     expire_stale_pending_payments,
+    get_payment_service,
     mark_payment_failed,
     mark_payment_paid,
     normalize_mbway_mobile_number,
     PaymentProcessingError,
     sanitize_callback_payload,
 )
+from apps.website.models import WebsiteContent
 from tests.factories.orders import OrderFactory
 from tests.factories.payments import PaymentFactory
 
@@ -97,6 +99,59 @@ def test_mark_payment_failed_restores_order_to_pending():
     assert payment.status == Payment.Status.FAILED
     assert payment.last_error == 'card declined'
     assert order.status == Order.Status.PENDING
+
+
+def test_manual_mbway_service_snapshots_configured_number_and_redirects_to_status():
+    WebsiteContent.objects.create(manual_mbway_number='912345678')
+    order = OrderFactory(status=Order.Status.PAYMENT_PENDING)
+    payment = PaymentFactory(
+        order=order,
+        method=Payment.Method.MBWAY_MANUAL,
+        provider_reference='',
+        provider_payment_id='',
+        provider_data={},
+        checkout_url='',
+    )
+
+    redirect_url = get_payment_service(Payment.Method.MBWAY_MANUAL).initiate_payment(
+        order=order,
+        payment=payment,
+        success_url='https://example.com/success',
+        cancel_url='https://example.com/cancel',
+        status_url='https://example.com/status',
+    )
+
+    payment.refresh_from_db()
+
+    assert redirect_url == 'https://example.com/status'
+    assert payment.provider_reference == ''
+    assert payment.provider_payment_id == ''
+    assert payment.checkout_url == ''
+    assert payment.provider_data == {
+        'mbway_number': '912 345 678',
+        'order_reference': f'#{order.pk:07d}',
+    }
+
+
+def test_manual_mbway_service_requires_configured_number():
+    order = OrderFactory(status=Order.Status.PAYMENT_PENDING)
+    payment = PaymentFactory(
+        order=order,
+        method=Payment.Method.MBWAY_MANUAL,
+        provider_reference='',
+        provider_payment_id='',
+        provider_data={},
+        checkout_url='',
+    )
+
+    with pytest.raises(PaymentProcessingError):
+        get_payment_service(Payment.Method.MBWAY_MANUAL).initiate_payment(
+            order=order,
+            payment=payment,
+            success_url='https://example.com/success',
+            cancel_url='https://example.com/cancel',
+            status_url='https://example.com/status',
+        )
 
 
 @pytest.mark.stripe

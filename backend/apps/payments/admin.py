@@ -1,13 +1,22 @@
 import json
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.db import transaction
 from django.db.models import Count, Q
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin, TabularInline
 
+from apps.orders.services import OrderWorkflowError, cancel_unpaid_order
 from apps.payments.models import Payment, PaymentCallback
+from apps.payments.services import (
+    PaymentTransitionError,
+    finalize_successful_payment,
+    mark_payment_failed,
+    schedule_manual_payment_rejection_notification,
+)
 from apps.core.admin_helpers import EditLinkAdminMixin, WorkflowAdminMixin, render_status_badge, render_summary_panel
 
 
@@ -40,11 +49,12 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/payments/payment/workflow_overview.html'
     list_display = ('__str__', 'order', 'customer_display', 'method_display', 'status_badge', 'callback_health_display', 'provider_identifier_display', 'amount', 'expires_at', 'paid_at', 'created_at', 'edit_link')
     list_filter = ('method', 'status', 'created_at')
+    actions = ('approve_manual_mbway_payments', 'reject_manual_mbway_payments')
     search_fields = ('=order__pk', 'provider_reference', 'provider_payment_id')
     search_help_text = _('Pesquise por encomenda ou identificadores do provedor.')
     readonly_fields = (
         'order', 'customer_display', 'status_badge', 'order_summary', 'callback_health_summary', 'method_display', 'amount',
-        'provider_reference_display', 'provider_payment_id_display', 'checkout_url', 'last_error', 'expires_at', 'paid_at', 'created_at',
+        'provider_reference_display', 'provider_payment_id_display', 'provider_data_display', 'checkout_url', 'last_error', 'expires_at', 'paid_at', 'created_at',
     )
     list_filter_submit = True
     compressed_fields = True
@@ -54,12 +64,88 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             'fields': ('order', 'customer_display', 'status_badge', 'order_summary', 'callback_health_summary'),
         }),
         (_('Dados do pagamento'), {
-            'fields': ('method_display', 'amount', 'provider_reference_display', 'provider_payment_id_display', 'checkout_url'),
+            'fields': ('method_display', 'amount', 'provider_reference_display', 'provider_payment_id_display', 'provider_data_display', 'checkout_url'),
         }),
         (_('Auditoria'), {
             'fields': ('expires_at', 'paid_at', 'created_at', 'last_error'),
         }),
     )
+
+    def _is_manual_mbway_pending(self, payment):
+        return payment.method == Payment.Method.MBWAY_MANUAL and payment.status == Payment.Status.PENDING
+
+    def _process_manual_mbway_action(self, request, queryset, *, approve: bool):
+        success_count = 0
+        skipped_count = 0
+        error_count = 0
+        rejection_reason = 'Pagamento MB WAY manual rejeitado no backoffice.'
+
+        for payment in queryset.select_related('order'):
+            try:
+                with transaction.atomic():
+                    locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=payment.pk)
+                    if not self._is_manual_mbway_pending(locked_payment):
+                        skipped_count += 1
+                        continue
+
+                    if approve:
+                        if finalize_successful_payment(locked_payment, source='admin_manual_mbway_approval'):
+                            success_count += 1
+                        else:
+                            skipped_count += 1
+                        continue
+
+                    if not mark_payment_failed(locked_payment, reason=rejection_reason):
+                        skipped_count += 1
+                        continue
+
+                    cancel_unpaid_order(locked_payment.order)
+                    schedule_manual_payment_rejection_notification(locked_payment, reason=rejection_reason)
+                    success_count += 1
+            except (OrderWorkflowError, PaymentTransitionError):
+                error_count += 1
+
+        if success_count:
+            message = (
+                _('{} pagamento(s) MB WAY manual aprovado(s).').format(success_count)
+                if approve
+                else _('{} pagamento(s) MB WAY manual rejeitado(s).').format(success_count)
+            )
+            self.message_user(request, message, level=messages.SUCCESS)
+        if skipped_count:
+            self.message_user(
+                request,
+                _('{} pagamento(s) ignorado(s) por não estarem pendentes em MB WAY manual.').format(skipped_count),
+                level=messages.WARNING,
+            )
+        if error_count:
+            self.message_user(
+                request,
+                _('{} pagamento(s) não puderam ser atualizados.').format(error_count),
+                level=messages.WARNING,
+            )
+
+    def get_changeform_submit_actions(self, request, obj):
+        if obj is None or not self._is_manual_mbway_pending(obj):
+            return []
+        return [
+            {'action_name': '_approve_manual_mbway', 'description': _('Aprovar pagamento MB WAY manual')},
+            {'action_name': '_reject_manual_mbway', 'description': _('Rejeitar pagamento MB WAY manual')},
+        ]
+
+    def handle_changeform_submit_action(self, request, obj, action_name):
+        if obj is None:
+            return None
+
+        if action_name == '_approve_manual_mbway':
+            self._process_manual_mbway_action(request, Payment.objects.filter(pk=obj.pk), approve=True)
+            return HttpResponseRedirect(request.path)
+
+        if action_name == '_reject_manual_mbway':
+            self._process_manual_mbway_action(request, Payment.objects.filter(pk=obj.pk), approve=False)
+            return HttpResponseRedirect(request.path)
+
+        return None
 
     def changelist_view(self, request, extra_context=None):
         queryset = self.get_queryset(request)
@@ -135,6 +221,24 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def provider_payment_id_display(self, obj):
         return obj.masked_provider_payment_id or '—'
 
+    @admin.display(description=_('Dados do provedor'))
+    def provider_data_display(self, obj):
+        provider_data = obj.provider_data if isinstance(obj.provider_data, dict) else {}
+        if not provider_data:
+            return '—'
+
+        if obj.method == Payment.Method.MBWAY_MANUAL:
+            return render_summary_panel(
+                _('Snapshot MB WAY manual'),
+                [
+                    (_('Número MB WAY'), provider_data.get('mbway_number') or '—'),
+                    (_('Referência'), provider_data.get('order_reference') or '—'),
+                ],
+                footer=_('O número MB WAY fica guardado no pagamento para preservar as instruções vistas pelo cliente no checkout.'),
+            )
+
+        return format_html('<pre style="white-space:pre-wrap;max-width:48rem;">{}</pre>', json.dumps(provider_data, ensure_ascii=False, indent=2))
+
     @admin.display(ordering='provider_reference', description=_('ID do provedor'))
     def provider_identifier_display(self, obj):
         return obj.masked_provider_identifier or '—'
@@ -178,6 +282,14 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             ],
             footer=_('Use o atalho superior para abrir a lista filtrada de callbacks desta cobrança.'),
         )
+
+    @admin.action(description=_('Aprovar pagamentos MB WAY manual'))
+    def approve_manual_mbway_payments(self, request, queryset):
+        self._process_manual_mbway_action(request, queryset, approve=True)
+
+    @admin.action(description=_('Rejeitar pagamentos MB WAY manual'))
+    def reject_manual_mbway_payments(self, request, queryset):
+        self._process_manual_mbway_action(request, queryset, approve=False)
 
 
 @admin.register(PaymentCallback)

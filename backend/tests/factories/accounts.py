@@ -12,4 +12,10 @@ class UserFactory(factory.django.DjangoModelFactory):
     email = factory.Sequence(lambda n: f'user{n}@example.com')
     username = factory.Sequence(lambda n: f'user{n}')
     preferred_language = 'pt'
-    password = factory.PostGenerationMethodCall('set_password', 'testpass123')
+    password = 'testpass123'
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        password = kwargs.pop('password', 'testpass123')
+        manager = cls._get_manager(model_class)
+        return manager.create_user(*args, password=password, **kwargs)

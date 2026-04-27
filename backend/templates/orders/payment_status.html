@@ -45,10 +45,12 @@
        class="inline-block text-center text-xs uppercase tracking-widest border border-forest px-6 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">
       {% trans "Atualizar estado" %}
     </a>
+    {% if order.status != 'cancelled' %}
     <a href="{% url 'orders:payment_select' order_id=order.pk %}"
        class="inline-block text-center text-xs uppercase tracking-widest border border-stone/30 px-6 py-3 rounded-sm hover:border-forest hover:text-forest transition-colors">
       {% trans "Reiniciar pagamento" %}
     </a>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 
 from apps.core.admin_helpers import EditLinkAdminMixin, OrderableAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
-from apps.core.site_content import get_payments_availability
+from apps.core.site_content import get_manual_mbway_details, get_payments_availability
 from apps.website.forms import TeamMemberAdminForm, WebsiteContentAdminForm
 from apps.website.models import TeamMember, WebsiteContent
 
@@ -105,7 +105,7 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 	compressed_fields = True
 	fieldsets = (
 		(_('Operação'), {
-			'fields': ('payments_enabled', 'website_operations_panel'),
+			'fields': (('payments_enabled', 'manual_mbway_number'), 'website_operations_panel'),
 		}),
 		(_('Empresa e apoio'), {
 			'fields': ('company_legal_name', 'company_address', ('company_nif', 'support_email')),
@@ -196,6 +196,7 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			return _('Guarde o conteúdo para centralizar a gestão editorial do website.')
 
 		availability = get_payments_availability(content=obj)
+		manual_mbway = get_manual_mbway_details(content=obj)
 		if availability['enabled']:
 			payments_state = _('Ativos')
 		elif availability['source'] == 'settings' or getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
@@ -207,6 +208,7 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			_('Operação editorial'),
 			[
 				(_('Pagamentos'), payments_state),
+				(_('MB WAY manual'), manual_mbway['number'] or _('Não configurado')),
 				(_('Empresa'), obj.company_legal_name or _('Usa fallback')),
 				(_('Morada legal'), obj.company_address or _('Usa fallback')),
 				(_('Email de apoio'), obj.support_email or _('Usa fallback')),
@@ -218,5 +220,5 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 				(_('Contactos'), _('Configurado') if obj.contacts_hero_title else _('Usa fallback')),
 				(_('WhatsApp'), obj.whatsapp_number or _('Usa fallback')),
 			],
-			footer=_('Este registo centraliza os principais blocos estáticos do website e permite pausar pagamentos no backoffice.'),
+			footer=_('Este registo centraliza os principais blocos estáticos do website, o número MB WAY manual e a pausa de pagamentos no backoffice.'),
 		)

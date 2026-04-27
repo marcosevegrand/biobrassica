@@ -4,7 +4,11 @@ from django.utils import translation
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from apps.accounts.validators import normalize_portuguese_nif, validate_portuguese_nif
+from apps.accounts.validators import (
+    normalize_portuguese_mobile_phone,
+    normalize_portuguese_nif,
+    validate_portuguese_nif,
+)
 from apps.core.translations import DEFAULT_LANGUAGE, normalized_language
 
 
@@ -99,6 +103,12 @@ class WebsiteContent(models.Model):
         default=True,
         help_text=_('Desative temporariamente para bloquear novos pagamentos e novas sessões Stripe.'),
     )
+    manual_mbway_number = models.CharField(
+        _('número MB WAY manual'),
+        max_length=20,
+        blank=True,
+        help_text=_('Usado quando PAYMENT_PROVIDER=mbway_manual para mostrar instruções de pagamento ao cliente.'),
+    )
     company_legal_name = models.CharField(_('designação legal'), max_length=255, blank=True)
     company_address = models.TextField(_('morada legal'), blank=True)
     company_nif = models.CharField(_('NIF da empresa'), max_length=20, blank=True)
@@ -175,6 +185,11 @@ class WebsiteContent(models.Model):
             self.whatsapp_number = normalize_whatsapp_number(self.whatsapp_number)
         except ValidationError as error:
             errors['whatsapp_number'] = error.messages
+
+        try:
+            self.manual_mbway_number = normalize_portuguese_mobile_phone(self.manual_mbway_number)
+        except ValidationError as error:
+            errors['manual_mbway_number'] = error.messages
 
         if errors:
             raise ValidationError(errors)

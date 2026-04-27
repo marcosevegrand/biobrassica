@@ -156,7 +156,7 @@
         <button type="submit"
                 class="mt-8 w-full text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors {% if not payments_enabled %}opacity-50 cursor-not-allowed{% endif %}"
                 {% if not payments_enabled %}disabled{% endif %}>
-          {% if payments_enabled %}{% trans "Continuar para pagamento" %}{% else %}{% trans "Pagamentos temporariamente indisponíveis" %}{% endif %}
+          {% if payments_enabled %}{{ payment_provider.submit_label }}{% else %}{% trans "Pagamentos temporariamente indisponíveis" %}{% endif %}
         </button>
       </form>
     </div>
@@ -178,15 +178,23 @@
           <span class="font-serif text-xl italic">{{ cart.total|floatformat:2 }}€</span>
         </div>
 
-        <!-- Stripe Security Badge -->
+        <!-- Active Payment Provider -->
         <div class="mt-8 pt-6 border-t border-stone/30">
           <div class="flex gap-2 items-center">
             <svg class="w-5 h-5 text-forest shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
             </svg>
             <div>
+              {% if payment_provider.method == 'stripe' %}
               <p class="text-xs font-medium text-forest">{% trans "Pagamento Seguro" %}</p>
               <p class="text-xs text-muted">{% trans "Processado por Stripe" %}</p>
+              {% elif payment_provider.method == 'ifthenpay_mbway' %}
+              <p class="text-xs font-medium text-forest">{% trans "Pedido MB WAY" %}</p>
+              <p class="text-xs text-muted">{% trans "Será enviado para o telemóvel indicado no checkout." %}</p>
+              {% else %}
+              <p class="text-xs font-medium text-forest">{% trans "Pagamento manual MB WAY" %}</p>
+              <p class="text-xs text-muted">{% trans "Depois de confirmar a encomenda verá as instruções de pagamento e o estado ficará em validação manual." %}</p>
+              {% endif %}
             </div>
           </div>
         </div>

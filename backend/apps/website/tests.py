@@ -393,6 +393,7 @@ class WebsiteContentAdminTests(WebsiteTestCase):
         self.assertContains(response, 'Navegação do formulário')
         self.assertContains(response, 'Operação editorial')
         self.assertContains(response, 'Pagamentos')
+        self.assertContains(response, 'MB WAY manual')
         self.assertContains(response, 'Email de apoio')
         self.assertContains(response, 'Gerir equipa')
         self.assertContains(response, 'Gerir lojas')
@@ -402,6 +403,7 @@ class WebsiteContentAdminTests(WebsiteTestCase):
             reverse('admin:website_websitecontent_change', args=[self.content.pk]),
             {
                 'payments_enabled': 'on',
+                'manual_mbway_number': '12345',
                 'company_nif': '123',
                 'support_email': 'apoio@biobrassica.pt',
                 'whatsapp_number': '12345',
@@ -410,6 +412,7 @@ class WebsiteContentAdminTests(WebsiteTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Indique um NIF português válido.')
+        self.assertContains(response, 'Indique um telemóvel português válido.')
         self.assertContains(response, 'Indique um número WhatsApp português válido.')
 
     def test_website_content_change_form_can_disable_payments(self):

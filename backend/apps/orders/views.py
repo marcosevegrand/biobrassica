@@ -16,6 +16,7 @@ from apps.core.site_content import payments_are_enabled
 from apps.payments.models import Payment
 from apps.payments.services import (
     PaymentDisabledError,
+    PaymentProcessingError,
     get_payment_service,
     reset_payment,
     stripe_service,
@@ -61,6 +62,7 @@ def _payment_select_context(order, form):
 
 
 def _checkout_context(request, cart, items, cart_can_ship, form):
+    payment_service = get_payment_service()
     return {
         'cart': cart,
         'items': items,
@@ -68,6 +70,7 @@ def _checkout_context(request, cart, items, cart_can_ship, form):
         'pickup_locations': list(form.fields['pickup_location'].choices),
         'cart_can_ship': cart_can_ship,
         'payments_enabled': payments_are_enabled(),
+        'payment_provider': payment_service.checkout_option(),
     }
 
 
@@ -224,6 +227,17 @@ def checkout_confirm(request):
         if payment is not None:
             payment.delete()
         return _handle_payments_disabled(request=request, redirect_to='orders:checkout')
+    except PaymentProcessingError as error:
+        if order is not None:
+            try:
+                cancel_unpaid_order(order)
+            except Exception:
+                logger.exception('Failed to cancel order %s after payment setup validation failed', order.pk)
+        if payment is not None:
+            payment.delete()
+        logger.warning('Payment setup rejected for order %s: %s', order.pk if order else 'new', error)
+        messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
+        return redirect('orders:checkout')
     except Exception:
         if order is not None:
             try:
@@ -270,7 +284,7 @@ def payment_select(request, order_id):
         if existing_payment and existing_payment.status == Payment.Status.PENDING and existing_payment.method == payment_method:
             if existing_payment.checkout_url:
                 return redirect(existing_payment.checkout_url)
-            if payment_method == Payment.Method.IFTHENPAY_MBWAY:
+            if payment_method in {Payment.Method.IFTHENPAY_MBWAY, Payment.Method.MBWAY_MANUAL}:
                 return redirect(_order_url('orders:payment_status', order))
 
         payment = reset_payment(order, payment_method)
@@ -289,6 +303,9 @@ def payment_select(request, order_id):
         return redirect(redirect_url)
     except PaymentDisabledError:
         messages.error(request, PAYMENTS_DISABLED_MESSAGE)
+        return redirect(_order_url('orders:payment_select', order))
+    except PaymentProcessingError as error:
+        messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
         return redirect(_order_url('orders:payment_select', order))
     except Exception:
         logger.exception('Failed to initiate payment for order %s', order.pk)

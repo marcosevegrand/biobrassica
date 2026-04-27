@@ -82,6 +82,7 @@ ADMIN_ALLOWED_HOSTS = env_list(
 PAYMENT_PROVIDERS = {
     'stripe',
     'ifthenpay_mbway',
+    'mbway_manual',
 }
 
 
@@ -188,7 +189,7 @@ LOGOUT_REDIRECT_URL = '/'
 PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'stripe').strip().lower() or 'stripe'
 if PAYMENT_PROVIDER not in PAYMENT_PROVIDERS:
     raise ImproperlyConfigured(
-        'PAYMENT_PROVIDER must be one of: stripe, ifthenpay_mbway'
+        'PAYMENT_PROVIDER must be one of: stripe, ifthenpay_mbway, mbway_manual'
     )
 
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')

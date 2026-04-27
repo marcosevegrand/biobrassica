@@ -12,7 +12,7 @@ from tests.factories.orders import OrderFactory
 from tests.factories.payments import PaymentFactory
 
 
-pytestmark = [pytest.mark.django_db, pytest.mark.integration, pytest.mark.stripe]
+pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
 
 def _login_checkout_user(client):
@@ -37,6 +37,7 @@ def _create_order_with_payment(*, user):
     return order, payment
 
 
+@pytest.mark.stripe
 def test_payment_status_polling_paid_session_marks_payment_paid_and_redirects_to_complete(shop_client, monkeypatch):
     user = _login_checkout_user(shop_client)
     order, payment = _create_order_with_payment(user=user)
@@ -64,6 +65,7 @@ def test_payment_status_polling_paid_session_marks_payment_paid_and_redirects_to
     assert scheduled == [payment.pk]
 
 
+@pytest.mark.stripe
 def test_payment_status_polling_expired_session_marks_payment_expired_and_renders_status_page(shop_client, monkeypatch):
     user = _login_checkout_user(shop_client)
     order, payment = _create_order_with_payment(user=user)
@@ -101,6 +103,7 @@ def test_payment_status_missing_payment_redirects_to_payment_select(shop_client)
     )
 
 
+@pytest.mark.stripe
 def test_payment_status_polling_exception_leaves_payment_pending_and_renders_page(shop_client, monkeypatch):
     user = _login_checkout_user(shop_client)
     order, payment = _create_order_with_payment(user=user)
@@ -135,3 +138,28 @@ def test_payment_status_requires_login(shop_client):
     assert response['Location'].endswith(
         f"{reverse('accounts:login', urlconf='config.urls_shop')}?next={reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop')}"
     )
+
+
+def test_manual_mbway_payment_status_renders_transfer_instructions(shop_client):
+    user = _login_checkout_user(shop_client)
+    order = OrderFactory(status=Order.Status.PAYMENT_PENDING, user=user)
+    PaymentFactory(
+        order=order,
+        method=Payment.Method.MBWAY_MANUAL,
+        status=Payment.Status.PENDING,
+        provider_reference='',
+        provider_payment_id='',
+        provider_data={
+            'mbway_number': '912 345 678',
+            'order_reference': f'#{order.pk:07d}',
+        },
+        checkout_url='',
+    )
+
+    response = shop_client.get(
+        reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop'),
+    )
+
+    assert response.status_code == 200
+    assert 'Transfira o valor por MB WAY' in response.content.decode()
+    assert '912 345 678' in response.content.decode()

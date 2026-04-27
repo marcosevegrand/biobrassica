@@ -4,6 +4,7 @@ from typing import Any, cast
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -11,11 +12,12 @@ from apps.cart.models import CartItem
 from apps.catalog.models import Location
 from apps.orders.models import Order
 from apps.payments.models import Payment
+from apps.website.models import WebsiteContent
 from tests.factories.cart import CartFactory, CartItemFactory
 from tests.factories.catalog import ProductFactory
 
 
-pytestmark = [pytest.mark.django_db, pytest.mark.integration, pytest.mark.stripe]
+pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
 
 def _create_pickup_location():
@@ -58,6 +60,7 @@ def _checkout_payload(**overrides):
     return payload
 
 
+@pytest.mark.stripe
 def test_checkout_confirm_creates_payment_pending_order_and_clears_cart(shop_client, monkeypatch):
     user, cart, product, _cart_item = _build_guest_cart(quantity=2, stock=10)
     shop_client.force_login(user)
@@ -99,6 +102,7 @@ def test_checkout_confirm_creates_payment_pending_order_and_clears_cart(shop_cli
     assert order.user == user
 
 
+@pytest.mark.stripe
 def test_checkout_confirm_restores_cart_and_cancels_order_when_stripe_fails(shop_client, monkeypatch):
     user, cart, product, cart_item = _build_guest_cart(quantity=2, stock=10)
     shop_client.force_login(user)
@@ -126,6 +130,7 @@ def test_checkout_confirm_restores_cart_and_cancels_order_when_stripe_fails(shop
     assert product.stock == 10
 
 
+@pytest.mark.stripe
 def test_checkout_confirm_caps_cart_quantities_and_renders_error_when_stock_changed(shop_client):
     user, cart, product, cart_item = _build_guest_cart(quantity=5, stock=2)
     shop_client.force_login(user)
@@ -153,3 +158,37 @@ def test_checkout_requires_login(shop_client):
     assert response['Location'].endswith(
         f"{reverse('accounts:login', urlconf='config.urls_shop')}?next={reverse('orders:checkout', urlconf='config.urls_shop')}"
     )
+
+
+@override_settings(PAYMENT_PROVIDER=Payment.Method.MBWAY_MANUAL)
+def test_checkout_confirm_creates_manual_mbway_payment_and_redirects_to_status(shop_client):
+    WebsiteContent.objects.create(manual_mbway_number='912345678')
+    user, cart, product, _cart_item = _build_guest_cart(quantity=2, stock=10)
+    shop_client.force_login(user)
+
+    response = shop_client.post(
+        reverse('orders:confirm', urlconf='config.urls_shop'),
+        data=_checkout_payload(phone=''),
+    )
+
+    order = Order.objects.get(email='marco@example.com')
+    payment = Payment.objects.get(order=order)
+
+    product.refresh_from_db()
+
+    assert response.status_code == 302
+    assert response['Location'].endswith(
+        reverse('orders:payment_status', kwargs={'order_id': order.pk}, urlconf='config.urls_shop')
+    )
+    assert payment.method == Payment.Method.MBWAY_MANUAL
+    assert payment.status == Payment.Status.PENDING
+    assert payment.provider_reference == ''
+    assert payment.provider_payment_id == ''
+    assert payment.checkout_url == ''
+    assert payment.provider_data == {
+        'mbway_number': '912 345 678',
+        'order_reference': f'#{order.pk:07d}',
+    }
+    assert order.status == Order.Status.PAYMENT_PENDING
+    assert CartItem.objects.filter(cart=cart).count() == 0
+    assert product.stock == 8

@@ -116,6 +116,7 @@ class WebsiteContentAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         placeholders = {
+            'manual_mbway_number': _('Ex: +351 912 345 678'),
             'company_legal_name': _('Ex: Biobrassica, Lda.'),
             'company_nif': _('Ex: 123456789'),
             'support_email': _('Ex: apoio@biobrassica.pt'),
@@ -142,6 +143,9 @@ class WebsiteContentAdminForm(forms.ModelForm):
         for field_name, rows in textarea_rows.items():
             self.fields[field_name].widget.attrs.setdefault('rows', rows)
 
+        self.fields['manual_mbway_number'].help_text = _(
+            'Aceita 912345678, 351912345678 ou +351 912 345 678. Necessário quando o provider ativo é MB WAY manual.'
+        )
         self.fields['company_nif'].help_text = _('Use um NIF português válido com 9 dígitos.')
         self.fields['support_email'].help_text = _('Endereço usado no rodapé, páginas legais e contactos.')
         self.fields['whatsapp_number'].help_text = _('Aceita 912345678, 351912345678 ou +351 912 345 678.')

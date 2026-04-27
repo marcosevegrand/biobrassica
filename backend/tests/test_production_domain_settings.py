@@ -79,3 +79,14 @@ class ProductionDomainSettingsTests(SimpleTestCase):
             settings_module.ALLOWED_HOSTS,
             ['shop.biobrassica.pt', 'shop.marcosevegrand.com'],
         )
+
+    def test_manual_mbway_provider_does_not_require_gateway_credentials(self):
+        settings_module = self.load_production_settings(
+            PAYMENT_PROVIDER='mbway_manual',
+            STRIPE_SECRET_KEY='',
+            STRIPE_WEBHOOK_SECRET='',
+            IFTHENPAY_MBWAY_KEY='',
+            IFTHENPAY_ANTI_PHISHING_KEY='',
+        )
+
+        self.assertEqual(settings_module.PAYMENT_PROVIDER, 'mbway_manual')

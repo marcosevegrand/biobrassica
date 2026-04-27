@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 from apps.orders.models import Order
 from apps.orders.services import cancel_unpaid_order, transition_order_status
 from apps.payments.models import Payment
-from apps.core.site_content import payments_are_enabled
+from apps.core.site_content import get_manual_mbway_details, payments_are_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +204,70 @@ def schedule_payment_notifications(payment) -> None:
             scheduled.discard(payment_id)
 
     transaction.on_commit(_send_notifications)
+
+
+def send_manual_payment_rejection_notification(payment, *, reason='') -> None:
+    order = payment.order
+    lang = (order.language or 'pt').lower()
+    safe_reason = _sanitize_payment_error(reason)
+
+    customer_subject = {
+        'en': f'MB WAY payment not approved for order #{order.pk}',
+        'fr': f'Paiement MB WAY non validé pour la commande #{order.pk}',
+    }.get(lang, f'Pagamento MB WAY não validado para a encomenda #{order.pk}')
+
+    reason_line = ''
+    if safe_reason:
+        reason_line = {
+            'en': f'Reason: {safe_reason}\n\n',
+            'fr': f'Raison : {safe_reason}\n\n',
+        }.get(lang, f'Motivo: {safe_reason}\n\n')
+
+    customer_body = {
+        'en': (
+            f'Hello {order.name},\n\n'
+            f'We could not validate the MB WAY payment for order #{order.pk}.\n'
+            f'{reason_line}'
+            'The order was cancelled. If you still want the products, please place a new order or contact us.'
+        ),
+        'fr': (
+            f'Bonjour {order.name},\n\n'
+            f'Nous n’avons pas pu valider le paiement MB WAY de votre commande #{order.pk}.\n'
+            f'{reason_line}'
+            'La commande a été annulée. Si vous souhaitez toujours les produits, passez une nouvelle commande ou contactez-nous.'
+        ),
+    }.get(
+        lang,
+        (
+            f'Olá {order.name},\n\n'
+            f'Não foi possível validar o pagamento MB WAY da sua encomenda #{order.pk}.\n'
+            f'{reason_line}'
+            'A encomenda foi cancelada. Se continuar interessado nos produtos, faça uma nova encomenda ou entre em contacto connosco.'
+        ),
+    )
+
+    try:
+        send_mail(
+            customer_subject,
+            customer_body,
+            settings.DEFAULT_FROM_EMAIL,
+            [order.email],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception('Failed to send manual MB WAY rejection email for order %s', order.pk)
+
+
+def schedule_manual_payment_rejection_notification(payment, *, reason='') -> None:
+    payment_id = payment.pk
+    safe_reason = _sanitize_payment_error(reason)
+
+    def _send_notification():
+        refreshed_payment = payment.__class__.objects.select_related('order').get(pk=payment_id)
+        if refreshed_payment.status == Payment.Status.FAILED and refreshed_payment.order.status == Order.Status.CANCELLED:
+            send_manual_payment_rejection_notification(refreshed_payment, reason=safe_reason)
+
+    transaction.on_commit(_send_notification)
 
 
 def _raise_payment_validation_error(error):
@@ -725,12 +789,76 @@ class IfthenpayMbWayService(BasePaymentService):
             raise PaymentProcessingError(_('A Ifthenpay devolveu uma resposta inválida.')) from error
 
 
+class ManualMbWayService(BasePaymentService):
+    method = Payment.Method.MBWAY_MANUAL
+
+    def checkout_option(self):
+        return {
+            'method': self.method,
+            'title': 'MB WAY manual',
+            'badge': 'MBW',
+            'description': _('Receba instruções para pagar por MB WAY e aguarde validação manual no backoffice.'),
+            'submit_label': _('Confirmar encomenda'),
+        }
+
+    def payment_status_context(self, payment):
+        provider_data = _provider_data(payment)
+        manual_mbway = get_manual_mbway_details()
+        mbway_number = provider_data.get('mbway_number') or manual_mbway.get('number') or '—'
+        order_reference = provider_data.get('order_reference') or f'#{payment.order.pk:07d}'
+
+        if payment.status == Payment.Status.FAILED or payment.order.status == Order.Status.CANCELLED:
+            description = _(
+                'O pagamento MB WAY não foi validado e a encomenda foi cancelada. Consulte o email enviado para mais detalhes.'
+            )
+            state_label = _('Pagamento rejeitado')
+        else:
+            description = _(
+                'Transfira o valor por MB WAY para o número abaixo. A encomenda fica em espera até validarmos manualmente o pagamento.'
+            )
+            state_label = _('A aguardar validação manual')
+
+        return {
+            'title': 'MB WAY manual',
+            'description': description,
+            'action_url': '',
+            'action_label': '',
+            'detail_rows': [
+                (_('Valor'), f'{payment.amount:.2f}€'),
+                (_('Número MB WAY'), mbway_number),
+                (_('Referência'), order_reference),
+                (_('Estado'), state_label),
+            ],
+        }
+
+    def initiate_payment(self, *, order, payment, success_url: str, cancel_url: str, status_url: str) -> str:
+        del success_url, cancel_url
+
+        if not payments_are_enabled():
+            raise PaymentDisabledError('Payments are temporarily disabled.')
+
+        manual_mbway = get_manual_mbway_details()
+        if not manual_mbway['configured']:
+            raise PaymentProcessingError(_('O pagamento MB WAY não está disponível neste momento.'))
+
+        configure_provider_payment(
+            payment,
+            provider_data={
+                'mbway_number': manual_mbway['number'],
+                'order_reference': f'#{order.pk:07d}',
+            },
+        )
+        return status_url
+
+
 stripe_service = StripeService()
 ifthenpay_mbway_service = IfthenpayMbWayService()
+manual_mbway_service = ManualMbWayService()
 
 PAYMENT_SERVICES: dict[str, BasePaymentService] = {
     stripe_service.method: stripe_service,
     ifthenpay_mbway_service.method: ifthenpay_mbway_service,
+    manual_mbway_service.method: manual_mbway_service,
 }
 
 

@@ -10,11 +10,13 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.orders.models import Order
+from apps.orders.models import Order, OrderItem
+from apps.orders.services import cancel_unpaid_order
 from apps.payments.models import Payment, PaymentCallback
 from apps.payments.services import (
     finalize_successful_payment,
     PaymentTransitionError,
+    schedule_manual_payment_rejection_notification,
     StripeService,
     STRIPE_CHECKOUT_EXPIRY_WINDOW,
     configure_stripe_checkout,
@@ -22,6 +24,7 @@ from apps.payments.services import (
     mark_payment_failed,
     mark_payment_refunded,
 )
+from tests.factories.catalog import ProductFactory
 
 
 class PaymentValidationTests(TestCase):
@@ -272,6 +275,44 @@ class PaymentWorkflowTests(TestCase):
         self.assertNotIn('marco@example.com', self.payment.last_error)
         self.assertLessEqual(len(self.payment.last_error), 255)
 
+    @patch('apps.payments.services.send_mail')
+    def test_manual_payment_rejection_notification_is_sent_after_cancel(self, send_mail):
+        manual_order = Order.objects.create(
+            name='Marco',
+            email='manual@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('19.00'),
+            total=Decimal('19.00'),
+            status=Order.Status.PAYMENT_PENDING,
+        )
+        manual_payment = Payment.objects.create(
+            order=manual_order,
+            method=Payment.Method.MBWAY_MANUAL,
+            status=Payment.Status.PENDING,
+            amount=manual_order.total,
+            provider_data={'mbway_number': '912 345 678'},
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            with transaction.atomic():
+                locked_payment = Payment.objects.select_for_update().select_related('order').get(pk=manual_payment.pk)
+                changed = mark_payment_failed(locked_payment, reason='Pagamento MB WAY manual rejeitado no backoffice.')
+                self.assertTrue(changed)
+                cancel_unpaid_order(locked_payment.order)
+                schedule_manual_payment_rejection_notification(
+                    locked_payment,
+                    reason='Pagamento MB WAY manual rejeitado no backoffice.',
+                )
+
+        manual_payment.refresh_from_db()
+        manual_order.refresh_from_db()
+
+        self.assertEqual(manual_payment.status, Payment.Status.FAILED)
+        self.assertEqual(manual_order.status, Order.Status.CANCELLED)
+        self.assertEqual(send_mail.call_count, 1)
+        self.assertIn('MB WAY', send_mail.call_args.args[0])
+
 
 class PaymentConstraintTests(TestCase):
     def _create_order(self, *, email):
@@ -364,6 +405,28 @@ class PaymentAdminWorkflowTests(TestCase):
             validation_message='signature verification failed',
         )
 
+    def _create_manual_payment(self):
+        order = Order.objects.create(
+            name='Manual MB WAY',
+            email='manual-admin@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('19.00'),
+            total=Decimal('19.00'),
+            status=Order.Status.PAYMENT_PENDING,
+        )
+        payment = Payment.objects.create(
+            order=order,
+            method=Payment.Method.MBWAY_MANUAL,
+            status=Payment.Status.PENDING,
+            amount=order.total,
+            provider_data={
+                'mbway_number': '912 345 678',
+                'order_reference': f'#{order.pk:07d}',
+            },
+        )
+        return order, payment
+
     def test_payment_admin_changelist_shows_workflow_cards(self):
         response = self.client.get(reverse('admin:payments_payment_changelist'))
 
@@ -377,6 +440,67 @@ class PaymentAdminWorkflowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Abrir encomenda')
         self.assertContains(response, 'Ver callbacks')
+
+    def test_manual_mbway_change_form_shows_review_actions_and_snapshot(self):
+        _order, payment = self._create_manual_payment()
+
+        response = self.client.get(reverse('admin:payments_payment_change', args=[payment.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Aprovar pagamento MB WAY manual')
+        self.assertContains(response, 'Rejeitar pagamento MB WAY manual')
+        self.assertContains(response, '912 345 678')
+
+    @override_settings(DEFAULT_FROM_EMAIL='loja@biobrassica.pt', STAFF_NOTIFICATION_EMAILS=['ops@biobrassica.pt'])
+    @patch('apps.payments.services.send_mail')
+    def test_manual_mbway_approval_marks_payment_paid_from_admin(self, send_mail):
+        order, payment = self._create_manual_payment()
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse('admin:payments_payment_change', args=[payment.pk]),
+                {'_approve_manual_mbway': '1'},
+                follow=True,
+            )
+
+        payment.refresh_from_db()
+        order.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payment.status, Payment.Status.PAID)
+        self.assertEqual(order.status, Order.Status.PAID)
+        self.assertEqual(send_mail.call_count, 2)
+        self.assertContains(response, '1 pagamento(s) MB WAY manual aprovado(s).')
+
+    @patch('apps.payments.services.send_mail')
+    def test_manual_mbway_rejection_cancels_order_and_restores_stock_from_admin(self, send_mail):
+        product = ProductFactory(stock=1, price=Decimal('9.50'), translation={'name': 'Cabaz manual'})
+        order, payment = self._create_manual_payment()
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            product_name='Cabaz manual',
+            price=Decimal('9.50'),
+            quantity=2,
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse('admin:payments_payment_change', args=[payment.pk]),
+                {'_reject_manual_mbway': '1'},
+                follow=True,
+            )
+
+        payment.refresh_from_db()
+        order.refresh_from_db()
+        product.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payment.status, Payment.Status.FAILED)
+        self.assertEqual(order.status, Order.Status.CANCELLED)
+        self.assertEqual(product.stock, 3)
+        self.assertEqual(send_mail.call_count, 1)
+        self.assertContains(response, '1 pagamento(s) MB WAY manual rejeitado(s).')
 
 
 @override_settings(

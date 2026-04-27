@@ -29,6 +29,7 @@ class Payment(models.Model):
     class Method(models.TextChoices):
         STRIPE = 'stripe', 'Stripe'
         IFTHENPAY_MBWAY = 'ifthenpay_mbway', 'Ifthenpay MB WAY'
+        MBWAY_MANUAL = 'mbway_manual', 'MB WAY manual'
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pendente'

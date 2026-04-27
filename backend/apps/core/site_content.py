@@ -235,6 +235,19 @@ def get_payments_availability(*, content=None):
     }
 
 
+def get_manual_mbway_details(*, content=None):
+    resolved_content = content
+    if resolved_content is None:
+        resolved_content = WebsiteContent.objects.filter(pk=1).only('manual_mbway_number').first()
+
+    number = str(getattr(resolved_content, 'manual_mbway_number', '') or '').strip()
+    return {
+        'configured': bool(number),
+        'number': number,
+        'digits': _normalize_whatsapp_number(number),
+    }
+
+
 def payments_are_enabled(*, content=None):
     return get_payments_availability(content=content)['enabled']
 
