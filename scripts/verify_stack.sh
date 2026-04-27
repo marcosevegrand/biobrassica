@@ -11,27 +11,72 @@ if [ -f "$PROJECT_DIR/.env" ]; then
 fi
 COMPOSE=(docker compose "${COMPOSE_ARGS[@]}")
 DRY_RUN="${VERIFY_DRY_RUN:-0}"
+ENV_FILE="$PROJECT_DIR/.env"
 
-http_redirect_checks=(
-    "marcosevegrand.com|https://marcosevegrand.com/"
-    "www.marcosevegrand.com|https://marcosevegrand.com/"
-    "loja.marcosevegrand.com|https://loja.marcosevegrand.com/"
-    "admin.marcosevegrand.com|https://admin.marcosevegrand.com/"
-)
+env_value() {
+    local name="$1"
+    local default="$2"
+    local line
 
-https_redirect_checks=(
-    "www.marcosevegrand.com|https://marcosevegrand.com/"
-)
+    if [ -n "${!name:-}" ]; then
+        printf '%s' "${!name}"
+        return 0
+    fi
+
+    if [ -f "$ENV_FILE" ]; then
+        line="$(grep -E "^${name}=" "$ENV_FILE" | tail -n 1 || true)"
+        if [ -n "$line" ]; then
+            printf '%s' "${line#*=}"
+            return 0
+        fi
+    fi
+
+    printf '%s' "$default"
+}
+
+WEBSITE_HOST="$(env_value WEBSITE_HOST marcosevegrand.com)"
+WEBSITE_ALLOWED_HOSTS="$(env_value WEBSITE_ALLOWED_HOSTS marcosevegrand.com,www.marcosevegrand.com)"
+SHOP_HOST="$(env_value SHOP_HOST loja.marcosevegrand.com)"
+SHOP_ALLOWED_HOSTS="$(env_value SHOP_ALLOWED_HOSTS loja.marcosevegrand.com)"
+ADMIN_HOST="$(env_value ADMIN_HOST admin.marcosevegrand.com)"
+ADMIN_ALLOWED_HOSTS="$(env_value ADMIN_ALLOWED_HOSTS admin.marcosevegrand.com)"
+TLS_CERT_NAME="$(env_value TLS_CERT_NAME "$WEBSITE_HOST")"
+
+split_hosts() {
+    printf '%s' "$1" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sed '/^$/d'
+}
+
+append_redirect_checks() {
+    local canonical_host="$1"
+    local configured_hosts="$2"
+    local host
+
+    while IFS= read -r host; do
+        http_redirect_checks+=("${host}|https://${canonical_host}/")
+        if [ "$host" != "$canonical_host" ]; then
+            https_redirect_checks+=("${host}|https://${canonical_host}/")
+        fi
+    done <<EOF
+$(split_hosts "$configured_hosts")
+EOF
+}
+
+http_redirect_checks=()
+https_redirect_checks=()
+
+append_redirect_checks "$WEBSITE_HOST" "$WEBSITE_ALLOWED_HOSTS"
+append_redirect_checks "$SHOP_HOST" "$SHOP_ALLOWED_HOSTS"
+append_redirect_checks "$ADMIN_HOST" "$ADMIN_ALLOWED_HOSTS"
 
 health_checks=(
-    "marcosevegrand.com|django_website"
-    "loja.marcosevegrand.com|django_shop"
-    "admin.marcosevegrand.com|django_admin"
+    "${WEBSITE_HOST}|django_website"
+    "${SHOP_HOST}|django_shop"
+    "${ADMIN_HOST}|django_admin"
 )
 
 cert_files=(
-    "$PROJECT_DIR/certbot/conf/live/marcosevegrand.com/fullchain.pem"
-    "$PROJECT_DIR/certbot/conf/live/marcosevegrand.com/privkey.pem"
+    "$PROJECT_DIR/certbot/conf/live/${TLS_CERT_NAME}/fullchain.pem"
+    "$PROJECT_DIR/certbot/conf/live/${TLS_CERT_NAME}/privkey.pem"
 )
 
 log_step() {

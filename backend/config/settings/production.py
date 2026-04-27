@@ -14,19 +14,34 @@ def required_env(name):
 
 DEBUG = False
 SECRET_KEY = required_env('DJANGO_SECRET_KEY')
-SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
+
+
+def env_or_default(name, default):
+    return os.environ.get(name, '').strip() or default
+
+
+def split_hosts(value):
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 PRODUCTION_ALLOWED_HOSTS_BY_ROLE = {
-    'website': 'marcosevegrand.com,www.marcosevegrand.com',
-    'shop': 'loja.marcosevegrand.com',
-    'admin': 'admin.marcosevegrand.com',
+    'website': env_or_default('WEBSITE_ALLOWED_HOSTS', 'marcosevegrand.com,www.marcosevegrand.com'),
+    'shop': env_or_default('SHOP_ALLOWED_HOSTS', 'loja.marcosevegrand.com'),
+    'admin': env_or_default('ADMIN_ALLOWED_HOSTS', 'admin.marcosevegrand.com'),
 }
+
+PRODUCTION_ALLOWED_HOSTS = ','.join(
+    dict.fromkeys(
+        host
+        for hosts in PRODUCTION_ALLOWED_HOSTS_BY_ROLE.values()
+        for host in split_hosts(hosts)
+    )
+)
 
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
     PRODUCTION_ALLOWED_HOSTS_BY_ROLE.get(
         SITE_ROLE,
-        'marcosevegrand.com,www.marcosevegrand.com,loja.marcosevegrand.com,admin.marcosevegrand.com',
+        PRODUCTION_ALLOWED_HOSTS,
     ),
 )
 

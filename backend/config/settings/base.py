@@ -14,7 +14,7 @@ def env_bool(name, default=False):
 
 
 def env_list(name, default=''):
-    value = os.environ.get(name, default)
+    value = os.environ.get(name, '').strip() or default
     return [item.strip() for item in value.split(',') if item.strip()]
 
 
@@ -157,7 +157,10 @@ IFTHENPAY_API_BASE_URL = os.environ.get('IFTHENPAY_API_BASE_URL', 'https://api.i
 IFTHENPAY_MBWAY_KEY = os.environ.get('IFTHENPAY_MBWAY_KEY', '')
 IFTHENPAY_ANTI_PHISHING_KEY = os.environ.get('IFTHENPAY_ANTI_PHISHING_KEY', '')
 PAYMENTS_FORCE_DISABLED = env_bool('PAYMENTS_FORCE_DISABLED', default=False)
-SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.marcosevegrand.com').rstrip('/')
+DEFAULT_SHOP_HOST = os.environ.get('SHOP_HOST', 'loja.marcosevegrand.com').strip() or 'loja.marcosevegrand.com'
+SHOP_BASE_URL = (
+    os.environ.get('SHOP_BASE_URL', '').strip() or f'https://{DEFAULT_SHOP_HOST}'
+).rstrip('/')
 
 # Email
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Biobrassica <loja@marcosevegrand.com>')

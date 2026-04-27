@@ -70,7 +70,7 @@ if [ "$DRY_RUN" = "1" ]; then
         echo "[restore] media restore skipped"
     fi
     echo "[restore] would bring the full stack up with --remove-orphans"
-    echo "[restore] would run host-header health checks for marcosevegrand.com, loja.marcosevegrand.com, and admin.marcosevegrand.com"
+    echo "[restore] would run host-header health checks for the configured website, shop, and admin hosts"
     exit 0
 fi
 

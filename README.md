@@ -107,13 +107,38 @@ Provider-specific production variables:
 - `PAYMENT_PROVIDER=stripe`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, optional `STRIPE_PUBLISHABLE_KEY`, `STRIPE_CURRENCY`
 - `PAYMENT_PROVIDER=ifthenpay_mbway`: `IFTHENPAY_MBWAY_KEY`, `IFTHENPAY_ANTI_PHISHING_KEY`, optional `IFTHENPAY_API_BASE_URL`
 
+Production domain routing is env-driven. Configure these in `.env` instead of editing Compose or nginx files:
+
+- `WEBSITE_HOST`: canonical website host
+- `WEBSITE_ALLOWED_HOSTS`: comma-separated website hosts accepted by Django and nginx
+- `SHOP_HOST`: canonical shop host
+- `SHOP_ALLOWED_HOSTS`: comma-separated shop hosts accepted by Django and nginx
+- `ADMIN_HOST`: canonical admin host
+- `ADMIN_ALLOWED_HOSTS`: comma-separated admin hosts accepted by Django and nginx
+- `SHOP_BASE_URL`: optional explicit shop base URL; when empty it falls back to `https://$SHOP_HOST`
+- `TLS_CERT_NAME`: optional certbot live directory name nginx should read; when empty it falls back to `WEBSITE_HOST`
+- `CERTBOT_EMAIL`: email used by `./scripts/request_certificate.sh`
+
+For example, to keep `biobrassica.pt` canonical while still accepting `marcosevegrand.com` as an alias family:
+
+```env
+WEBSITE_HOST=biobrassica.pt
+WEBSITE_ALLOWED_HOSTS=biobrassica.pt,www.biobrassica.pt,marcosevegrand.com,www.marcosevegrand.com
+SHOP_HOST=loja.biobrassica.pt
+SHOP_ALLOWED_HOSTS=loja.biobrassica.pt,loja.marcosevegrand.com
+ADMIN_HOST=admin.biobrassica.pt
+ADMIN_ALLOWED_HOSTS=admin.biobrassica.pt,admin.marcosevegrand.com
+SHOP_BASE_URL=https://loja.biobrassica.pt
+TLS_CERT_NAME=biobrassica.pt
+```
+
 When MB WAY is active, checkout requires a customer mobile number, creates the MB WAY payment request at order confirmation time, and keeps the customer on the internal payment-status page while Biobrassica waits for the Ifthenpay callback.
 
 The production web tier is split into three services:
 
-- `django_website` for `marcosevegrand.com` and `www.marcosevegrand.com`
-- `django_shop` for `loja.marcosevegrand.com`
-- `django_admin` for `admin.marcosevegrand.com`
+- `django_website` for the hosts listed in `WEBSITE_ALLOWED_HOSTS`, with `WEBSITE_HOST` as the canonical redirect target
+- `django_shop` for the hosts listed in `SHOP_ALLOWED_HOSTS`, with `SHOP_HOST` as the canonical redirect target
+- `django_admin` for the hosts listed in `ADMIN_ALLOWED_HOSTS`, with `ADMIN_HOST` as the canonical redirect target
 
 Bring the stack up with standard Compose commands:
 
@@ -158,12 +183,7 @@ Or use the admin backoffice and toggle `Pagamentos ativos` in the Website conten
 
 Production web containers still fail fast on pending migrations, but they no longer run `collectstatic` automatically unless `DJANGO_COLLECTSTATIC_ON_START=1` is set intentionally.
 
-Production nginx now terminates TLS directly for:
-
-- `marcosevegrand.com`
-- `www.marcosevegrand.com`
-- `loja.marcosevegrand.com`
-- `admin.marcosevegrand.com`
+Production nginx now terminates TLS directly for every host listed in `WEBSITE_ALLOWED_HOSTS`, `SHOP_ALLOWED_HOSTS`, and `ADMIN_ALLOWED_HOSTS`. Canonical redirects are driven by `WEBSITE_HOST`, `SHOP_HOST`, and `ADMIN_HOST` from `.env`.
 
 The production stack keeps `DJANGO_HTTPS_MODE=proxy` because Django still sits behind nginx and trusts `X-Forwarded-Proto` from the proxy.
 
@@ -173,19 +193,13 @@ Before the first full startup, create the certbot working directories:
 mkdir -p certbot/www certbot/conf
 ```
 
-Bootstrap the first certificate before starting nginx, using the Certbot utility service profile on port 80:
+Bootstrap the first certificate before starting nginx. The helper script reads the configured domain lists from `.env`, deduplicates them, and requests one certificate bundle for all configured public hosts:
 
 ```bash
-docker compose -f docker-compose.yml --profile tools run --rm --service-ports certbot \
-	certonly --standalone \
-	-d marcosevegrand.com \
-	-d www.marcosevegrand.com \
-	-d loja.marcosevegrand.com \
-	-d admin.marcosevegrand.com \
-	--email you@example.com \
-	--agree-tos \
-	--no-eff-email
+./scripts/request_certificate.sh
 ```
+
+Set `CERTBOT_STAGING=1` in `.env` when you want to hit Let's Encrypt staging during the first dry runs.
 
 Once the certificate exists, start the production stack:
 
@@ -215,13 +229,17 @@ After rollout, verify nginx, redirects, certificates, and upstream health from t
 make verify ENV=prod
 ```
 
-If you need raw curl checks while debugging a 521, these are still useful:
+If you need raw curl checks while debugging a 521, read the host values straight from `.env` so the commands use the same configured hosts as nginx and Django without shell-sourcing the whole file:
 
 ```bash
-curl -I http://marcosevegrand.com
-curl -I https://marcosevegrand.com
-curl -I https://loja.marcosevegrand.com
-curl -I https://admin.marcosevegrand.com
+WEBSITE_HOST=$(sed -n 's/^WEBSITE_HOST=//p' .env | tail -n 1)
+SHOP_HOST=$(sed -n 's/^SHOP_HOST=//p' .env | tail -n 1)
+ADMIN_HOST=$(sed -n 's/^ADMIN_HOST=//p' .env | tail -n 1)
+
+curl -I "http://${WEBSITE_HOST}"
+curl -I "https://${WEBSITE_HOST}"
+curl -I "https://${SHOP_HOST}"
+curl -I "https://${ADMIN_HOST}"
 ```
 
 Because production enables HSTS for subdomains and preload, every public hostname must be healthy on HTTPS before you expose this configuration to traffic.
