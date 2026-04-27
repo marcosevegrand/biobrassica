@@ -246,6 +246,21 @@ Restore the latest backup pair from `backups/`:
 make restore
 ```
 
+Hard-reset the production database volume and redeploy the current code:
+
+```bash
+make reset
+```
+
+To restore a specific database dump as part of that reset, pass it as `BACKUP`. Use `YES=1` when you need a non-interactive run:
+
+```bash
+make reset BACKUP=/path/to/db.sql.gz
+make reset BACKUP=/path/to/db.sql.gz YES=1
+```
+
+`make reset` preserves the media volume. If you also need to restore media, keep using `make restore` or call `./scripts/restore.sh` directly.
+
 For an explicit database or media archive, use the script directly:
 
 ```bash

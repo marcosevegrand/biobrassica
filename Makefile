@@ -1,4 +1,4 @@
-.PHONY: help env dev deploy backup restore verify cert
+.PHONY: help env dev deploy backup restore reset verify cert
 
 .DEFAULT_GOAL := help
 
@@ -9,6 +9,7 @@ help:
 	@printf "  make deploy   Backup, build, migrate, collect static files, restart, and verify production\n"
 	@printf "  make backup   Backup the production database and media into backups/\n"
 	@printf "  make restore  Restore production data from the latest backup in backups/\n"
+	@printf "  make reset    Hard-reset the production DB, redeploy, and optionally restore BACKUP=/path/to/db.sql.gz\n"
 	@printf "  make verify   Verify the production stack is running and healthy\n"
 	@printf "  make cert     Request or renew production TLS certificates\n\n"
 	@printf "Advanced restore options remain available via ./scripts/restore.sh --help\n\n"
@@ -33,6 +34,9 @@ backup:
 
 restore:
 	./scripts/restore.sh
+
+reset:
+	./scripts/reset.sh $(if $(BACKUP),--db "$(BACKUP)") $(if $(YES),--yes)
 
 verify:
 	./scripts/verify_stack.sh
