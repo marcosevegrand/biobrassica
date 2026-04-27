@@ -1,4 +1,5 @@
 from decimal import Decimal
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -9,6 +10,7 @@ from typing import Any, cast
 
 from apps.cart.models import Cart, CartItem
 from apps.catalog.models import Category, CategoryTranslation, Location, Product, ProductTranslation
+from apps.orders.forms import CheckoutForm
 from apps.orders.models import Order, OrderItem
 from apps.orders.services import create_order_from_cart
 from apps.payments.models import Payment
@@ -45,6 +47,137 @@ class OrderValidationTests(TestCase):
             order.full_clean()
 
         self.assertIn('language', ctx.exception.message_dict)
+
+    def test_order_save_normalizes_contact_fields(self):
+        order = Order(
+            name='  Marco  ',
+            email=' Marco@Example.com ',
+            phone='+351 912 345 678',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal='9.50',
+            total='9.50',
+        )
+
+        order.save()
+
+        self.assertEqual(order.name, 'Marco')
+        self.assertEqual(order.email, 'marco@example.com')
+        self.assertEqual(order.phone, '912 345 678')
+
+    def test_order_save_rejects_invalid_phone(self):
+        order = Order(
+            name='Marco',
+            email='marco@example.com',
+            phone='12345',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal='9.50',
+            total='9.50',
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            order.save()
+
+        self.assertIn('phone', ctx.exception.message_dict)
+
+
+@override_settings(PAYMENT_PROVIDER=Payment.Method.STRIPE)
+class CheckoutFormTests(TestCase):
+    def setUp(self):
+        self.braga_location = Location.objects.create(
+            name='Loja Braga',
+            pickup_location_code=Order.PickupLocation.BRAGA,
+            is_active=True,
+            order=1,
+        )
+        self.guimaraes_location = Location.objects.create(
+            name='Loja Guimarães',
+            pickup_location_code=Order.PickupLocation.GUIMARAES,
+            is_active=True,
+            order=2,
+        )
+        self.category = Category.objects.create(slug='checkout-form')
+        CategoryTranslation.objects.create(
+            category=self.category,
+            language='pt',
+            name='Checkout form',
+            description='Categoria para testes de checkout',
+        )
+
+    def _product(self, slug, *, locations):
+        product = Product.objects.create(
+            category=self.category,
+            slug=slug,
+            brand='Biobrassica',
+            price=Decimal('9.50'),
+            quantity='500 g',
+            stock=10,
+            is_active=True,
+            allow_shipping=True,
+            bio_code=f'PT-BIO-{slug[-2:]}',
+        )
+        product.available_locations.add(*locations)
+        return product
+
+    def test_checkout_form_limits_pickup_choices_to_shared_locations(self):
+        first_product = self._product('produto-10', locations=[self.braga_location, self.guimaraes_location])
+        second_product = self._product('produto-11', locations=[self.braga_location])
+
+        form = CheckoutForm(
+            cart_can_ship=True,
+            cart_items=[
+                SimpleNamespace(product=first_product),
+                SimpleNamespace(product=second_product),
+            ],
+        )
+
+        self.assertEqual(form.allowed_pickup_locations, {Order.PickupLocation.BRAGA})
+        self.assertEqual(
+			list(cast(Any, form.fields['pickup_location']).choices),
+            [(Order.PickupLocation.BRAGA, 'Loja Braga')],
+        )
+
+    def test_checkout_form_rejects_cart_without_shared_pickup_location(self):
+        first_product = self._product('produto-12', locations=[self.braga_location])
+        second_product = self._product('produto-13', locations=[self.guimaraes_location])
+
+        form = CheckoutForm(
+            data={
+                'name': 'Marco',
+                'email': 'marco@example.com',
+                'phone': '912345678',
+                'fulfillment_method': Order.FulfillmentMethod.PICKUP,
+                'pickup_location': Order.PickupLocation.BRAGA,
+            },
+            cart_can_ship=True,
+            cart_items=[
+                SimpleNamespace(product=first_product),
+                SimpleNamespace(product=second_product),
+            ],
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('pickup_location', form.errors)
+        self.assertIn('não estão disponíveis', str(form.errors['pickup_location'][0]))
+
+    @override_settings(PAYMENT_PROVIDER=Payment.Method.IFTHENPAY_MBWAY)
+    def test_checkout_form_requires_mobile_number_for_mbway(self):
+        form = CheckoutForm(
+            data={
+                'name': 'Marco',
+                'email': 'marco@example.com',
+                'phone': '253271187',
+                'fulfillment_method': Order.FulfillmentMethod.PICKUP,
+                'pickup_location': Order.PickupLocation.BRAGA,
+            },
+            cart_can_ship=True,
+            cart_items=[],
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('phone', form.errors)
+        self.assertIn('telemóvel', str(form.errors['phone'][0]))
 
 
 @override_settings(ROOT_URLCONF='config.urls_shop')

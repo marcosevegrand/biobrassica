@@ -28,6 +28,7 @@ from apps.core.admin_helpers import (
     render_summary_panel,
     WorkflowAdminMixin,
 )
+from apps.core.translations import translation_prefetch
 
 
 # --- Location & Delivery ---
@@ -37,7 +38,7 @@ class LocationAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
     list_before_template = 'admin/catalog/location/workflow_overview.html'
     list_display = ('order_controls', 'name', 'pickup_location_code_display', 'location_readiness_badge', 'product_count_display', 'address_short', 'is_active', 'edit_link')
     list_editable = ('is_active',)
-    search_fields = ('name', 'address')
+    search_fields = ('name', 'address', 'phone', 'email')
     search_help_text = _('Pesquise por nome, morada, telefone ou email da loja.')
     readonly_fields = ('location_operations_panel', 'image_preview')
     list_filter = ('is_active',)
@@ -151,7 +152,7 @@ class DeliveryMethodAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdmin
     list_before_template = 'admin/catalog/deliverymethod/workflow_overview.html'
     list_display = ('order_controls', 'name', 'delivery_status_badge', 'description_short', 'is_active', 'edit_link')
     list_editable = ('is_active',)
-    search_fields = ('name',)
+    search_fields = ('name', 'description')
     search_help_text = _('Pesquise pelo nome ou descrição do método.')
     readonly_fields = ('delivery_operations_panel',)
     list_filter = ('is_active',)
@@ -500,7 +501,10 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         js = ('js/admin/product_slug_autofill.js', 'js/admin/product_editor.js')
 
     def get_queryset(self, request):
-        return super().get_queryset(request).annotate(
+        return super().get_queryset(request).select_related('category').prefetch_related(
+            translation_prefetch(ProductTranslation),
+            translation_prefetch(CategoryTranslation, related_name='category__translations'),
+        ).annotate(
             translation_count=Count('translations', distinct=True),
             pt_translation_count=Count('translations', filter=Q(translations__language='pt'), distinct=True),
             image_count=Count('images', distinct=True),

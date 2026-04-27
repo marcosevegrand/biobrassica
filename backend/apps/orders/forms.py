@@ -1,8 +1,10 @@
 from django import forms
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 from typing import Any, cast
 
+from apps.accounts.validators import normalize_portuguese_mobile_phone, normalize_portuguese_phone
 from apps.catalog.models import Location
 from apps.orders.models import Order, PT_POSTAL_CODE_RE
 from apps.payments.models import Payment
@@ -30,14 +32,20 @@ class CheckoutForm(forms.Form):
         self.cart_items = list(cart_items or [])
         phone_field = cast(forms.CharField, self.fields['phone'])
         phone_field.required = settings.PAYMENT_PROVIDER == Payment.Method.IFTHENPAY_MBWAY
+        self.allowed_pickup_locations = self._allowed_pickup_locations()
         self.pickup_choices = self._build_pickup_choices()
         cast(forms.ChoiceField, self.fields['pickup_location']).choices = self.pickup_choices
-        self.allowed_pickup_locations = self._allowed_pickup_locations()
 
     def _build_pickup_choices(self):
+        queryset = Location.objects.filter(is_active=True).exclude(pickup_location_code='').order_by('order', 'name')
+        if self.allowed_pickup_locations is not None:
+            if not self.allowed_pickup_locations:
+                return []
+            queryset = queryset.filter(pickup_location_code__in=self.allowed_pickup_locations)
+
         return [
             (location.pickup_location_code, location.name)
-            for location in Location.objects.filter(is_active=True).exclude(pickup_location_code='').order_by('order', 'name')
+            for location in queryset
         ]
 
     def _allowed_pickup_locations(self):
@@ -66,7 +74,13 @@ class CheckoutForm(forms.Form):
         return self.cleaned_data['email'].strip()
 
     def clean_phone(self):
-        return self.cleaned_data['phone'].strip()
+        phone = self.cleaned_data['phone'].strip()
+        try:
+            if cast(forms.CharField, self.fields['phone']).required:
+                return normalize_portuguese_mobile_phone(phone)
+            return normalize_portuguese_phone(phone)
+        except DjangoValidationError as error:
+            raise forms.ValidationError(error.messages) from error
 
     def clean_shipping_address_line1(self):
         return self.cleaned_data['shipping_address_line1'].strip()
@@ -84,6 +98,7 @@ class CheckoutForm(forms.Form):
         cleaned_data: dict[str, Any] = super().clean() or {}
         fulfillment_method = cleaned_data.get('fulfillment_method') or Order.FulfillmentMethod.PICKUP
         cleaned_data['fulfillment_method'] = fulfillment_method
+        raw_pickup_location = str(self.data.get(self.add_prefix('pickup_location'), '') or '')
 
         if fulfillment_method == Order.FulfillmentMethod.SHIPPING:
             if not self.cart_can_ship:
@@ -104,15 +119,17 @@ class CheckoutForm(forms.Form):
                 self.add_error('shipping_postal_code', _('Use o formato 1234-123.'))
 
             cleaned_data['pickup_location'] = ''
+        elif self.allowed_pickup_locations == set():
+            self.errors.pop('pickup_location', None)
+            self.add_error('pickup_location', _('Os produtos deste carrinho não estão disponíveis para levantamento nas lojas configuradas.'))
         elif not self.pickup_choices:
             raise forms.ValidationError(_('Não existem locais de levantamento configurados neste momento.'))
-        elif not cleaned_data.get('pickup_location'):
+        elif not cleaned_data.get('pickup_location') and not raw_pickup_location:
             raise forms.ValidationError(_('Selecione um local de levantamento.'))
         elif self.allowed_pickup_locations is not None:
-            pickup_location = str(cleaned_data.get('pickup_location') or '')
-            if not self.allowed_pickup_locations:
-                self.add_error('pickup_location', _('Os produtos deste carrinho não estão disponíveis para levantamento nas lojas configuradas.'))
-            elif pickup_location not in self.allowed_pickup_locations:
+            pickup_location = str(cleaned_data.get('pickup_location') or raw_pickup_location)
+            if pickup_location not in self.allowed_pickup_locations:
+                self.errors.pop('pickup_location', None)
                 self.add_error('pickup_location', _('Este local não está disponível para todos os produtos do carrinho.'))
 
         if cast(forms.CharField, self.fields['phone']).required and not cleaned_data.get('phone'):

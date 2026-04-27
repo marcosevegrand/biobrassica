@@ -40,6 +40,7 @@ class TeamMemberAdminForm(forms.ModelForm):
 
         current_role = self._normalize_role(getattr(self.instance, 'role', ''))
         suggestions = self._role_suggestions(current_role)
+        self._existing_roles = {role.casefold(): role for role in suggestions}
         choices = [
             ('', str(_('Selecione uma função'))),
             *[(role, role) for role in suggestions],
@@ -56,6 +57,7 @@ class TeamMemberAdminForm(forms.ModelForm):
                 self.initial.setdefault('role_custom', current_role)
 
         self.fields['name'].widget.attrs.setdefault('placeholder', _('Ex: Ângela Pereira'))
+        self.fields['role_choice'].widget.attrs.setdefault('autocomplete', 'off')
         self.fields['role_custom'].widget.attrs.setdefault('placeholder', _('Ex: Coordenadora de loja'))
         self.fields['role_custom'].widget.attrs.setdefault('autocomplete', 'off')
         self.fields['photo'].widget.attrs.setdefault('accept', 'image/*')
@@ -64,11 +66,17 @@ class TeamMemberAdminForm(forms.ModelForm):
         return ' '.join(str(value or '').split())
 
     def _role_suggestions(self, current_role):
-        roles = set(self.CURATED_ROLE_CHOICES)
-        roles.update(
-            self._normalize_role(role)
-            for role in TeamMember.objects.exclude(role='').values_list('role', flat=True)
-        )
+        cached_roles = getattr(self, '_cached_role_suggestions', None)
+        if cached_roles is None:
+            roles = set(self.CURATED_ROLE_CHOICES)
+            roles.update(
+                self._normalize_role(role)
+                for role in TeamMember.objects.exclude(role='').order_by().values_list('role', flat=True).distinct()
+            )
+            cached_roles = tuple(sorted(role for role in roles if role))
+            self._cached_role_suggestions = cached_roles
+
+        roles = set(cached_roles)
         if current_role:
             roles.add(current_role)
         return sorted(role for role in roles if role)
@@ -77,7 +85,7 @@ class TeamMemberAdminForm(forms.ModelForm):
         cleaned_data: dict[str, Any] = super().clean() or {}
         role_choice = str(cleaned_data.get('role_choice') or '').strip()
         role_custom = self._normalize_role(cleaned_data.get('role_custom', ''))
-        existing_roles = {role.casefold(): role for role in self._role_suggestions(self._normalize_role(getattr(self.instance, 'role', '')))}
+        existing_roles = dict(getattr(self, '_existing_roles', {}))
 
         if role_choice == self.ROLE_CUSTOM_CHOICE:
             if not role_custom:

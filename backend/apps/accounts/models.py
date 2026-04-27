@@ -5,7 +5,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.accounts.validators import normalize_portuguese_nif, validate_portuguese_nif
+from apps.accounts.validators import (
+    normalize_portuguese_nif,
+    normalize_portuguese_phone,
+    validate_portuguese_nif,
+)
 
 
 PT_POSTAL_CODE_RE = re.compile(r'^\d{4}-\d{3}$')
@@ -32,17 +36,34 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
+    def clean_fields(self, exclude=None):
+        self.email = str(self.email or '').strip().lower()
+        self.phone = str(self.phone or '').strip()
+        self.first_name = str(self.first_name or '').strip()
+        self.last_name = str(self.last_name or '').strip()
+        self.preferred_language = str(self.preferred_language or 'pt').strip().lower() or 'pt'
+        return super().clean_fields(exclude=exclude)
+
     def clean(self):
         super().clean()
-        self.nif = normalize_portuguese_nif(self.nif)
-        validate_portuguese_nif(self.nif)
 
-    def save(self, *args, **kwargs):
+        errors = {}
         self.nif = normalize_portuguese_nif(self.nif)
         try:
             validate_portuguese_nif(self.nif)
-        except ValidationError:
-            raise
+        except ValidationError as error:
+            errors['nif'] = error.messages
+
+        try:
+            self.phone = normalize_portuguese_phone(self.phone)
+        except ValidationError as error:
+            errors['phone'] = error.messages
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
         return super().save(*args, **kwargs)
 
 

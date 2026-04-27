@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.db import connection
 from django.test import TestCase, override_settings
+from django.test.client import RequestFactory
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -64,6 +65,27 @@ class ProductModelTests(TempMediaRootMixin, TestCase):
 		self.assertIn('brand', ctx.exception.message_dict)
 		self.assertIn('quantity', ctx.exception.message_dict)
 		self.assertIn('bio_code', ctx.exception.message_dict)
+
+
+class LocationModelTests(TestCase):
+	def test_location_save_normalizes_phone(self):
+		location = Location.objects.create(
+			name='Loja Braga',
+			phone='+351 253 271 187',
+		)
+
+		self.assertEqual(location.phone, '253 271 187')
+
+	def test_location_full_clean_rejects_insecure_map_url(self):
+		location = Location(
+			name='Loja Braga',
+			map_embed_url='http://example.com/mapa',
+		)
+
+		with self.assertRaises(ValidationError) as ctx:
+			location.full_clean()
+
+		self.assertIn('map_embed_url', ctx.exception.message_dict)
 
 
 class ProductAdminFormTests(TestCase):
@@ -568,6 +590,43 @@ class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
 		product_admin = admin.site._registry[Product]
 		self.assertNotIn('is_active', product_admin.list_editable)
 		self.assertNotIn('quantity', product_admin.list_editable)
+
+	def test_product_admin_queryset_prefetches_translated_labels_for_changelist_rows(self):
+		second_product = Product.objects.create(
+			category=self.category,
+			slug='produto-admin-2',
+			brand='Biobrassica',
+			price='7.10',
+			quantity='500 g',
+			stock=4,
+			bio_code='PT-BIO-04',
+		)
+		ProductTranslation.objects.create(
+			product=second_product,
+			language='pt',
+			name='Produto admin 2',
+			description='Descrição 2',
+			allergens='Sem alergénios',
+			ingredients='Ingredientes 2',
+		)
+		product_admin = admin.site._registry[Product]
+		request = RequestFactory().get(reverse('admin:catalog_product_changelist'))
+		request.user = self.admin_user
+
+		with CaptureQueriesContext(connection) as queries:
+			rows = [
+				(str(product), str(product.category))
+				for product in product_admin.get_queryset(request).order_by('pk')
+			]
+
+		self.assertEqual(
+			rows,
+			[
+				('Produto admin', 'Mercearia'),
+				('Produto admin 2', 'Mercearia'),
+			],
+		)
+		self.assertLessEqual(len(queries), 3)
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')

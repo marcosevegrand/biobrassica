@@ -4,6 +4,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.core.management import call_command, CommandError
+from django.utils import timezone
 from typing import cast
 from decimal import Decimal
 from django.contrib import admin
@@ -17,6 +18,30 @@ from apps.payments.models import Payment
 
 
 User = AccountUser
+
+
+class UserValidationTests(TestCase):
+	def test_user_save_normalizes_email_and_phone(self):
+		user = User.objects.create_user(
+			email=' Cliente@Biobrassica.PT ',
+			username='cliente-normalizado',
+			password='S3guraPass123',
+			phone='+351 912 345 678',
+		)
+
+		self.assertEqual(user.email, 'cliente@biobrassica.pt')
+		self.assertEqual(user.phone, '912 345 678')
+
+	def test_user_save_rejects_invalid_phone(self):
+		with self.assertRaises(ValidationError) as ctx:
+			User.objects.create_user(
+				email='cliente-invalido@biobrassica.pt',
+				username='cliente-invalido',
+				password='S3guraPass123',
+				phone='12345',
+			)
+
+		self.assertIn('phone', ctx.exception.message_dict)
 
 
 class AddressValidationTests(TestCase):
@@ -221,7 +246,7 @@ class ProfileViewTests(TestCase):
 		self.assertRedirects(response, reverse('accounts:profile'))
 		self.assertEqual(self.user.first_name, 'Marco')
 		self.assertEqual(self.user.last_name, 'Silva')
-		self.assertEqual(self.user.phone, '912345678')
+		self.assertEqual(self.user.phone, '912 345 678')
 		self.assertEqual(self.user.preferred_language, 'en')
 		self.assertEqual(self.user.nif, '123456789')
 
@@ -430,6 +455,7 @@ class AccountsAdminWorkflowTests(TestCase):
 			method=Payment.Method.STRIPE,
 			status=Payment.Status.PAID,
 			amount='20.00',
+			paid_at=timezone.now(),
 		)
 		refunded_order = Order.objects.create(
 			user=self.customer,

@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from decimal import Decimal
 from typing import TYPE_CHECKING
+from urllib.parse import urlsplit
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.validators import normalize_portuguese_phone
 from apps.core.translations import get_translated_attr
 
 
@@ -47,6 +50,36 @@ class Location(models.Model):
                 name='catalog_unique_location_pickup_location_code',
             ),
         ]
+
+    def clean_fields(self, exclude=None):
+        self.name = str(self.name or '').strip()
+        self.pickup_location_code = str(self.pickup_location_code or '').strip()
+        self.address = str(self.address or '').strip()
+        self.phone = str(self.phone or '').strip()
+        self.email = str(self.email or '').strip().lower()
+        self.opening_hours = str(self.opening_hours or '').strip()
+        self.map_embed_url = str(self.map_embed_url or '').strip()
+        return super().clean_fields(exclude=exclude)
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        try:
+            self.phone = normalize_portuguese_phone(self.phone)
+        except ValidationError as error:
+            errors['phone'] = error.messages
+
+        if self.map_embed_url and urlsplit(self.map_embed_url).scheme != 'https':
+            errors['map_embed_url'] = [_('Use um URL https:// válido para o mapa.')]
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

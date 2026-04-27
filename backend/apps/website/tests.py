@@ -5,7 +5,9 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import translation
 from typing import Any, cast
@@ -63,6 +65,34 @@ class TeamMemberAdminFormTests(WebsiteTestCase):
         member = form.save(commit=False)
 
         self.assertEqual(member.role, 'Coordenadora de loja')
+
+    def test_team_member_admin_form_queries_role_suggestions_once(self):
+        TeamMember.objects.create(
+            name='Rita',
+            role='Backoffice',
+            photo=SimpleUploadedFile('rita.gif', GIF_BYTES, content_type='image/gif'),
+            order=2,
+            is_active=True,
+        )
+
+        with CaptureQueriesContext(connection) as queries:
+            form = TeamMemberAdminForm(
+                data={
+                    'name': 'Ângela Pereira',
+                    'role': '',
+                    'role_choice': TeamMemberAdminForm.ROLE_CUSTOM_CHOICE,
+                    'role_custom': 'Coordenadora de loja',
+                    'order': '1',
+                    'is_active': 'on',
+                },
+                files={
+                    'photo': SimpleUploadedFile('angela.gif', GIF_BYTES, content_type='image/gif'),
+                },
+            )
+
+            self.assertTrue(form.is_valid(), form.errors)
+
+        self.assertEqual(len(queries), 1)
 
 
 class WebsiteContentValidationTests(WebsiteTestCase):

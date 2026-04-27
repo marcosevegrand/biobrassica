@@ -1,6 +1,9 @@
+from urllib.parse import urlsplit
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -88,9 +91,17 @@ class Payment(models.Model):
         return instance
 
     def save(self, *args, **kwargs):
+        self.full_clean()
         result = super().save(*args, **kwargs)
         self._original_status = self.status
         return result
+
+    def clean_fields(self, exclude=None):
+        self.provider_reference = str(self.provider_reference or '').strip()
+        self.provider_payment_id = str(self.provider_payment_id or '').strip()
+        self.checkout_url = str(self.checkout_url or '').strip()
+        self.last_error = str(self.last_error or '').strip()
+        return super().clean_fields(exclude=exclude)
 
     def valid_next_statuses(self):
         return PAYMENT_STATUS_TRANSITIONS.get(self.status, set())
@@ -108,10 +119,18 @@ class Payment(models.Model):
             errors['status'] = _('Transição de estado inválida para o pagamento.')
 
         if self.status == self.Status.PAID and self.paid_at is None:
-            errors['paid_at'] = _('Defina a data de pagamento quando o pagamento está confirmado.')
+            self.paid_at = timezone.now()
 
         if self.status != self.Status.PAID and self.paid_at is not None:
             errors['paid_at'] = _('A data de pagamento só pode estar preenchida em pagamentos pagos.')
+
+        if self.checkout_url and urlsplit(self.checkout_url).scheme != 'https':
+            errors['checkout_url'] = _('Use um URL https:// válido para o checkout.')
+
+        if self.provider_data is None:
+            self.provider_data = {}
+        elif not isinstance(self.provider_data, dict):
+            errors['provider_data'] = _('Os dados do provedor devem ser um objeto JSON.')
 
         if errors:
             raise ValidationError(errors)

@@ -4,6 +4,7 @@ from typing import Any, cast
 from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -21,6 +22,47 @@ from apps.payments.services import (
     mark_payment_failed,
     mark_payment_refunded,
 )
+
+
+class PaymentValidationTests(TestCase):
+    def setUp(self):
+        self.order = Order.objects.create(
+            name='Marco',
+            email='marco@example.com',
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal=Decimal('19.00'),
+            total=Decimal('19.00'),
+            status=Order.Status.PAYMENT_PENDING,
+        )
+
+    def test_payment_save_rejects_insecure_checkout_url(self):
+        payment = Payment(
+            order=self.order,
+            method=Payment.Method.STRIPE,
+            status=Payment.Status.PENDING,
+            amount=self.order.total,
+            checkout_url='http://checkout.example.com/pay/session',
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            payment.save()
+
+        self.assertIn('checkout_url', ctx.exception.message_dict)
+
+    def test_payment_save_rejects_non_object_provider_data(self):
+        payment = Payment(
+            order=self.order,
+            method=Payment.Method.STRIPE,
+            status=Payment.Status.PENDING,
+            amount=self.order.total,
+            provider_data=['invalid'],
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            payment.save()
+
+        self.assertIn('provider_data', ctx.exception.message_dict)
 
 
 @override_settings(
@@ -198,12 +240,12 @@ class PaymentWorkflowTests(TestCase):
         self.assertEqual(product.stock, 3)
 
     def test_mark_payment_refunded_flags_preparing_order_for_manual_review(self):
-        self.order.status = Order.Status.PREPARING
-        self.order.notes = 'Separar cabaz.'
-        self.order.save(update_fields=['status', 'notes', 'updated_at'])
         self.payment.status = Payment.Status.PAID
         self.payment.paid_at = timezone.now()
         self.payment.save(update_fields=['status', 'paid_at'])
+        self.order.status = Order.Status.PREPARING
+        self.order.notes = 'Separar cabaz.'
+        self.order.save(update_fields=['status', 'notes', 'updated_at'])
 
         changed = mark_payment_refunded(self.payment)
 
@@ -254,15 +296,14 @@ class PaymentConstraintTests(TestCase):
             stripe_session_id='cs_duplicate',
         )
 
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                Payment.objects.create(
-                    order=second_order,
-                    method=Payment.Method.STRIPE,
-                    status=Payment.Status.PENDING,
-                    amount=second_order.total,
-                    stripe_session_id='cs_duplicate',
-                )
+        with self.assertRaises(ValidationError):
+            Payment.objects.create(
+                order=second_order,
+                method=Payment.Method.STRIPE,
+                status=Payment.Status.PENDING,
+                amount=second_order.total,
+                stripe_session_id='cs_duplicate',
+            )
 
     def test_duplicate_non_empty_provider_event_id_is_rejected(self):
         PaymentCallback.objects.create(
