@@ -1,82 +1,19 @@
 #!/usr/bin/env bash
+# Verify production ingress, TLS, redirects, and Django upstream health.
+
 set -euo pipefail
 
-SCRIPT_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+SCRIPT_NAME=verify
 
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-biobrassica}"
-COMPOSE_ARGS=(-p "$COMPOSE_PROJECT_NAME" -f "$PROJECT_DIR/docker-compose.yml")
-if [ -f "$PROJECT_DIR/.env" ]; then
-    COMPOSE_ARGS=(--env-file "$PROJECT_DIR/.env" "${COMPOSE_ARGS[@]}")
-fi
-COMPOSE=(docker compose "${COMPOSE_ARGS[@]}")
+# shellcheck disable=SC1091
+source "$(CDPATH= cd -- "$(dirname "$0")" && pwd)/lib/common.sh"
+
+require_command docker
+require_command curl
+setup_prod_compose
+configure_public_domains
+
 DRY_RUN="${VERIFY_DRY_RUN:-0}"
-ENV_FILE="$PROJECT_DIR/.env"
-
-env_value() {
-    local name="$1"
-    local default="$2"
-    local line
-
-    if [ -n "${!name:-}" ]; then
-        printf '%s' "${!name}"
-        return 0
-    fi
-
-    if [ -f "$ENV_FILE" ]; then
-        line="$(grep -E "^${name}=" "$ENV_FILE" | tail -n 1 || true)"
-        if [ -n "$line" ]; then
-            printf '%s' "${line#*=}"
-            return 0
-        fi
-    fi
-
-    printf '%s' "$default"
-}
-
-unique_csv() {
-    printf '%s' "$1" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sed '/^$/d' | awk '!seen[$0]++' | paste -sd, -
-}
-
-derived_hosts_csv() {
-    local role="$1"
-    local domains_csv="$2"
-    local domain
-
-    while IFS= read -r domain; do
-        [ -n "$domain" ] || continue
-        case "$role" in
-            website)
-                printf '%s\n' "$domain"
-                printf 'www.%s\n' "$domain"
-                ;;
-            shop)
-                printf 'loja.%s\n' "$domain"
-                ;;
-            admin)
-                printf 'admin.%s\n' "$domain"
-                ;;
-        esac
-    done <<EOF | awk '!seen[$0]++' | paste -sd, -
-$(printf '%s' "$domains_csv" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sed '/^$/d')
-EOF
-}
-
-PRIMARY_DOMAIN="$(env_value PRIMARY_DOMAIN marcosevegrand.com)"
-DOMAIN_ALIASES="$(env_value DOMAIN_ALIASES '')"
-PUBLIC_DOMAINS="$(unique_csv "${PRIMARY_DOMAIN},${DOMAIN_ALIASES}")"
-
-WEBSITE_HOST="$(env_value WEBSITE_HOST "$PRIMARY_DOMAIN")"
-WEBSITE_ALLOWED_HOSTS="$(env_value WEBSITE_ALLOWED_HOSTS "$(derived_hosts_csv website "$PUBLIC_DOMAINS")")"
-SHOP_HOST="$(env_value SHOP_HOST "loja.${PRIMARY_DOMAIN}")"
-SHOP_ALLOWED_HOSTS="$(env_value SHOP_ALLOWED_HOSTS "$(derived_hosts_csv shop "$PUBLIC_DOMAINS")")"
-ADMIN_HOST="$(env_value ADMIN_HOST "admin.${PRIMARY_DOMAIN}")"
-ADMIN_ALLOWED_HOSTS="$(env_value ADMIN_ALLOWED_HOSTS "$(derived_hosts_csv admin "$PUBLIC_DOMAINS")")"
-TLS_CERT_NAME="$(env_value TLS_CERT_NAME "$WEBSITE_HOST")"
-
-split_hosts() {
-    printf '%s' "$1" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sed '/^$/d'
-}
 
 append_redirect_checks() {
     local canonical_host="$1"
@@ -89,7 +26,7 @@ append_redirect_checks() {
             https_redirect_checks+=("${host}|https://${canonical_host}/")
         fi
     done <<EOF
-$(split_hosts "$configured_hosts")
+$(csv_to_lines "$configured_hosts")
 EOF
 }
 
@@ -111,11 +48,7 @@ cert_files=(
     "$PROJECT_DIR/certbot/conf/live/${TLS_CERT_NAME}/privkey.pem"
 )
 
-log_step() {
-    echo "[verify] $*"
-}
-
-report_missing_certificates() {
+certificates_available() {
     local missing=0
     local cert_file
 
@@ -133,12 +66,12 @@ report_missing_certificates() {
 }
 
 ensure_running_nginx() {
-    if "${COMPOSE[@]}" ps --status running --services | grep -qx 'nginx'; then
+    if service_is_running nginx; then
         return 0
     fi
 
     log_step "nginx is not running"
-    if report_missing_certificates; then
+    if certificates_available; then
         log_step "TLS files are present; inspect nginx logs below"
     else
         log_step "restore the existing certbot/conf directory or issue a new certificate before restarting nginx"

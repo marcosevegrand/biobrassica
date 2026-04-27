@@ -1,5 +1,4 @@
-## Development overrides — opt in explicitly with:
-## docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+## Development overrides — used by ./scripts/dev.sh and make dev.
 services:
   django:
     build:
@@ -75,15 +74,6 @@ services:
     entrypoint: ["stripe"]
     environment:
       - STRIPE_API_KEY=${STRIPE_SECRET_KEY:-}
-
-  nginx:
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./backend/staticfiles:/var/www/static:ro
-      - ./backend/media:/var/www/media:ro
 
 volumes:
   tw_node_modules:

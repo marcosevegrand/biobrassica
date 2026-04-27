@@ -19,39 +19,34 @@ Prerequisites:
 Setup:
 
 ```bash
-make stack ENV=dev ACTION=up ARGS='-d'
-make django ENV=dev CMD='migrate'
-make django ENV=dev CMD='collectstatic --noinput'
-make django ENV=dev CMD='compilemessages'
-make django ENV=dev CMD='createsuperuser'
+make dev
 ```
+
+`make dev` builds the development images, starts PostgreSQL, Redis, Django, Tailwind, and Mailpit, applies migrations, and compiles locale catalogs.
+
+If you need to override development-only values such as Stripe credentials, create an optional `.env.dev` file and Docker Compose will pick it up automatically.
 
 Local URLs:
 
-- Website: http://lvh.me
-- Shop: http://loja.lvh.me
-- Admin: http://admin.lvh.me
+- Website: http://lvh.me:8000
+- Shop: http://loja.lvh.me:8000
+- Admin: http://admin.lvh.me:8000
 - Mailpit: http://localhost:8025
 
-Useful commands:
+Useful follow-up commands:
 
 ```bash
-make stack ENV=dev ACTION=logs
-make stack ENV=dev ACTION=logs SERVICE=nginx ARGS='-f --tail=200'
-make stack ENV=dev ACTION=ps
-make django ENV=dev CMD='shell'
-make django ENV=dev CMD='test'
-make django ENV=dev CMD='makemessages -l pt -l en -l fr --no-wrap'
-make django ENV=dev CMD='compilemessages'
+docker compose -p biobrassica-dev -f docker-compose.yml -f docker-compose.dev.yml logs -f django tailwind
+docker compose -p biobrassica-dev -f docker-compose.yml -f docker-compose.dev.yml exec django python manage.py createsuperuser
+docker compose -p biobrassica-dev -f docker-compose.yml -f docker-compose.dev.yml exec django python manage.py shell
 ```
 
-The Makefile keeps a deliberately small surface:
+The Makefile surface is intentionally small:
 
-- `make stack ...` covers Docker Compose lifecycle work in dev and prod.
-- `make redeploy ENV=...` rebuilds and recreates the full Compose stack in one step.
-- `make django ...` runs `python manage.py ...` inside the selected Django service.
-- `make backup` and `make restore ...` stay explicit because they are production recovery operations.
-- `ENV=dev|prod` must always be explicit for `make stack ...` and `make django ...`.
+- `make dev` starts the local stack.
+- `make deploy` performs the production deployment flow.
+- `make backup`, `make restore`, `make verify`, and `make cert` cover the operational tasks.
+- For rare one-off Docker Compose or `manage.py` work, use the direct `docker compose ...` commands instead of growing the Makefile again.
 
 ## Validation
 
@@ -95,7 +90,7 @@ Production uses [docker-compose.yml](docker-compose.yml) only.
 Required setup:
 
 ```bash
-cp .env.example .env
+make env
 ```
 
 Fill in real secrets before starting the stack. Production Compose commands and the backup/restore scripts use `.env` through Docker Compose.
@@ -139,46 +134,29 @@ The production web tier is split into three services:
 - `django_shop` for `loja.` hosts derived from the canonical and alias domains
 - `django_admin` for `admin.` hosts derived from the canonical and alias domains
 
-Bring the stack up with standard Compose commands:
+Deploy new production changes with:
 
 ```bash
-make stack ENV=prod ACTION=build
-make stack ENV=prod ACTION=up ARGS='-d'
+make deploy
 ```
 
-Or rebuild and recreate every service in one command:
+`make deploy` builds the production images, starts the stateful services, applies migrations, collects static files, recreates the full stack, and runs the production health checks.
+It also takes a fresh backup before changing the running production stack.
+
+Before a deploy that may interrupt checkout, pause payments in one of these ways:
 
 ```bash
-make redeploy ENV=prod
-```
-
-For targeted releases, build and recreate only the site you are changing:
-
-```bash
-make stack ENV=prod ACTION=build SERVICE=django_shop
-make stack ENV=prod ACTION=up SERVICE=django_shop ARGS='-d'
-```
-
-Run release tasks explicitly from one Django service instead of on every container start:
-
-```bash
-make django ENV=prod DJANGO_SERVICE=django_website CMD='migrate --noinput'
-make django ENV=prod DJANGO_SERVICE=django_website CMD='collectstatic --noinput'
-make django ENV=prod DJANGO_SERVICE=django_website CMD='compilemessages'
-```
-
-In production, `make django ...` runs as a one-off container from the selected service image, so it still works before the web containers are up.
-
-Before a redeploy that may interrupt checkout, pause payments in one of these ways:
-
-```bash
-# Hard-disable from the server environment, then restart the affected Django service(s)
-PAYMENTS_FORCE_DISABLED=1
-make stack ENV=prod ACTION=up SERVICE=django_shop ARGS='-d'
-make stack ENV=prod ACTION=up SERVICE=django_admin ARGS='-d'
+# Hard-disable from the server environment, then deploy
+PAYMENTS_FORCE_DISABLED=1 make deploy
 ```
 
 Or use the admin backoffice and toggle `Pagamentos ativos` in the Website content record. The environment flag wins over the admin toggle and is the safer fallback if the admin host is unavailable.
+
+For rare production `manage.py` commands that are not part of the standard deploy flow, run them directly against the website image:
+
+```bash
+docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm django_website python manage.py reset_admin_password admin@example.com
+```
 
 Production web containers still fail fast on pending migrations, but they no longer run `collectstatic` automatically unless `DJANGO_COLLECTSTATIC_ON_START=1` is set intentionally.
 
@@ -195,37 +173,27 @@ mkdir -p certbot/www certbot/conf
 Bootstrap the first certificate before starting nginx. The helper script reads the canonical domain and alias domains from `.env`, expands them into website/shop/admin hostnames, deduplicates them, and requests one certificate bundle for all configured public hosts:
 
 ```bash
-./scripts/request_certificate.sh
+make cert
 ```
 
-Set `CERTBOT_STAGING=1` in `.env` when you want to hit Let's Encrypt staging during the first dry runs.
+If nginx is already running, `make cert` uses the ACME webroot and reloads nginx afterwards. If nginx is not running yet, it falls back to standalone validation on port 80. Set `CERTBOT_STAGING=1` in `.env` when you want to hit Let's Encrypt staging during first-run tests.
 
 Once the certificate exists, start the production stack:
 
 ```bash
-docker compose -f docker-compose.yml up -d
+make deploy
 ```
-
-To reset the password of an admin/staff account from the VPS without editing the database manually:
-
-```bash
-make django ENV=prod DJANGO_SERVICE=django_admin CMD='reset_admin_password admin@example.com'
-```
-
-The command asks for the new password twice, validates it with Django's password validators, and refuses non-staff accounts unless `--allow-non-staff` is passed manually.
 
 Renewal uses the shared ACME webroot while nginx is already serving HTTP:
 
 ```bash
-docker compose -f docker-compose.yml --profile tools run --rm certbot \
-	renew --webroot -w /var/www/certbot
-docker compose -f docker-compose.yml exec nginx nginx -s reload
+make cert
 ```
 
 After rollout, verify nginx, redirects, certificates, and upstream health from the VPS host:
 
 ```bash
-make verify ENV=prod
+make verify
 ```
 
 If you need raw curl checks while debugging a 521, read the canonical host values straight from `.env` so the commands use the same configured hosts as nginx and Django without shell-sourcing the whole file:
@@ -253,10 +221,10 @@ Because production enables HSTS for subdomains and preload, every public hostnam
 Backup database and media:
 
 ```bash
-./scripts/backup.sh
+make backup
 ```
 
-By default, that writes backups into `~/biobrassica/backups` when the deployed repo lives at `~/biobrassica`.
+By default, that writes backups into the repo-local `backups/` directory.
 
 To override the destination explicitly:
 
@@ -264,23 +232,21 @@ To override the destination explicitly:
 ./scripts/backup.sh /path/to/backups
 ```
 
-Restore database, with optional media restore:
+Restore the latest backup pair from `backups/`:
+
+```bash
+make restore
+```
+
+For an explicit database or media archive, use the script directly:
 
 ```bash
 ./scripts/restore.sh --db /path/to/db.sql.gz --yes
 ./scripts/restore.sh --db /path/to/db.sql.gz --media /path/to/media.tar.gz --yes
 ```
 
-Or via Make:
-
-```bash
-make backup
-make restore FILE=/path/to/db.sql.gz YES=1
-make restore FILE=/path/to/db.sql.gz MEDIA=/path/to/media.tar.gz YES=1
-```
-
 ## Notes
 
-- Development uses `.env.dev`, created automatically from `.env.dev.example` when an `ENV=dev` `make stack ...` or `make django ...` command runs.
+- Development can use an optional `.env.dev` file for local-only overrides.
 - Production uses `.env`, created from `.env.example`.
-- Translation maintenance is supported through `backend/scripts/fill_translations.py` plus `make django ENV=dev CMD='compilemessages'`.
+- Translation maintenance is supported through `backend/scripts/fill_translations.py` plus `docker compose ... exec django python manage.py compilemessages` in development.
