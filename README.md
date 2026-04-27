@@ -104,8 +104,8 @@ Provider-specific production variables:
 
 Production domain routing is env-driven. In the normal case, configure only these in `.env` instead of editing Compose or nginx files:
 
-- `PRIMARY_DOMAIN`: canonical bare domain for the deployment
-- `DOMAIN_ALIASES`: optional comma-separated bare domains that should also be accepted
+- `PRIMARY_DOMAIN`: default bare domain family for the deployment
+- `DOMAIN_ALIASES`: optional comma-separated bare domains that should also be accepted as mirror families
 - `TLS_CERT_NAME`: optional certbot live directory name nginx should read; when empty it falls back to the canonical website host
 - `CERTBOT_EMAIL`: email used by `./scripts/request_certificate.sh`
 
@@ -116,9 +116,15 @@ From those values, the stack derives these host families automatically:
 - Admin: `admin.$PRIMARY_DOMAIN`
 - Every domain listed in `DOMAIN_ALIASES` gets the same `www.`, `loja.`, and `admin.` variants added automatically
 
+Public routing follows these rules:
+
+- Bare website hosts are mirrored within their own family, so a user entering through `marcosevegrand.com` stays on the `marcosevegrand.com` family and a user entering through `biobrassica.pt` stays on the `biobrassica.pt` family
+- `www.` remains an entry alias only and redirects to the bare website host in the same family
+- `loja.` and `admin.` stay within the same family instead of redirecting back to the primary domain family
+
 Explicit `WEBSITE_HOST`, `WEBSITE_ALLOWED_HOSTS`, `SHOP_HOST`, `SHOP_ALLOWED_HOSTS`, `ADMIN_HOST`, and `ADMIN_ALLOWED_HOSTS` overrides still exist, but they are now only for non-standard host layouts.
 
-For example, to keep `biobrassica.pt` canonical while still accepting `marcosevegrand.com` as an alias family:
+For example, to use `biobrassica.pt` as the default family while still serving `marcosevegrand.com` as a mirrored family:
 
 ```env
 PRIMARY_DOMAIN=biobrassica.pt
@@ -160,7 +166,7 @@ docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm dja
 
 Production web containers still fail fast on pending migrations, but they no longer run `collectstatic` automatically unless `DJANGO_COLLECTSTATIC_ON_START=1` is set intentionally.
 
-Production nginx now terminates TLS directly for every host derived from `PRIMARY_DOMAIN` and `DOMAIN_ALIASES`, unless you intentionally override the host lists. Canonical redirects are driven by the canonical website, shop, and admin hosts derived from `.env`.
+Production nginx now terminates TLS directly for every host derived from `PRIMARY_DOMAIN` and `DOMAIN_ALIASES`, unless you intentionally override the host lists. HTTP upgrades stay on the same host, `www.` normalizes to the bare website host inside the same family, and bare website, `loja.`, and `admin.` hosts do not redirect across domain families.
 
 The production stack keeps `DJANGO_HTTPS_MODE=proxy` because Django still sits behind nginx and trusts `X-Forwarded-Proto` from the proxy.
 
@@ -195,6 +201,8 @@ After rollout, verify nginx, redirects, certificates, and upstream health from t
 ```bash
 make verify
 ```
+
+`make verify` now expects same-host HTTP to HTTPS redirects for bare website, shop, and admin hosts, plus same-family `www.` to bare redirects for website hosts.
 
 If you need raw curl checks while debugging a 521, read the canonical host values straight from `.env` so the commands use the same configured hosts as nginx and Django without shell-sourcing the whole file:
 

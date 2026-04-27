@@ -17,4 +17,4 @@ def shop_url(context, view_name='catalog:shop_home', language=None, **kwargs):
     with translation.override(lang):
         path = reverse(view_name, kwargs=kwargs, urlconf='config.urls_shop')
 
-    return f'{get_shop_base_url()}{path}'
+    return f'{get_shop_base_url(request=request)}{path}'

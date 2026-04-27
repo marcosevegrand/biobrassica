@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from django.conf import settings
 from django.db import connection
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -9,9 +9,37 @@ from unittest.mock import patch
 
 from apps.accounts.models import User
 from apps.catalog.models import Location
+from apps.core.site_content import get_shop_base_url, get_website_base_url
 from apps.orders.models import Order
 from apps.payments.models import Payment
 from apps.core.site_content import clear_contact_locations_cache, get_contact_locations
+
+
+MIRROR_DOMAIN_SETTINGS = {
+	'ALLOWED_HOSTS': [
+		'biobrassica.pt',
+		'www.biobrassica.pt',
+		'loja.biobrassica.pt',
+		'admin.biobrassica.pt',
+		'marcosevegrand.com',
+		'www.marcosevegrand.com',
+		'loja.marcosevegrand.com',
+		'admin.marcosevegrand.com',
+	],
+	'PUBLIC_DOMAINS': ['biobrassica.pt', 'marcosevegrand.com'],
+	'WEBSITE_HOST': 'biobrassica.pt',
+	'WEBSITE_ALLOWED_HOSTS': [
+		'biobrassica.pt',
+		'www.biobrassica.pt',
+		'marcosevegrand.com',
+		'www.marcosevegrand.com',
+	],
+	'SHOP_HOST': 'loja.biobrassica.pt',
+	'SHOP_ALLOWED_HOSTS': ['loja.biobrassica.pt', 'loja.marcosevegrand.com'],
+	'ADMIN_HOST': 'admin.biobrassica.pt',
+	'ADMIN_ALLOWED_HOSTS': ['admin.biobrassica.pt', 'admin.marcosevegrand.com'],
+	'SHOP_BASE_URL': 'https://loja.biobrassica.pt',
+}
 
 
 class SubdomainRoutingTests(TestCase):
@@ -26,6 +54,23 @@ class SubdomainRoutingTests(TestCase):
 		self.assertNotContains(response, 'https://biobrassica.pt/pt/contactos/')
 		self.assertNotContains(response, 'https://unpkg.com/htmx.org@2.0.4')
 		self.assertNotContains(response, 'fonts.googleapis.com')
+
+	@override_settings(**MIRROR_DOMAIN_SETTINGS)
+	def test_shop_host_preserves_alias_domain_family_for_website_links(self):
+		response = self.client.get('/pt/', HTTP_HOST='loja.marcosevegrand.com')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, 'catalog/shop_home.html')
+		self.assertContains(response, 'https://marcosevegrand.com/pt/contactos/')
+		self.assertContains(response, 'https://marcosevegrand.com')
+		self.assertNotContains(response, 'https://biobrassica.pt/pt/contactos/')
+
+	@override_settings(**MIRROR_DOMAIN_SETTINGS)
+	def test_www_host_collapses_to_bare_domain_for_absolute_urls(self):
+		request = RequestFactory().get('/', HTTP_HOST='www.marcosevegrand.com')
+
+		self.assertEqual(get_website_base_url(request=request), 'https://marcosevegrand.com')
+		self.assertEqual(get_shop_base_url(request=request), 'https://loja.marcosevegrand.com')
 
 	def test_admin_is_blocked_on_website_host(self):
 		response = self.client.get('/admin/', HTTP_HOST='lvh.me')

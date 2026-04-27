@@ -23,6 +23,32 @@ GIF_BYTES = (
     b'\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
 )
 
+MIRROR_DOMAIN_SETTINGS = {
+    'ALLOWED_HOSTS': [
+        'biobrassica.pt',
+        'www.biobrassica.pt',
+        'loja.biobrassica.pt',
+        'admin.biobrassica.pt',
+        'marcosevegrand.com',
+        'www.marcosevegrand.com',
+        'loja.marcosevegrand.com',
+        'admin.marcosevegrand.com',
+    ],
+    'PUBLIC_DOMAINS': ['biobrassica.pt', 'marcosevegrand.com'],
+    'WEBSITE_HOST': 'biobrassica.pt',
+    'WEBSITE_ALLOWED_HOSTS': [
+        'biobrassica.pt',
+        'www.biobrassica.pt',
+        'marcosevegrand.com',
+        'www.marcosevegrand.com',
+    ],
+    'SHOP_HOST': 'loja.biobrassica.pt',
+    'SHOP_ALLOWED_HOSTS': ['loja.biobrassica.pt', 'loja.marcosevegrand.com'],
+    'ADMIN_HOST': 'admin.biobrassica.pt',
+    'ADMIN_ALLOWED_HOSTS': ['admin.biobrassica.pt', 'admin.marcosevegrand.com'],
+    'SHOP_BASE_URL': 'https://loja.biobrassica.pt',
+}
+
 
 class TempMediaRootMixin:
     @classmethod
@@ -199,6 +225,14 @@ class WebsiteContentTranslationTests(WebsiteTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'https://loja.lvh.me/en/')
+
+    @override_settings(**MIRROR_DOMAIN_SETTINGS)
+    def test_homepage_preserves_alias_domain_family_in_shop_navigation(self):
+        response = self.client.get('/en/', HTTP_HOST='marcosevegrand.com')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'https://loja.marcosevegrand.com/en/')
+        self.assertNotContains(response, 'https://loja.biobrassica.pt/en/')
 
 
 @override_settings(ROOT_URLCONF='config.urls_website')

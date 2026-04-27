@@ -15,16 +15,40 @@ configure_public_domains
 
 DRY_RUN="${VERIFY_DRY_RUN:-0}"
 
-append_redirect_checks() {
-    local canonical_host="$1"
-    local configured_hosts="$2"
+append_website_checks() {
+    local configured_hosts="$1"
     local host
 
     while IFS= read -r host; do
-        http_redirect_checks+=("${host}|https://${canonical_host}/")
-        if [ "$host" != "$canonical_host" ]; then
-            https_redirect_checks+=("${host}|https://${canonical_host}/")
+        if [ -z "$host" ]; then
+            continue
         fi
+
+        if [[ "$host" == www.* ]]; then
+            http_redirect_checks+=("${host}|https://${host#www.}/")
+            https_redirect_checks+=("${host}|https://${host#www.}/")
+        else
+            http_redirect_checks+=("${host}|https://${host}/")
+            health_checks+=("${host}|django_website")
+        fi
+    done <<EOF
+$(csv_to_lines "$configured_hosts")
+EOF
+}
+
+
+append_same_host_checks() {
+    local configured_hosts="$1"
+    local service="$2"
+    local host
+
+    while IFS= read -r host; do
+        if [ -z "$host" ]; then
+            continue
+        fi
+
+        http_redirect_checks+=("${host}|https://${host}/")
+        health_checks+=("${host}|${service}")
     done <<EOF
 $(csv_to_lines "$configured_hosts")
 EOF
@@ -32,16 +56,11 @@ EOF
 
 http_redirect_checks=()
 https_redirect_checks=()
+health_checks=()
 
-append_redirect_checks "$WEBSITE_HOST" "$WEBSITE_ALLOWED_HOSTS"
-append_redirect_checks "$SHOP_HOST" "$SHOP_ALLOWED_HOSTS"
-append_redirect_checks "$ADMIN_HOST" "$ADMIN_ALLOWED_HOSTS"
-
-health_checks=(
-    "${WEBSITE_HOST}|django_website"
-    "${SHOP_HOST}|django_shop"
-    "${ADMIN_HOST}|django_admin"
-)
+append_website_checks "$WEBSITE_ALLOWED_HOSTS"
+append_same_host_checks "$SHOP_ALLOWED_HOSTS" "django_shop"
+append_same_host_checks "$ADMIN_ALLOWED_HOSTS" "django_admin"
 
 cert_files=(
     "$PROJECT_DIR/certbot/conf/live/${TLS_CERT_NAME}/fullchain.pem"

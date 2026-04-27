@@ -12,6 +12,7 @@ def contact_locations(request):
     return {
         'contact_locations': locations,
         'website_defaults': get_website_defaults(
+            request=request,
             lang=getattr(request, 'LANGUAGE_CODE', None) or get_language(),
             contact_locations=locations,
         ),

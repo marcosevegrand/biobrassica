@@ -1,5 +1,8 @@
+from ipaddress import ip_address
+
 from django.core.cache import cache
 from django.conf import settings
+from django.core.exceptions import DisallowedHost
 from django.urls import reverse
 from django.utils.translation import gettext
 from django.utils.translation import override
@@ -32,6 +35,7 @@ DEFAULT_SUPPORT_EMAIL = 'geral@biobrassica.pt'
 DEFAULT_WHATSAPP_NUMBER = '+351938722638'
 CONTACT_LOCATIONS_CACHE_KEY = 'core:contact_locations:v1'
 CONTACT_LOCATIONS_CACHE_TIMEOUT = 300
+HOST_ROLE_PREFIXES = ('www.', 'loja.', 'admin.')
 
 
 def _normalize_whatsapp_number(number):
@@ -40,6 +44,74 @@ def _normalize_whatsapp_number(number):
 
 def _display_location_name(name):
     return str(name or '').removeprefix('Loja ').strip()
+
+
+def _strip_host_port(host):
+    return str(host or '').split(':', 1)[0].strip().lower()
+
+
+def _is_ip_host(host):
+    try:
+        ip_address(host)
+    except ValueError:
+        return False
+    return True
+
+
+def _host_family_domain(host):
+    normalized_host = _strip_host_port(host)
+    if not normalized_host or normalized_host == '*' or _is_ip_host(normalized_host):
+        return ''
+    if '.' not in normalized_host and normalized_host != 'localhost':
+        return ''
+
+    for prefix in HOST_ROLE_PREFIXES:
+        if normalized_host.startswith(prefix):
+            return normalized_host.removeprefix(prefix)
+
+    return normalized_host
+
+
+def _configured_public_domains():
+    configured_domains = []
+    configured_hosts = [
+        *(getattr(settings, 'PUBLIC_DOMAINS', []) or []),
+        *(getattr(settings, 'WEBSITE_ALLOWED_HOSTS', []) or []),
+        *(getattr(settings, 'SHOP_ALLOWED_HOSTS', []) or []),
+        *(getattr(settings, 'ADMIN_ALLOWED_HOSTS', []) or []),
+        *(getattr(settings, 'ALLOWED_HOSTS', []) or []),
+        getattr(settings, 'WEBSITE_HOST', ''),
+        getattr(settings, 'SHOP_HOST', ''),
+        getattr(settings, 'ADMIN_HOST', ''),
+    ]
+
+    for configured_host in configured_hosts:
+        resolved_domain = _host_family_domain(configured_host)
+        if resolved_domain:
+            configured_domains.append(resolved_domain)
+
+    return list(dict.fromkeys(configured_domains))
+
+
+def _request_public_domain(request):
+    if request is None:
+        return ''
+
+    try:
+        request_host = _strip_host_port(request.get_host())
+    except DisallowedHost:
+        return ''
+
+    for domain in _configured_public_domains():
+        if request_host in {
+            domain,
+            f'www.{domain}',
+            f'loja.{domain}',
+            f'admin.{domain}',
+        }:
+            return domain
+
+    return ''
 
 
 def get_pickup_locations_label(*, lang=None, contact_locations=None):
@@ -71,9 +143,9 @@ def get_pickup_locations_label(*, lang=None, contact_locations=None):
         }
 
 
-def get_website_defaults(*, lang=None, content=None, contact_locations=None):
+def get_website_defaults(*, request=None, lang=None, content=None, contact_locations=None):
     localized_content = content if content is not None else get_website_content(lang=lang)
-    website_base_url = get_website_base_url()
+    website_base_url = get_website_base_url(request=request)
     pickup_locations_label = get_pickup_locations_label(lang=lang, contact_locations=contact_locations)
 
     with override(normalized_language(lang)):
@@ -174,11 +246,19 @@ def get_website_content(lang=None):
     return content.for_language(lang=lang)
 
 
-def get_shop_base_url():
+def get_shop_base_url(*, request=None):
+    request_domain = _request_public_domain(request)
+    if request_domain:
+        return f'https://loja.{request_domain}'
+
     return settings.SHOP_BASE_URL.rstrip('/')
 
 
-def get_website_base_url():
+def get_website_base_url(*, request=None):
+    request_domain = _request_public_domain(request)
+    if request_domain:
+        return f'https://{request_domain}'
+
     configured_base_url = getattr(settings, 'WEBSITE_BASE_URL', '').strip()
     if configured_base_url:
         return configured_base_url.rstrip('/')
