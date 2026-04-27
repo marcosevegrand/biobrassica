@@ -155,6 +155,15 @@ class WebsiteRoutingTests(TestCase):
 		self.assertContains(response, '/static/js/instagram-feed.js')
 		self.assertNotContains(response, 'fonts.googleapis.com')
 
+	@override_settings(ROOT_URLCONF='config.urls_shop')
+	def test_shop_homepage_relies_on_compiled_display_utilities(self):
+		response = self.client.get('/pt/', HTTP_HOST='loja.lvh.me')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, '/static/images/people/002.jpg')
+		self.assertNotContains(response, '.hidden { display: none !important; }')
+		self.assertNotContains(response, '.block { display: block !important; }')
+
 
 @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
 class ContactLocationsCacheTests(TestCase):

@@ -10,15 +10,7 @@
   <link rel="stylesheet" href="{% static 'css/output.css' %}" />
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <style>
-      .hidden { display: none !important; }
-      .block { display: block !important; }
-      .flex { display: flex !important; }
       [x-cloak] { display: none !important; }
-
-      @media (min-width: 1024px) {
-        .lg\:flex { display: flex !important; }
-        .lg\:hidden { display: none !important; }
-      }
     </style>
   {% block head_extra %}{% endblock %}
     <script src="{% static 'unfold/js/alpine/alpine.js' %}" defer></script>
