@@ -4,7 +4,8 @@ from .base import *  # noqa: F401, F403
 
 DEBUG = True
 SECURE_SSL_REDIRECT = False
-SHOP_BASE_URL = os.environ.get('SHOP_BASE_URL', 'https://loja.lvh.me').rstrip('/')
+SHOP_HOST = os.environ.get('SHOP_HOST', 'loja.lvh.me').strip() or 'loja.lvh.me'
+SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
 
 ALLOWED_HOSTS = [
     'localhost',

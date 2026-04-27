@@ -3,7 +3,7 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401, F403
-from .base import SITE_ROLE, env_list
+from .base import ADMIN_ALLOWED_HOSTS, SHOP_ALLOWED_HOSTS, SITE_ROLE, WEBSITE_ALLOWED_HOSTS, env_list
 
 
 def required_env(name):
@@ -14,35 +14,23 @@ def required_env(name):
 
 DEBUG = False
 SECRET_KEY = required_env('DJANGO_SECRET_KEY')
-
-
-def env_or_default(name, default):
-    return os.environ.get(name, '').strip() or default
-
-
-def split_hosts(value):
-    return [item.strip() for item in value.split(',') if item.strip()]
-
 PRODUCTION_ALLOWED_HOSTS_BY_ROLE = {
-    'website': env_or_default('WEBSITE_ALLOWED_HOSTS', 'marcosevegrand.com,www.marcosevegrand.com'),
-    'shop': env_or_default('SHOP_ALLOWED_HOSTS', 'loja.marcosevegrand.com'),
-    'admin': env_or_default('ADMIN_ALLOWED_HOSTS', 'admin.marcosevegrand.com'),
+    'website': WEBSITE_ALLOWED_HOSTS,
+    'shop': SHOP_ALLOWED_HOSTS,
+    'admin': ADMIN_ALLOWED_HOSTS,
 }
 
-PRODUCTION_ALLOWED_HOSTS = ','.join(
+PRODUCTION_ALLOWED_HOSTS = list(
     dict.fromkeys(
         host
         for hosts in PRODUCTION_ALLOWED_HOSTS_BY_ROLE.values()
-        for host in split_hosts(hosts)
+        for host in hosts
     )
 )
 
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
-    PRODUCTION_ALLOWED_HOSTS_BY_ROLE.get(
-        SITE_ROLE,
-        PRODUCTION_ALLOWED_HOSTS,
-    ),
+    ','.join(PRODUCTION_ALLOWED_HOSTS_BY_ROLE.get(SITE_ROLE, PRODUCTION_ALLOWED_HOSTS)),
 )
 
 DB_PASSWORD = required_env('DB_PASSWORD')

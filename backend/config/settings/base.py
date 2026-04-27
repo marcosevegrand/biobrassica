@@ -13,6 +13,10 @@ def env_bool(name, default=False):
     return value.lower() in {'1', 'true', 'yes', 'on'}
 
 
+def env_value(name, default=''):
+    return os.environ.get(name, '').strip() or default
+
+
 def env_list(name, default=''):
     value = os.environ.get(name, '').strip() or default
     return [item.strip() for item in value.split(',') if item.strip()]
@@ -36,6 +40,44 @@ SITE_URLCONFS = {
 SITE_ROLE = os.environ.get('SITE_ROLE', '').strip().lower()
 if SITE_ROLE and SITE_ROLE not in SITE_URLCONFS:
     raise ImproperlyConfigured('SITE_ROLE must be one of: website, shop, admin')
+
+
+def dedupe_list(items):
+    return list(dict.fromkeys(item for item in items if item))
+
+
+def domain_hosts(role, domains):
+    role_prefixes = {
+        'website': ('', 'www'),
+        'shop': ('loja',),
+        'admin': ('admin',),
+    }
+    return dedupe_list(
+        domain if prefix == '' else f'{prefix}.{domain}'
+        for domain in domains
+        for prefix in role_prefixes[role]
+    )
+
+
+PRIMARY_DOMAIN = env_value('PRIMARY_DOMAIN', 'marcosevegrand.com')
+DOMAIN_ALIASES = env_list('DOMAIN_ALIASES')
+PUBLIC_DOMAINS = dedupe_list([PRIMARY_DOMAIN, *DOMAIN_ALIASES])
+
+WEBSITE_HOST = env_value('WEBSITE_HOST', PRIMARY_DOMAIN)
+WEBSITE_ALLOWED_HOSTS = env_list(
+    'WEBSITE_ALLOWED_HOSTS',
+    ','.join(domain_hosts('website', PUBLIC_DOMAINS)),
+)
+SHOP_HOST = env_value('SHOP_HOST', f'loja.{PRIMARY_DOMAIN}')
+SHOP_ALLOWED_HOSTS = env_list(
+    'SHOP_ALLOWED_HOSTS',
+    ','.join(domain_hosts('shop', PUBLIC_DOMAINS)),
+)
+ADMIN_HOST = env_value('ADMIN_HOST', f'admin.{PRIMARY_DOMAIN}')
+ADMIN_ALLOWED_HOSTS = env_list(
+    'ADMIN_ALLOWED_HOSTS',
+    ','.join(domain_hosts('admin', PUBLIC_DOMAINS)),
+)
 
 PAYMENT_PROVIDERS = {
     'stripe',
@@ -157,10 +199,7 @@ IFTHENPAY_API_BASE_URL = os.environ.get('IFTHENPAY_API_BASE_URL', 'https://api.i
 IFTHENPAY_MBWAY_KEY = os.environ.get('IFTHENPAY_MBWAY_KEY', '')
 IFTHENPAY_ANTI_PHISHING_KEY = os.environ.get('IFTHENPAY_ANTI_PHISHING_KEY', '')
 PAYMENTS_FORCE_DISABLED = env_bool('PAYMENTS_FORCE_DISABLED', default=False)
-DEFAULT_SHOP_HOST = os.environ.get('SHOP_HOST', 'loja.marcosevegrand.com').strip() or 'loja.marcosevegrand.com'
-SHOP_BASE_URL = (
-    os.environ.get('SHOP_BASE_URL', '').strip() or f'https://{DEFAULT_SHOP_HOST}'
-).rstrip('/')
+SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
 
 # Email
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Biobrassica <loja@marcosevegrand.com>')

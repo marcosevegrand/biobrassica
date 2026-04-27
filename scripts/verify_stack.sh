@@ -34,12 +34,44 @@ env_value() {
     printf '%s' "$default"
 }
 
-WEBSITE_HOST="$(env_value WEBSITE_HOST marcosevegrand.com)"
-WEBSITE_ALLOWED_HOSTS="$(env_value WEBSITE_ALLOWED_HOSTS marcosevegrand.com,www.marcosevegrand.com)"
-SHOP_HOST="$(env_value SHOP_HOST loja.marcosevegrand.com)"
-SHOP_ALLOWED_HOSTS="$(env_value SHOP_ALLOWED_HOSTS loja.marcosevegrand.com)"
-ADMIN_HOST="$(env_value ADMIN_HOST admin.marcosevegrand.com)"
-ADMIN_ALLOWED_HOSTS="$(env_value ADMIN_ALLOWED_HOSTS admin.marcosevegrand.com)"
+unique_csv() {
+    printf '%s' "$1" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sed '/^$/d' | awk '!seen[$0]++' | paste -sd, -
+}
+
+derived_hosts_csv() {
+    local role="$1"
+    local domains_csv="$2"
+    local domain
+
+    while IFS= read -r domain; do
+        [ -n "$domain" ] || continue
+        case "$role" in
+            website)
+                printf '%s\n' "$domain"
+                printf 'www.%s\n' "$domain"
+                ;;
+            shop)
+                printf 'loja.%s\n' "$domain"
+                ;;
+            admin)
+                printf 'admin.%s\n' "$domain"
+                ;;
+        esac
+    done <<EOF | awk '!seen[$0]++' | paste -sd, -
+$(printf '%s' "$domains_csv" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sed '/^$/d')
+EOF
+}
+
+PRIMARY_DOMAIN="$(env_value PRIMARY_DOMAIN marcosevegrand.com)"
+DOMAIN_ALIASES="$(env_value DOMAIN_ALIASES '')"
+PUBLIC_DOMAINS="$(unique_csv "${PRIMARY_DOMAIN},${DOMAIN_ALIASES}")"
+
+WEBSITE_HOST="$(env_value WEBSITE_HOST "$PRIMARY_DOMAIN")"
+WEBSITE_ALLOWED_HOSTS="$(env_value WEBSITE_ALLOWED_HOSTS "$(derived_hosts_csv website "$PUBLIC_DOMAINS")")"
+SHOP_HOST="$(env_value SHOP_HOST "loja.${PRIMARY_DOMAIN}")"
+SHOP_ALLOWED_HOSTS="$(env_value SHOP_ALLOWED_HOSTS "$(derived_hosts_csv shop "$PUBLIC_DOMAINS")")"
+ADMIN_HOST="$(env_value ADMIN_HOST "admin.${PRIMARY_DOMAIN}")"
+ADMIN_ALLOWED_HOSTS="$(env_value ADMIN_ALLOWED_HOSTS "$(derived_hosts_csv admin "$PUBLIC_DOMAINS")")"
 TLS_CERT_NAME="$(env_value TLS_CERT_NAME "$WEBSITE_HOST")"
 
 split_hosts() {

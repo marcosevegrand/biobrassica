@@ -9,12 +9,51 @@ normalize_host_list() {
         | xargs
 }
 
-website_host="${WEBSITE_HOST:-marcosevegrand.com}"
-website_allowed_hosts="${WEBSITE_ALLOWED_HOSTS:-marcosevegrand.com,www.marcosevegrand.com}"
-shop_host="${SHOP_HOST:-loja.marcosevegrand.com}"
-shop_allowed_hosts="${SHOP_ALLOWED_HOSTS:-loja.marcosevegrand.com}"
-admin_host="${ADMIN_HOST:-admin.marcosevegrand.com}"
-admin_allowed_hosts="${ADMIN_ALLOWED_HOSTS:-admin.marcosevegrand.com}"
+unique_csv() {
+    printf '%s' "$1" \
+        | tr ',' '\n' \
+        | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+        | sed '/^$/d' \
+        | awk '!seen[$0]++' \
+        | paste -sd, -
+}
+
+base_domains() {
+    unique_csv "${primary_domain},${domain_aliases}"
+}
+
+derived_host_csv() {
+    role="$1"
+
+    while IFS= read -r domain; do
+        [ -n "$domain" ] || continue
+        case "$role" in
+            website)
+                printf '%s\n' "$domain"
+                printf 'www.%s\n' "$domain"
+                ;;
+            shop)
+                printf 'loja.%s\n' "$domain"
+                ;;
+            admin)
+                printf 'admin.%s\n' "$domain"
+                ;;
+        esac
+    done <<EOF
+$(printf '%s' "$resolved_domains" | tr ',' '\n')
+EOF
+}
+
+primary_domain="${PRIMARY_DOMAIN:-marcosevegrand.com}"
+domain_aliases="${DOMAIN_ALIASES:-}"
+resolved_domains="$(base_domains)"
+
+website_host="${WEBSITE_HOST:-$primary_domain}"
+website_allowed_hosts="${WEBSITE_ALLOWED_HOSTS:-$(derived_host_csv website | paste -sd, -)}"
+shop_host="${SHOP_HOST:-loja.$primary_domain}"
+shop_allowed_hosts="${SHOP_ALLOWED_HOSTS:-$(derived_host_csv shop | paste -sd, -)}"
+admin_host="${ADMIN_HOST:-admin.$primary_domain}"
+admin_allowed_hosts="${ADMIN_ALLOWED_HOSTS:-$(derived_host_csv admin | paste -sd, -)}"
 tls_cert_name="${TLS_CERT_NAME:-$website_host}"
 
 export WEBSITE_HOST="$website_host"

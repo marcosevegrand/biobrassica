@@ -9,7 +9,6 @@
 #   0 3 * * * /home/deploy/biobrassica/scripts/backup.sh >> /var/log/biobrassica-backup.log 2>&1
 #
 # Retention: the script removes backups older than 14 days.
-# For durable off-site storage, pipe the output files to rclone/s3cmd/restic.
 
 set -euo pipefail
 

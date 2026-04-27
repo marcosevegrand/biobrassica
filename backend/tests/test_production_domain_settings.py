@@ -25,28 +25,34 @@ class ProductionDomainSettingsTests(SimpleTestCase):
             importlib.reload(base_settings)
             return importlib.reload(production_settings)
 
-    def test_shop_base_url_defaults_to_configured_shop_host(self):
+    def test_shop_base_url_defaults_to_derived_shop_host(self):
         settings_module = self.load_production_settings(
             SITE_ROLE='website',
-            SHOP_HOST='loja.biobrassica.pt',
-            SHOP_BASE_URL='',
+            PRIMARY_DOMAIN='biobrassica.pt',
             ALLOWED_HOSTS='',
         )
 
         self.assertEqual(settings_module.SHOP_BASE_URL, 'https://loja.biobrassica.pt')
 
-    def test_role_specific_allowed_hosts_drive_defaults(self):
+    def test_domain_aliases_drive_role_specific_host_defaults(self):
         settings_module = self.load_production_settings(
             SITE_ROLE='website',
+            PRIMARY_DOMAIN='biobrassica.pt',
+            DOMAIN_ALIASES='marcosevegrand.com',
             ALLOWED_HOSTS='',
-            WEBSITE_ALLOWED_HOSTS='biobrassica.pt,www.biobrassica.pt,marcosevegrand.com',
-            SHOP_ALLOWED_HOSTS='loja.biobrassica.pt,loja.marcosevegrand.com',
-            ADMIN_ALLOWED_HOSTS='admin.biobrassica.pt,admin.marcosevegrand.com',
         )
 
+        self.assertEqual(settings_module.WEBSITE_HOST, 'biobrassica.pt')
+        self.assertEqual(settings_module.SHOP_HOST, 'loja.biobrassica.pt')
+        self.assertEqual(settings_module.ADMIN_HOST, 'admin.biobrassica.pt')
         self.assertEqual(
             settings_module.ALLOWED_HOSTS,
-            ['biobrassica.pt', 'www.biobrassica.pt', 'marcosevegrand.com'],
+            [
+                'biobrassica.pt',
+                'www.biobrassica.pt',
+                'marcosevegrand.com',
+                'www.marcosevegrand.com',
+            ],
         )
         self.assertEqual(
             settings_module.CSRF_TRUSTED_ORIGINS,
@@ -54,5 +60,22 @@ class ProductionDomainSettingsTests(SimpleTestCase):
                 'https://biobrassica.pt',
                 'https://www.biobrassica.pt',
                 'https://marcosevegrand.com',
+                'https://www.marcosevegrand.com',
             ],
+        )
+
+    def test_explicit_host_overrides_still_win(self):
+        settings_module = self.load_production_settings(
+            SITE_ROLE='shop',
+            PRIMARY_DOMAIN='biobrassica.pt',
+            DOMAIN_ALIASES='marcosevegrand.com',
+            SHOP_HOST='shop.biobrassica.pt',
+            SHOP_ALLOWED_HOSTS='shop.biobrassica.pt,shop.marcosevegrand.com',
+            ALLOWED_HOSTS='',
+        )
+
+        self.assertEqual(settings_module.SHOP_HOST, 'shop.biobrassica.pt')
+        self.assertEqual(
+            settings_module.ALLOWED_HOSTS,
+            ['shop.biobrassica.pt', 'shop.marcosevegrand.com'],
         )

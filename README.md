@@ -107,28 +107,27 @@ Provider-specific production variables:
 - `PAYMENT_PROVIDER=stripe`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, optional `STRIPE_PUBLISHABLE_KEY`, `STRIPE_CURRENCY`
 - `PAYMENT_PROVIDER=ifthenpay_mbway`: `IFTHENPAY_MBWAY_KEY`, `IFTHENPAY_ANTI_PHISHING_KEY`, optional `IFTHENPAY_API_BASE_URL`
 
-Production domain routing is env-driven. Configure these in `.env` instead of editing Compose or nginx files:
+Production domain routing is env-driven. In the normal case, configure only these in `.env` instead of editing Compose or nginx files:
 
-- `WEBSITE_HOST`: canonical website host
-- `WEBSITE_ALLOWED_HOSTS`: comma-separated website hosts accepted by Django and nginx
-- `SHOP_HOST`: canonical shop host
-- `SHOP_ALLOWED_HOSTS`: comma-separated shop hosts accepted by Django and nginx
-- `ADMIN_HOST`: canonical admin host
-- `ADMIN_ALLOWED_HOSTS`: comma-separated admin hosts accepted by Django and nginx
-- `SHOP_BASE_URL`: optional explicit shop base URL; when empty it falls back to `https://$SHOP_HOST`
-- `TLS_CERT_NAME`: optional certbot live directory name nginx should read; when empty it falls back to `WEBSITE_HOST`
+- `PRIMARY_DOMAIN`: canonical bare domain for the deployment
+- `DOMAIN_ALIASES`: optional comma-separated bare domains that should also be accepted
+- `TLS_CERT_NAME`: optional certbot live directory name nginx should read; when empty it falls back to the canonical website host
 - `CERTBOT_EMAIL`: email used by `./scripts/request_certificate.sh`
+
+From those values, the stack derives these host families automatically:
+
+- Website: `$PRIMARY_DOMAIN` and `www.$PRIMARY_DOMAIN`
+- Shop: `loja.$PRIMARY_DOMAIN`
+- Admin: `admin.$PRIMARY_DOMAIN`
+- Every domain listed in `DOMAIN_ALIASES` gets the same `www.`, `loja.`, and `admin.` variants added automatically
+
+Explicit `WEBSITE_HOST`, `WEBSITE_ALLOWED_HOSTS`, `SHOP_HOST`, `SHOP_ALLOWED_HOSTS`, `ADMIN_HOST`, and `ADMIN_ALLOWED_HOSTS` overrides still exist, but they are now only for non-standard host layouts.
 
 For example, to keep `biobrassica.pt` canonical while still accepting `marcosevegrand.com` as an alias family:
 
 ```env
-WEBSITE_HOST=biobrassica.pt
-WEBSITE_ALLOWED_HOSTS=biobrassica.pt,www.biobrassica.pt,marcosevegrand.com,www.marcosevegrand.com
-SHOP_HOST=loja.biobrassica.pt
-SHOP_ALLOWED_HOSTS=loja.biobrassica.pt,loja.marcosevegrand.com
-ADMIN_HOST=admin.biobrassica.pt
-ADMIN_ALLOWED_HOSTS=admin.biobrassica.pt,admin.marcosevegrand.com
-SHOP_BASE_URL=https://loja.biobrassica.pt
+PRIMARY_DOMAIN=biobrassica.pt
+DOMAIN_ALIASES=marcosevegrand.com
 TLS_CERT_NAME=biobrassica.pt
 ```
 
@@ -136,9 +135,9 @@ When MB WAY is active, checkout requires a customer mobile number, creates the M
 
 The production web tier is split into three services:
 
-- `django_website` for the hosts listed in `WEBSITE_ALLOWED_HOSTS`, with `WEBSITE_HOST` as the canonical redirect target
-- `django_shop` for the hosts listed in `SHOP_ALLOWED_HOSTS`, with `SHOP_HOST` as the canonical redirect target
-- `django_admin` for the hosts listed in `ADMIN_ALLOWED_HOSTS`, with `ADMIN_HOST` as the canonical redirect target
+- `django_website` for the canonical website host plus its `www.` alias, and the same pair for every alias domain
+- `django_shop` for `loja.` hosts derived from the canonical and alias domains
+- `django_admin` for `admin.` hosts derived from the canonical and alias domains
 
 Bring the stack up with standard Compose commands:
 
@@ -183,7 +182,7 @@ Or use the admin backoffice and toggle `Pagamentos ativos` in the Website conten
 
 Production web containers still fail fast on pending migrations, but they no longer run `collectstatic` automatically unless `DJANGO_COLLECTSTATIC_ON_START=1` is set intentionally.
 
-Production nginx now terminates TLS directly for every host listed in `WEBSITE_ALLOWED_HOSTS`, `SHOP_ALLOWED_HOSTS`, and `ADMIN_ALLOWED_HOSTS`. Canonical redirects are driven by `WEBSITE_HOST`, `SHOP_HOST`, and `ADMIN_HOST` from `.env`.
+Production nginx now terminates TLS directly for every host derived from `PRIMARY_DOMAIN` and `DOMAIN_ALIASES`, unless you intentionally override the host lists. Canonical redirects are driven by the canonical website, shop, and admin hosts derived from `.env`.
 
 The production stack keeps `DJANGO_HTTPS_MODE=proxy` because Django still sits behind nginx and trusts `X-Forwarded-Proto` from the proxy.
 
@@ -193,7 +192,7 @@ Before the first full startup, create the certbot working directories:
 mkdir -p certbot/www certbot/conf
 ```
 
-Bootstrap the first certificate before starting nginx. The helper script reads the configured domain lists from `.env`, deduplicates them, and requests one certificate bundle for all configured public hosts:
+Bootstrap the first certificate before starting nginx. The helper script reads the canonical domain and alias domains from `.env`, expands them into website/shop/admin hostnames, deduplicates them, and requests one certificate bundle for all configured public hosts:
 
 ```bash
 ./scripts/request_certificate.sh
@@ -229,12 +228,17 @@ After rollout, verify nginx, redirects, certificates, and upstream health from t
 make verify ENV=prod
 ```
 
-If you need raw curl checks while debugging a 521, read the host values straight from `.env` so the commands use the same configured hosts as nginx and Django without shell-sourcing the whole file:
+If you need raw curl checks while debugging a 521, read the canonical host values straight from `.env` so the commands use the same configured hosts as nginx and Django without shell-sourcing the whole file:
 
 ```bash
+PRIMARY_DOMAIN=$(sed -n 's/^PRIMARY_DOMAIN=//p' .env | tail -n 1)
 WEBSITE_HOST=$(sed -n 's/^WEBSITE_HOST=//p' .env | tail -n 1)
 SHOP_HOST=$(sed -n 's/^SHOP_HOST=//p' .env | tail -n 1)
 ADMIN_HOST=$(sed -n 's/^ADMIN_HOST=//p' .env | tail -n 1)
+
+WEBSITE_HOST=${WEBSITE_HOST:-$PRIMARY_DOMAIN}
+SHOP_HOST=${SHOP_HOST:-loja.$PRIMARY_DOMAIN}
+ADMIN_HOST=${ADMIN_HOST:-admin.$PRIMARY_DOMAIN}
 
 curl -I "http://${WEBSITE_HOST}"
 curl -I "https://${WEBSITE_HOST}"
