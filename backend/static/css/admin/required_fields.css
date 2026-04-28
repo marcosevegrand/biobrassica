@@ -1,0 +1,25 @@
+/* Mark required field labels with a red asterisk across the admin. */
+.aligned label.required::after,
+.form-row label.required::after,
+fieldset label.required::after,
+.inline-related label.required::after {
+    content: " *";
+    color: #b91c1c; /* red-700 */
+    font-weight: 600;
+}
+
+/* Stronger highlight on inputs that failed validation. */
+.errors input,
+.errors select,
+.errors textarea,
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+    border-color: #dc2626 !important; /* red-600 */
+    box-shadow: 0 0 0 1px #dc2626 inset;
+}
+
+/* Smooth-scroll target for the first invalid field. */
+.admin-required-error-target {
+    scroll-margin-top: 96px;
+}

@@ -250,6 +250,12 @@ UNFOLD = {
     'SITE_SYMBOL': None,
     'SITE_LOGO': '/static/images/brand/favicon_green.png',
     'DASHBOARD_CALLBACK': 'apps.core.admin_dashboard.build_admin_dashboard',
+    'STYLES': [
+        lambda request: '/static/css/admin/required_fields.css',
+    ],
+    'SCRIPTS': [
+        lambda request: '/static/js/admin/required_fields.js',
+    ],
     'SITE_FAVICONS': [
         {'rel': 'icon', 'sizes': '32x32', 'href': '/static/images/brand/favicon_green.png'},
     ],

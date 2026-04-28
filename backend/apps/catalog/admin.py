@@ -367,8 +367,6 @@ class RequiredProductImageInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
         active_forms = [form for form in self.forms if form.cleaned_data and not form.cleaned_data.get('DELETE', False)]
-        if not active_forms:
-            raise ValidationError(_('O produto deve ter pelo menos uma foto.'))
         primary_forms = [form for form in active_forms if form.cleaned_data.get('is_primary')]
         if len(primary_forms) > 1:
             raise ValidationError(_('Defina apenas uma imagem principal por produto.'))
