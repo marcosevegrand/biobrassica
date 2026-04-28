@@ -3,6 +3,7 @@
 import factory
 
 from apps.cart.models import Cart, CartItem
+from tests.factories.accounts import UserFactory
 from tests.factories.catalog import ProductFactory
 
 
@@ -10,8 +11,7 @@ class CartFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Cart
 
-    user = None
-    session_key = factory.Sequence(lambda n: f'session-{n}')
+    user = factory.SubFactory(UserFactory)
 
 
 class CartItemFactory(factory.django.DjangoModelFactory):

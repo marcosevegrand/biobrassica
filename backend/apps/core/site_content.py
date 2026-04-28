@@ -213,36 +213,39 @@ def get_website_defaults(*, request=None, lang=None, content=None, contact_locat
 
 
 def get_payments_availability(*, content=None):
+    """Return whether the shop is open for payments.
+
+    Reads from ``apps.core.models.ShopSettings`` (singleton). The ``content``
+    kwarg is kept for backwards compatibility but is ignored.
+    """
     if getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
-        return {
-            'enabled': False,
-            'source': 'settings',
-        }
+        return {'enabled': False, 'source': 'settings'}
 
-    resolved_content = content
-    if resolved_content is None:
-        resolved_content = WebsiteContent.objects.filter(pk=1).only('payments_enabled').first()
+    from apps.core.models import ShopSettings
 
-    if resolved_content is None:
-        return {
-            'enabled': True,
-            'source': 'default',
-        }
+    settings_obj = ShopSettings.objects.filter(pk=1).only('is_shop_active').first()
+    if settings_obj is None:
+        return {'enabled': False, 'source': 'default'}
 
     return {
-        'enabled': bool(getattr(resolved_content, 'payments_enabled', True)),
+        'enabled': bool(settings_obj.is_shop_active and settings_obj.has_any_payment_method),
         'source': 'database',
     }
 
 
 def get_manual_mbway_details(*, content=None):
-    resolved_content = content
-    if resolved_content is None:
-        resolved_content = WebsiteContent.objects.filter(pk=1).only('manual_mbway_number').first()
+    from apps.core.models import ShopSettings
 
-    number = str(getattr(resolved_content, 'manual_mbway_number', '') or '').strip()
+    settings_obj = ShopSettings.objects.filter(pk=1).only('mbway_enabled', 'mbway_number').first()
+    number = ''
+    enabled = False
+    if settings_obj is not None:
+        enabled = bool(settings_obj.mbway_enabled)
+        number = str(settings_obj.mbway_number or '').strip()
+
     return {
-        'configured': bool(number),
+        'configured': bool(enabled and number),
+        'enabled': enabled,
         'number': number,
         'digits': _normalize_whatsapp_number(number),
     }

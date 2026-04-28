@@ -8,6 +8,7 @@ from apps.accounts.validators import normalize_portuguese_mobile_phone, normaliz
 from apps.catalog.models import Location
 from apps.orders.models import Order, PT_POSTAL_CODE_RE
 from apps.payments.models import Payment
+from apps.payments.services import available_payment_services
 
 
 class CheckoutForm(forms.Form):
@@ -31,7 +32,9 @@ class CheckoutForm(forms.Form):
         self.cart_can_ship = cart_can_ship
         self.cart_items = list(cart_items or [])
         phone_field = cast(forms.CharField, self.fields['phone'])
-        phone_field.required = settings.PAYMENT_PROVIDER == Payment.Method.IFTHENPAY_MBWAY
+        # MB WAY (manual) requires a Portuguese mobile number to identify the request.
+        services = {service.method: service for service in available_payment_services()}
+        phone_field.required = Payment.Method.MBWAY_MANUAL in services
         self.allowed_pickup_locations = self._allowed_pickup_locations()
         self.pickup_choices = self._build_pickup_choices()
         cast(forms.ChoiceField, self.fields['pickup_location']).choices = self.pickup_choices
@@ -146,14 +149,17 @@ class PaymentSelectionForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        active_method = settings.PAYMENT_PROVIDER
-        method_label = dict(Payment.Method.choices).get(active_method, active_method)
-        cast(forms.ChoiceField, self.fields['payment_method']).choices = [(active_method, method_label)]
-        self.active_method = active_method
+        services = available_payment_services()
+        method_labels = dict(Payment.Method.choices)
+        choices = [(service.method, method_labels.get(service.method, service.method)) for service in services]
+        cast(forms.ChoiceField, self.fields['payment_method']).choices = choices
+        self.available_methods = {service.method for service in services}
 
     def clean(self):
         cleaned_data: dict[str, Any] = super().clean() or {}
         payment_method = cleaned_data.get('payment_method')
-        if payment_method and payment_method != self.active_method:
+        if not self.available_methods:
+            raise forms.ValidationError(_('Não existem métodos de pagamento disponíveis neste momento.'))
+        if payment_method and payment_method not in self.available_methods:
             raise forms.ValidationError(_('Selecione um método de pagamento válido.'))
         return cleaned_data

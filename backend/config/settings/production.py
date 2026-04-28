@@ -38,15 +38,6 @@ EMAIL_HOST = required_env('EMAIL_HOST')
 EMAIL_HOST_USER = required_env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = required_env('EMAIL_HOST_PASSWORD')
 
-if PAYMENT_PROVIDER == 'stripe':
-    STRIPE_SECRET_KEY = required_env('STRIPE_SECRET_KEY')
-    STRIPE_WEBHOOK_SECRET = required_env('STRIPE_WEBHOOK_SECRET')
-elif PAYMENT_PROVIDER == 'ifthenpay_mbway':
-    IFTHENPAY_MBWAY_KEY = required_env('IFTHENPAY_MBWAY_KEY')
-    IFTHENPAY_ANTI_PHISHING_KEY = required_env('IFTHENPAY_ANTI_PHISHING_KEY')
-elif PAYMENT_PROVIDER == 'mbway_manual':
-    pass
-
 CSRF_TRUSTED_ORIGINS = [
     f'https://{host}'
     for host in ALLOWED_HOSTS

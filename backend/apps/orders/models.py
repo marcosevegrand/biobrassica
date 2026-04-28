@@ -26,7 +26,8 @@ ORDER_STATUS_TRANSITIONS = {
     'payment_pending': {'pending', 'paid', 'cancelled'},
     'paid': {'preparing', 'cancelled'},
     'preparing': {'ready'},
-    'ready': {'delivered'},
+    'ready': {'in_transit', 'delivered'},
+    'in_transit': {'delivered'},
     'delivered': set(),
     'cancelled': set(),
 }
@@ -42,7 +43,8 @@ class Order(models.Model):
         PAYMENT_PENDING = 'payment_pending', _('Aguarda Pagamento')
         PAID = 'paid', _('Pago')
         PREPARING = 'preparing', _('Em Preparação')
-        READY = 'ready', _('Pronto para Levantamento')
+        READY = 'ready', _('Pronta')
+        IN_TRANSIT = 'in_transit', _('Em Transporte')
         DELIVERED = 'delivered', _('Entregue')
         CANCELLED = 'cancelled', _('Cancelado')
 
@@ -170,7 +172,7 @@ class Order(models.Model):
         except Exception:
             payment = None
 
-        if self.status in {self.Status.PREPARING, self.Status.READY, self.Status.DELIVERED}:
+        if self.status in {self.Status.PREPARING, self.Status.READY, self.Status.IN_TRANSIT, self.Status.DELIVERED}:
             if payment is None or payment.status not in {payment.Status.PAID, payment.Status.REFUNDED}:
                 errors['status'] = _('A encomenda só pode avançar após pagamento confirmado.')
 
@@ -188,6 +190,7 @@ class Order(models.Model):
             self.Status.PAID: 'bg-emerald-100 text-emerald-800',
             self.Status.PREPARING: 'bg-sky-100 text-sky-800',
             self.Status.READY: 'bg-blue-100 text-blue-800',
+            self.Status.IN_TRANSIT: 'bg-indigo-100 text-indigo-800',
             self.Status.DELIVERED: 'bg-green-100 text-green-800',
             self.Status.CANCELLED: 'bg-rose-100 text-rose-800',
         }

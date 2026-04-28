@@ -79,13 +79,6 @@ ADMIN_ALLOWED_HOSTS = env_list(
     ','.join(domain_hosts('admin', PUBLIC_DOMAINS)),
 )
 
-PAYMENT_PROVIDERS = {
-    'stripe',
-    'ifthenpay_mbway',
-    'mbway_manual',
-}
-
-
 SECRET_KEY = env_required('DJANGO_SECRET_KEY', 'django-insecure-dev-only-change-in-production')
 
 INSTALLED_APPS = [
@@ -185,20 +178,7 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Payments
-PAYMENT_PROVIDER = os.environ.get('PAYMENT_PROVIDER', 'stripe').strip().lower() or 'stripe'
-if PAYMENT_PROVIDER not in PAYMENT_PROVIDERS:
-    raise ImproperlyConfigured(
-        'PAYMENT_PROVIDER must be one of: stripe, ifthenpay_mbway, mbway_manual'
-    )
-
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
-STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'eur').strip().lower() or 'eur'
-IFTHENPAY_API_BASE_URL = os.environ.get('IFTHENPAY_API_BASE_URL', 'https://api.ifthenpay.com').rstrip('/')
-IFTHENPAY_MBWAY_KEY = os.environ.get('IFTHENPAY_MBWAY_KEY', '')
-IFTHENPAY_ANTI_PHISHING_KEY = os.environ.get('IFTHENPAY_ANTI_PHISHING_KEY', '')
+# Payments (manual flows only — MB WAY + bank transfer; configured via ShopSettings singleton in admin)
 PAYMENTS_FORCE_DISABLED = env_bool('PAYMENTS_FORCE_DISABLED', default=False)
 SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
 
@@ -292,28 +272,28 @@ UNFOLD = {
     'SIDEBAR': {
         'navigation': [
             {
+                'title': 'Painél',
+                'icon': 'dashboard',
+                'items': [
+                    {'title': 'Painél', 'link': '/admin/', 'icon': 'dashboard'},
+                ],
+            },
+            {
                 'title': 'Operações',
                 'icon': 'shopping_bag',
                 'items': [
+                    {'title': 'Calendário', 'link': '/admin/operacoes/calendario/', 'icon': 'calendar_month'},
                     {'title': 'Encomendas', 'link': '/admin/orders/order/', 'icon': 'shopping_bag'},
                     {'title': 'Pagamentos', 'link': '/admin/payments/payment/', 'icon': 'payments'},
+                    {'title': 'Clientes', 'link': '/admin/accounts/user/', 'icon': 'group'},
                 ],
             },
             {
                 'title': 'Catálogo',
                 'icon': 'inventory_2',
                 'items': [
-                    {'title': 'Produtos', 'link': '/admin/catalog/product/', 'icon': 'inventory_2'},
                     {'title': 'Categorias', 'link': '/admin/catalog/category/', 'icon': 'category'},
-                    {'title': 'Imagens de Produtos', 'link': '/admin/catalog/productimage/', 'icon': 'photo_library'},
-                ],
-            },
-            {
-                'title': 'Clientes',
-                'icon': 'group',
-                'items': [
-                    {'title': 'Utilizadores', 'link': '/admin/accounts/user/', 'icon': 'person'},
-                    {'title': 'Moradas', 'link': '/admin/accounts/address/', 'icon': 'location_on'},
+                    {'title': 'Produtos', 'link': '/admin/catalog/product/', 'icon': 'inventory_2'},
                 ],
             },
             {
@@ -328,8 +308,9 @@ UNFOLD = {
                 'title': 'Configurações',
                 'icon': 'settings',
                 'items': [
-                    {'title': 'Localizações', 'link': '/admin/catalog/location/', 'icon': 'location_on'},
-                    {'title': 'Métodos de Entrega', 'link': '/admin/catalog/deliverymethod/', 'icon': 'local_shipping'},
+                    {'title': 'Geral', 'link': '/admin/core/shopsettings/', 'icon': 'tune'},
+                    {'title': 'Locais de levantamento', 'link': '/admin/catalog/location/', 'icon': 'location_on'},
+                    {'title': 'Métodos de entrega', 'link': '/admin/catalog/deliverymethod/', 'icon': 'local_shipping'},
                 ],
             },
         ],

@@ -24,14 +24,6 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - EMAIL_HOST=mailpit
       - EMAIL_PORT=1025
-      - PAYMENT_PROVIDER=${PAYMENT_PROVIDER:-stripe}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
-      - STRIPE_CURRENCY=${STRIPE_CURRENCY:-eur}
-      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-}
-      - IFTHENPAY_API_BASE_URL=${IFTHENPAY_API_BASE_URL:-https://api.ifthenpay.com}
-      - IFTHENPAY_MBWAY_KEY=${IFTHENPAY_MBWAY_KEY:-}
-      - IFTHENPAY_ANTI_PHISHING_KEY=${IFTHENPAY_ANTI_PHISHING_KEY:-}
       - PAYMENTS_FORCE_DISABLED=${PAYMENTS_FORCE_DISABLED:-0}
     depends_on:
       db:
@@ -67,13 +59,6 @@ services:
     ports:
       - "8025:8025"
       - "1025:1025"
-
-  stripe-cli:
-    image: stripe/stripe-cli:latest
-    profiles: ["tools"]
-    entrypoint: ["stripe"]
-    environment:
-      - STRIPE_API_KEY=${STRIPE_SECRET_KEY:-}
 
 volumes:
   tw_node_modules:

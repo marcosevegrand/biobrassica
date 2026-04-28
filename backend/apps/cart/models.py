@@ -19,29 +19,17 @@ class Cart(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         related_name='cart',
     )
-    session_key = models.CharField(max_length=40, null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = _('carrinho')
         verbose_name_plural = _('carrinhos')
-        constraints = [
-            models.UniqueConstraint(
-                fields=['session_key'],
-                condition=Q(session_key__isnull=False) & ~Q(session_key=''),
-                name='cart_unique_non_empty_session_key',
-            ),
-        ]
 
     def __str__(self):
-        if self.user:
-            return f'Carrinho de {self.user.email}'
-        return 'Carrinho (sessão)'
+        return f'Carrinho de {self.user.email}'
 
     @property
     def total(self) -> Decimal:

@@ -180,31 +180,8 @@ class RegistrationViewTests(TestCase):
 		self.assertFalse(User.objects.filter(email='nova@biobrassica.pt').exists())
 
 	def test_register_merges_anonymous_cart_into_new_user_cart(self):
-		session = self.client.session
-		session.save()
-		anon_cart = Cart.objects.create(session_key=session.session_key)
-		CartItem.objects.create(cart=anon_cart, product=self.product, quantity=2)
-
-		response = self.client.post(
-			reverse('accounts:register'),
-			{
-				'email': 'nova@biobrassica.pt',
-				'first_name': 'Nova',
-				'last_name': 'Cliente',
-				'phone': '912345678',
-				'password1': 'S3guraPass123',
-				'password2': 'S3guraPass123',
-			},
-			HTTP_HOST='loja.lvh.me',
-		)
-
-		user = User.objects.get(email='nova@biobrassica.pt')
-		user_cart = Cart.objects.get(user=user)
-		merged_item = CartItem.objects.get(cart=user_cart, product=self.product)
-
-		self.assertRedirects(response, reverse('catalog:shop_home'))
-		self.assertEqual(merged_item.quantity, 2)
-		self.assertFalse(Cart.objects.filter(pk=anon_cart.pk).exists())
+		# Anonymous carts no longer exist; this scenario is obsolete.
+		self.skipTest('Anonymous carts removed; cart now requires login.')
 
 
 @override_settings(ROOT_URLCONF='config.urls_shop')
@@ -452,7 +429,7 @@ class AccountsAdminWorkflowTests(TestCase):
 		)
 		Payment.objects.create(
 			order=paid_order,
-			method=Payment.Method.STRIPE,
+			method=Payment.Method.MBWAY_MANUAL,
 			status=Payment.Status.PAID,
 			amount='20.00',
 			paid_at=timezone.now(),
@@ -469,7 +446,7 @@ class AccountsAdminWorkflowTests(TestCase):
 		)
 		Payment.objects.create(
 			order=refunded_order,
-			method=Payment.Method.STRIPE,
+			method=Payment.Method.MBWAY_MANUAL,
 			status=Payment.Status.REFUNDED,
 			amount='10.00',
 		)

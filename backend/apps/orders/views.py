@@ -19,7 +19,6 @@ from apps.payments.services import (
     PaymentProcessingError,
     get_payment_service,
     reset_payment,
-    stripe_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -284,7 +283,7 @@ def payment_select(request, order_id):
         if existing_payment and existing_payment.status == Payment.Status.PENDING and existing_payment.method == payment_method:
             if existing_payment.checkout_url:
                 return redirect(existing_payment.checkout_url)
-            if payment_method in {Payment.Method.IFTHENPAY_MBWAY, Payment.Method.MBWAY_MANUAL}:
+            if payment_method in {Payment.Method.MBWAY_MANUAL, Payment.Method.BANK_TRANSFER}:
                 return redirect(_order_url('orders:payment_status', order))
 
         payment = reset_payment(order, payment_method)

@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
@@ -130,6 +131,7 @@ def cart_detail(request):
 
 
 @require_POST
+@login_required(login_url='accounts:login')
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, pk=product_id, is_active=True)
     cart = get_or_create_cart_for_request(request)

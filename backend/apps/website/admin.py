@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 
 from apps.core.admin_helpers import EditLinkAdminMixin, OrderableAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
-from apps.core.site_content import get_manual_mbway_details, get_payments_availability
+from apps.core.site_content import get_manual_mbway_details, get_payments_availability  # noqa: F401  # legacy public API
 from apps.website.forms import TeamMemberAdminForm, WebsiteContentAdminForm
 from apps.website.models import TeamMember, WebsiteContent
 
@@ -100,12 +100,12 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 @admin.register(WebsiteContent)
 class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 	form = WebsiteContentAdminForm
-	list_display = ('__str__', 'payments_status_badge', 'updated_at', 'edit_link')
+	list_display = ('__str__', 'updated_at', 'edit_link')
 	readonly_fields = ('website_operations_panel',)
 	compressed_fields = True
 	fieldsets = (
 		(_('Operação'), {
-			'fields': (('payments_enabled', 'manual_mbway_number'), 'website_operations_panel'),
+			'fields': ('website_operations_panel',),
 		}),
 		(_('Empresa e apoio'), {
 			'fields': ('company_legal_name', 'company_address', ('company_nif', 'support_email')),
@@ -146,23 +146,9 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 		return False
 
 	def get_changeform_submit_actions(self, request, obj):
-		if obj.payments_enabled:
-			return [{'action_name': '_disable_payments', 'description': _('Desativar pagamentos')}]
-		return [{'action_name': '_enable_payments', 'description': _('Ativar pagamentos')}]
+		return []
 
 	def handle_changeform_submit_action(self, request, obj, action_name):
-		if action_name == '_disable_payments' and obj.payments_enabled:
-			obj.payments_enabled = False
-			obj.save(update_fields=['payments_enabled', 'updated_at'])
-			self.message_user(request, _('Pagamentos desativados.'), level=messages.SUCCESS)
-			return HttpResponseRedirect(request.path)
-
-		if action_name == '_enable_payments' and not obj.payments_enabled:
-			obj.payments_enabled = True
-			obj.save(update_fields=['payments_enabled', 'updated_at'])
-			self.message_user(request, _('Pagamentos ativados.'), level=messages.SUCCESS)
-			return HttpResponseRedirect(request.path)
-
 		return None
 
 	def get_changeform_custom_tools(self, request, obj):
@@ -181,34 +167,14 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			},
 		]
 
-	@admin.display(description=_('Pagamentos'))
-	def payments_status_badge(self, obj):
-		availability = get_payments_availability(content=obj)
-		if availability['enabled']:
-			return render_status_badge(_('Ativos'), 'success')
-		if availability['source'] == 'settings' or getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
-			return render_status_badge(_('Bloqueados no servidor'), 'danger')
-		return render_status_badge(_('Desativados'), 'warning')
-
 	@admin.display(description=_('Resumo do website'))
 	def website_operations_panel(self, obj):
 		if obj is None:
 			return _('Guarde o conteúdo para centralizar a gestão editorial do website.')
 
-		availability = get_payments_availability(content=obj)
-		manual_mbway = get_manual_mbway_details(content=obj)
-		if availability['enabled']:
-			payments_state = _('Ativos')
-		elif availability['source'] == 'settings' or getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
-			payments_state = _('Bloqueados no servidor')
-		else:
-			payments_state = _('Desativados no backoffice')
-
 		return render_summary_panel(
 			_('Operação editorial'),
 			[
-				(_('Pagamentos'), payments_state),
-				(_('MB WAY manual'), manual_mbway['number'] or _('Não configurado')),
 				(_('Empresa'), obj.company_legal_name or _('Usa fallback')),
 				(_('Morada legal'), obj.company_address or _('Usa fallback')),
 				(_('Email de apoio'), obj.support_email or _('Usa fallback')),

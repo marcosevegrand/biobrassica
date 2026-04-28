@@ -27,38 +27,37 @@ def _mask_value(value, *, keep_start=2, keep_end=2):
 
 class Payment(models.Model):
     class Method(models.TextChoices):
-        STRIPE = 'stripe', 'Stripe'
-        IFTHENPAY_MBWAY = 'ifthenpay_mbway', 'Ifthenpay MB WAY'
-        MBWAY_MANUAL = 'mbway_manual', 'MB WAY manual'
+        MBWAY_MANUAL = 'mbway_manual', _('MB WAY')
+        BANK_TRANSFER = 'bank_transfer', _('Transferência bancária')
 
     class Status(models.TextChoices):
-        PENDING = 'pending', 'Pendente'
-        PAID = 'paid', 'Pago'
-        FAILED = 'failed', 'Falhado'
-        EXPIRED = 'expired', 'Expirado'
-        REFUNDED = 'refunded', 'Reembolsado'
+        PENDING = 'pending', _('Pendente')
+        PAID = 'paid', _('Pago')
+        FAILED = 'failed', _('Falhado')
+        EXPIRED = 'expired', _('Expirado')
+        REFUNDED = 'refunded', _('Reembolsado')
 
     order = models.OneToOneField(
         'orders.Order',
         on_delete=models.CASCADE,
         related_name='payment',
-        verbose_name='encomenda',
+        verbose_name=_('encomenda'),
     )
-    method = models.CharField('método', max_length=20, choices=Method.choices)
-    status = models.CharField('estado', max_length=20, choices=Status.choices, default=Status.PENDING)
-    amount = models.DecimalField('valor', max_digits=10, decimal_places=2)
-    provider_reference = models.CharField('referência do provedor', max_length=255, blank=True, db_index=True)
-    provider_payment_id = models.CharField('ID do pagamento no provedor', max_length=255, blank=True, db_index=True)
-    provider_data = models.JSONField('dados do provedor', default=dict, blank=True)
-    checkout_url = models.URLField('URL de checkout', max_length=500, blank=True)
-    last_error = models.TextField('último erro', blank=True)
-    expires_at = models.DateTimeField('expira em', null=True, blank=True)
-    paid_at = models.DateTimeField('pago em', null=True, blank=True)
-    created_at = models.DateTimeField('criado em', auto_now_add=True)
+    method = models.CharField(_('método'), max_length=20, choices=Method.choices)
+    status = models.CharField(_('estado'), max_length=20, choices=Status.choices, default=Status.PENDING)
+    amount = models.DecimalField(_('valor'), max_digits=10, decimal_places=2)
+    provider_reference = models.CharField(_('referência do provedor'), max_length=255, blank=True, db_index=True)
+    provider_payment_id = models.CharField(_('ID do pagamento no provedor'), max_length=255, blank=True, db_index=True)
+    provider_data = models.JSONField(_('dados do provedor'), default=dict, blank=True)
+    checkout_url = models.URLField(_('URL de checkout'), max_length=500, blank=True)
+    last_error = models.TextField(_('último erro'), blank=True)
+    expires_at = models.DateTimeField(_('expira em'), null=True, blank=True)
+    paid_at = models.DateTimeField(_('pago em'), null=True, blank=True)
+    created_at = models.DateTimeField(_('criado em'), auto_now_add=True)
 
     class Meta:
-        verbose_name = 'pagamento'
-        verbose_name_plural = 'pagamentos'
+        verbose_name = _('pagamento')
+        verbose_name_plural = _('pagamentos')
         constraints = [
             models.UniqueConstraint(
                 fields=['method', 'provider_reference'],
@@ -76,13 +75,7 @@ class Payment(models.Model):
         ]
 
     def __init__(self, *args, **kwargs):
-        legacy_stripe_session_id = kwargs.pop('stripe_session_id', '')
-        legacy_stripe_payment_intent_id = kwargs.pop('stripe_payment_intent_id', '')
         super().__init__(*args, **kwargs)
-        if legacy_stripe_session_id:
-            self.provider_reference = legacy_stripe_session_id
-        if legacy_stripe_payment_intent_id:
-            self.provider_payment_id = legacy_stripe_payment_intent_id
         self._original_status = None if self._state.adding else self.status
 
     @classmethod
@@ -148,14 +141,6 @@ class Payment(models.Model):
         return f'Pagamento #{self.pk} ({self.method_label}) - {self.status_label}'
 
     @property
-    def masked_stripe_session_id(self):
-        return _mask_value(self.stripe_session_id, keep_start=6, keep_end=4)
-
-    @property
-    def masked_stripe_payment_intent_id(self):
-        return _mask_value(self.stripe_payment_intent_id, keep_start=6, keep_end=4)
-
-    @property
     def masked_provider_reference(self):
         return _mask_value(self.provider_reference, keep_start=6, keep_end=4)
 
@@ -166,57 +151,3 @@ class Payment(models.Model):
     @property
     def masked_provider_identifier(self):
         return self.masked_provider_reference or self.masked_provider_payment_id
-
-    @property
-    def stripe_session_id(self):
-        if self.method != self.Method.STRIPE:
-            return ''
-        return self.provider_reference
-
-    @stripe_session_id.setter
-    def stripe_session_id(self, value):
-        if self.method in {'', self.Method.STRIPE}:
-            self.method = self.method or self.Method.STRIPE
-            self.provider_reference = value or ''
-
-    @property
-    def stripe_payment_intent_id(self):
-        if self.method != self.Method.STRIPE:
-            return ''
-        return self.provider_payment_id
-
-    @stripe_payment_intent_id.setter
-    def stripe_payment_intent_id(self, value):
-        if self.method in {'', self.Method.STRIPE}:
-            self.method = self.method or self.Method.STRIPE
-            self.provider_payment_id = value or ''
-
-
-class PaymentCallback(models.Model):
-    payment = models.ForeignKey(
-        Payment,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='callbacks',
-        verbose_name='pagamento',
-    )
-    raw_payload = models.JSONField('carga útil bruta')
-    provider_event_id = models.CharField('ID do evento do provedor', max_length=255, blank=True, db_index=True)
-    ip_address = models.GenericIPAddressField('endereço IP')
-    is_valid = models.BooleanField('válido', default=False)
-    validation_message = models.CharField('motivo da validação', max_length=255, blank=True)
-    created_at = models.DateTimeField('criado em', auto_now_add=True)
-
-    class Meta:
-        verbose_name = 'callback de pagamento'
-        verbose_name_plural = 'callbacks de pagamento'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['provider_event_id'],
-                condition=~Q(provider_event_id=''),
-                name='payments_unique_provider_event_id',
-            ),
-        ]
-
-    def __str__(self):
-        return f'Callback {self.pk} - {"válido" if self.is_valid else "inválido"}'

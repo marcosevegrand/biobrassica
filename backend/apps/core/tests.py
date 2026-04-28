@@ -218,7 +218,7 @@ class AdminDashboardTests(TestCase):
 		self.order = Order.objects.get(email=self.customer.email)
 		Payment.objects.create(
 			order=self.order,
-			method=Payment.Method.STRIPE,
+			method=Payment.Method.MBWAY_MANUAL,
 			status=Payment.Status.PAID,
 			amount='12.00',
 			paid_at=timezone.now(),
@@ -257,7 +257,7 @@ class AdminDashboardTests(TestCase):
 		)
 		Payment.objects.create(
 			order=refunded_order,
-			method=Payment.Method.STRIPE,
+			method=Payment.Method.MBWAY_MANUAL,
 			status=Payment.Status.REFUNDED,
 			amount='8.00',
 		)

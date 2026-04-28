@@ -19,23 +19,14 @@ def _cap_quantity_to_stock(product, requested_quantity):
 def get_cart_for_request(request):
     if request.user.is_authenticated:
         return Cart.objects.filter(user=request.user).first()
-
-    session = getattr(request, 'session', None)
-    if session and session.session_key:
-        return Cart.objects.filter(session_key=session.session_key).first()
-
     return None
 
 
 def get_or_create_cart_for_request(request):
-    if request.user.is_authenticated:
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        return cart
+    if not request.user.is_authenticated:
+        return None
 
-    if not request.session.session_key:
-        request.session.create()
-
-    cart, _ = Cart.objects.get_or_create(session_key=request.session.session_key)
+    cart, _ = Cart.objects.get_or_create(user=request.user)
     return cart
 
 
@@ -129,52 +120,9 @@ def set_cart_item_quantity(item, *, quantity):
 
 
 def merge_anonymous_cart_into_user_cart(request, user):
-    session_key = getattr(request.session, 'session_key', None)
-
-    with transaction.atomic():
-        user_cart, _ = Cart.objects.get_or_create(user=user)
-        if not session_key:
-            return user_cart
-
-        anonymous_cart = Cart.objects.select_for_update().filter(session_key=session_key).exclude(pk=user_cart.pk).first()
-        if not anonymous_cart:
-            return user_cart
-
-        anonymous_items = list(anonymous_cart.items.select_related('product').order_by('pk'))
-        product_ids = [item.product.pk for item in anonymous_items]
-        existing_items = {
-            item.product.pk: item
-            for item in user_cart.items.select_related('product').filter(product_id__in=product_ids)
-        }
-
-        for item in anonymous_items:
-            if not item.product.is_active or item.product.is_preview_only:
-                item.delete()
-                continue
-
-            existing_item = existing_items.get(item.product.pk)
-
-            if existing_item:
-                merged_quantity, _ = _cap_quantity_to_stock(item.product, existing_item.quantity + item.quantity)
-                if merged_quantity > 0:
-                    existing_item.quantity = merged_quantity
-                    existing_item.save(update_fields=['quantity'])
-                else:
-                    existing_item.delete()
-                item.delete()
-                continue
-
-            merged_quantity, _ = _cap_quantity_to_stock(item.product, item.quantity)
-            if merged_quantity <= 0:
-                item.delete()
-                continue
-
-            item.quantity = merged_quantity
-            item.cart = user_cart
-            item.save(update_fields=['quantity', 'cart'])
-
-        anonymous_cart.delete()
-        return user_cart
+    """Anonymous carts no longer exist; this is now a no-op that returns the user's cart."""
+    cart, _ = Cart.objects.get_or_create(user=user)
+    return cart
 
 
 def clear_cart(cart):
