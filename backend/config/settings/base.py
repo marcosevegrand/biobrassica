@@ -179,7 +179,6 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Payments (manual flows only — MB WAY + bank transfer; configured via ShopSettings singleton in admin)
-PAYMENTS_FORCE_DISABLED = env_bool('PAYMENTS_FORCE_DISABLED', default=False)
 SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
 
 # Email
@@ -308,9 +307,7 @@ UNFOLD = {
                 'title': 'Configurações',
                 'icon': 'settings',
                 'items': [
-                    {'title': 'Geral', 'link': '/admin/core/shopsettings/', 'icon': 'tune'},
-                    {'title': 'Locais de levantamento', 'link': '/admin/catalog/location/', 'icon': 'location_on'},
-                    {'title': 'Métodos de entrega', 'link': '/admin/catalog/deliverymethod/', 'icon': 'local_shipping'},
+                    {'title': 'Configurações', 'link': '/admin/core/shopsettings/', 'icon': 'tune'},
                 ],
             },
         ],

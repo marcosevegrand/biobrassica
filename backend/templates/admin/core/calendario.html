@@ -1,0 +1,42 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-6">
+    <div class="flex items-center justify-between gap-4">
+        <h1 class="text-2xl font-semibold text-font-important-light dark:text-font-important-dark">{{ title }}</h1>
+        <a href="{{ changelist_url }}"
+           class="inline-flex items-center gap-2 rounded-full border border-base-200 bg-white px-4 py-2 text-sm font-medium text-font-important-light shadow-xs hover:border-primary-400 dark:border-base-800 dark:bg-base-900 dark:text-font-important-dark">
+            {% trans 'Ver todas as encomendas' %}
+        </a>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        {% for column in columns %}
+            <div class="flex flex-col gap-3 rounded-[1.25rem] border border-base-200 bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-500 dark:text-base-400">{{ column.label }}</p>
+                    <span class="inline-flex items-center justify-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700 dark:bg-primary-900 dark:text-primary-100">{{ column.count }}</span>
+                </div>
+                <div class="flex flex-col gap-2">
+                    {% for order in column.orders %}
+                        <a href="{% url 'admin:orders_order_change' order.pk %}"
+                           class="rounded-lg border border-base-200 bg-base-50 p-3 text-sm transition-all hover:-translate-y-0.5 hover:border-primary-400 dark:border-base-700 dark:bg-base-800">
+                            <div class="font-semibold text-font-important-light dark:text-font-important-dark">#{{ order.pk }} · {{ order.name }}</div>
+                            <div class="mt-1 text-xs text-base-500 dark:text-base-400">{{ order.total|floatformat:2 }}€ · {{ order.created_at|date:"d/m H:i" }}</div>
+                        </a>
+                    {% empty %}
+                        <p class="rounded-lg border border-dashed border-base-200 p-3 text-xs text-base-500 dark:border-base-700 dark:text-base-400">{% trans 'Sem encomendas neste estado.' %}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

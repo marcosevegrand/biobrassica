@@ -20,6 +20,18 @@ PICKUP_LOCATION_CODE_CHOICES = [
 ]
 
 
+PICKUP_HOURS_WEEKDAY_KEYS = ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')
+PICKUP_HOURS_WEEKDAY_LABELS = {
+    'mon': _('Segunda'),
+    'tue': _('Terça'),
+    'wed': _('Quarta'),
+    'thu': _('Quinta'),
+    'fri': _('Sexta'),
+    'sat': _('Sábado'),
+    'sun': _('Domingo'),
+}
+
+
 class Location(models.Model):
     """CRUD-managed pickup / availability locations."""
     name = models.CharField('nome', max_length=100, help_text='Ex: Loja Braga, Loja Guimarães')
@@ -35,6 +47,12 @@ class Location(models.Model):
     phone = models.CharField('telefone', max_length=20, blank=True)
     email = models.EmailField('email', blank=True)
     opening_hours = models.CharField('horário', max_length=120, blank=True)
+    pickup_hours = models.JSONField(
+        'horário de levantamento',
+        default=dict,
+        blank=True,
+        help_text='Horário de levantamento por dia da semana (mon, tue, wed, thu, fri, sat, sun). Ex: {"mon": "09:00–18:00"}.',
+    )
     map_embed_url = models.URLField('mapa embutido', blank=True)
     is_active = models.BooleanField('ativo', default=True)
     order = models.PositiveIntegerField('ordem', default=0)
@@ -74,8 +92,33 @@ class Location(models.Model):
         if self.map_embed_url and urlsplit(self.map_embed_url).scheme != 'https':
             errors['map_embed_url'] = [_('Use um URL https:// válido para o mapa.')]
 
+        if self.pickup_hours:
+            if not isinstance(self.pickup_hours, dict):
+                errors['pickup_hours'] = [_('Horário de levantamento deve ser um objeto JSON.')]
+            else:
+                cleaned = {}
+                for key, value in self.pickup_hours.items():
+                    key_norm = str(key).strip().lower()[:3]
+                    if key_norm not in PICKUP_HOURS_WEEKDAY_KEYS:
+                        errors['pickup_hours'] = [_('Use chaves de dia da semana: mon, tue, wed, thu, fri, sat, sun.')]
+                        break
+                    cleaned[key_norm] = str(value or '').strip()
+                else:
+                    self.pickup_hours = cleaned
+
         if errors:
             raise ValidationError(errors)
+
+    @property
+    def pickup_hours_rows(self):
+        """Return ordered list of (label, hours) for client-side rendering."""
+        data = self.pickup_hours or {}
+        rows = []
+        for key in PICKUP_HOURS_WEEKDAY_KEYS:
+            value = data.get(key)
+            if value:
+                rows.append((PICKUP_HOURS_WEEKDAY_LABELS[key], value))
+        return rows
 
     def save(self, *args, **kwargs):
         self.full_clean()

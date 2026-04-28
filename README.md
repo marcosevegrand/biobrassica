@@ -149,14 +149,7 @@ make deploy
 `make deploy` builds the production images, starts the stateful services, applies migrations, collects static files, recreates the full stack, and runs the production health checks.
 It also takes a fresh backup before changing the running production stack.
 
-Before a deploy that may interrupt checkout, pause payments in one of these ways:
-
-```bash
-# Hard-disable from the server environment, then deploy
-PAYMENTS_FORCE_DISABLED=1 make deploy
-```
-
-Or use the admin backoffice and toggle `Pagamentos ativos` in the Website content record. The environment flag wins over the admin toggle and is the safer fallback if the admin host is unavailable.
+Before a deploy that may interrupt checkout, pause payments from the admin backoffice by toggling `Loja ativa` in **Configurações → Geral** (`apps.core.ShopSettings`). The setting is persisted in the database and applied immediately to checkout.
 
 For rare production `manage.py` commands that are not part of the standard deploy flow, run them directly against the website image:
 

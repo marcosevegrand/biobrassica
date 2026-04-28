@@ -218,9 +218,6 @@ def get_payments_availability(*, content=None):
     Reads from ``apps.core.models.ShopSettings`` (singleton). The ``content``
     kwarg is kept for backwards compatibility but is ignored.
     """
-    if getattr(settings, 'PAYMENTS_FORCE_DISABLED', False):
-        return {'enabled': False, 'source': 'settings'}
-
     from apps.core.models import ShopSettings
 
     settings_obj = ShopSettings.objects.filter(pk=1).only('is_shop_active').first()

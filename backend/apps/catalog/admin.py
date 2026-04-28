@@ -50,7 +50,7 @@ class LocationAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
             'fields': ('name', 'pickup_location_code', 'is_active', 'location_operations_panel'),
         }),
         (_('Contacto e presença'), {
-            'fields': ('address', 'phone', 'email', 'opening_hours', 'map_embed_url', 'image', 'image_preview'),
+            'fields': ('address', 'phone', 'email', 'opening_hours', 'pickup_hours', 'map_embed_url', 'image', 'image_preview'),
         }),
     )
 
