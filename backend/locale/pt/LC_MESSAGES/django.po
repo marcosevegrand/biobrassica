@@ -4173,437 +4173,641 @@ msgstr "10. Lei Aplicável"
 msgid "Os presentes termos regem-se pela legislação portuguesa."
 msgstr "Os presentes termos regem-se pela legislação portuguesa."
 
-#~ msgid "Referência"
-#~ msgstr "Referência"
 
 #, fuzzy
-#~| msgid "Telefone"
-#~ msgid "Telefone MB WAY"
-#~ msgstr "Telefone"
 
-#~| msgid "Número de telemóvel"
-#~ msgid "Indique o número de telemóvel para MB WAY."
-#~ msgstr "Indique o número de telemóvel para MB WAY."
 
-#~ msgid "Nenhum produto do seu carrinho tem stock disponível."
-#~ msgstr "Nenhum produto do seu carrinho tem stock disponível."
 
-#~ msgid "Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos abaixo e tente novamente."
-#~ msgstr "Ajustámos o seu carrinho devido a limitações de stock. Verifique os produtos abaixo e tente novamente."
 
 #, python-format
-#~ msgid "%(product)s: reduzido de %(requested)d para %(available)d unidades."
-#~ msgstr "%(product)s: reduzido de %(requested)d para %(available)d unidades."
 
 #, python-format
-#~ msgid "%(product)s: removido (sem stock disponível)."
-#~ msgstr "%(product)s: removido (sem stock disponível)."
 
-#~ msgid "Por favor preencha todos os campos obrigatórios."
-#~ msgstr "Por favor preencha todos os campos obrigatórios."
 
-#~ msgid "Alguns produtos já não têm stock suficiente. Revise o carrinho e tente novamente."
-#~ msgstr "Alguns produtos já não têm stock suficiente. Revise o carrinho e tente novamente."
 
-#~ msgid "Não foi possível criar a encomenda. Verifique os dados e tente novamente."
-#~ msgstr "Não foi possível criar a encomenda. Verifique os dados e tente novamente."
 
-#~ msgid "Não foi possível preparar o pagamento. Tente novamente."
-#~ msgstr "Não foi possível preparar o pagamento. Tente novamente."
 
-#~ msgid "Não foi possível atualizar o estado do pagamento. Tente novamente."
-#~ msgstr "Não foi possível atualizar o estado do pagamento. Tente novamente."
 
-#~ msgid "O pagamento MB WAY não foi confirmado. Pode tentar novamente."
-#~ msgstr "foi confirmado."
 
-#~ msgid "© 2026 Biobrassica. Todos os direitos reservados."
-#~ msgstr "© 2026 Biobrassica. Todos os direitos reservados."
 
-#~ msgid "Dados para pagamento Multibanco"
-#~ msgstr "Dados para pagamento Multibanco"
 
-#~ msgid "Entidade"
-#~ msgstr "Entidade"
 
-#~ msgid "De momento, o pagamento está disponível apenas por MB WAY."
-#~ msgstr "De momento, o pagamento está disponível apenas por MB WAY."
 
-#~ msgid "Pagamento instantâneo via telemóvel"
-#~ msgstr "Pagamento instantâneo via telemóvel"
 
-#~ msgid "Número de telemóvel"
-#~ msgstr "Número de telemóvel"
 
-#~ msgid "Pagar com MB WAY"
-#~ msgstr "Pagar com MB WAY"
 
-#~| msgid "Referência"
-#~ msgid "Referência Multibanco"
-#~ msgstr "Referência Multibanco"
 
-#~ msgid "Utilize os dados abaixo para concluir o pagamento. A encomenda só fica confirmada após validação automática."
-#~ msgstr "Utilize os dados abaixo para concluir o pagamento. A encomenda só fica confirmada após validação automática."
 
-#~ msgid "O pedido de pagamento foi enviado para o telemóvel indicado. Depois de autorizar no MB WAY, atualize esta página."
-#~ msgstr "O pedido de pagamento foi enviado para o telemóvel indicado. Depois de autorizar no MB WAY, atualize esta página."
 
-#~ msgid "Telemóvel"
-#~ msgstr "Telemóvel"
 
-#~ msgid "Cartão de Crédito"
-#~ msgstr "Cartão de Crédito"
 
-#~ msgid "Se o pagamento ainda não estiver concluído, reabra a página segura do operador para finalizar a transação."
-#~ msgstr "Se o pagamento ainda não estiver concluído, reabra a página segura do operador para finalizar a transação."
 
-#~ msgid "Escolher outro método"
-#~ msgstr "Escolher outro método"
 
-#~ msgid "Show all"
-#~ msgstr "Mostrar tudo"
 
-#~ msgid "A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo."
-#~ msgstr "A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo."
 
-#~ msgid "Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta."
-#~ msgstr "Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta."
 
-#~ msgid "Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano."
-#~ msgstr "Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano."
 
-#~ msgid "Segunda a Sábado"
-#~ msgstr "Segunda a Sábado"
 
-#~ msgid "Mapa da loja Biobrassica em Braga"
-#~ msgstr "Mapa da loja Biobrassica em Braga"
 
-#~ msgid "Mapa da loja Biobrassica em Guimarães"
-#~ msgstr "Mapa da loja Biobrassica em Guimarães"
 
-#~ msgid "foi recebida."
-#~ msgstr "foi recebida."
 
-#~ msgid "Referência para pagamento em ATM ou homebanking"
-#~ msgstr "Referência para pagamento em ATM ou homebanking"
 
-#~ msgid "Uma Família, Uma Causa"
-#~ msgstr "Uma Família, Uma Causa"
 
-#~ msgid "Equipa Biobrassica em loja"
-#~ msgstr "Equipa Biobrassica em loja"
 
-#~ msgid "Venha conhecer-nos"
-#~ msgstr "Venha conhecer-nos"
 
-#~ msgid "A Nossa História"
-#~ msgstr "A Nossa História"
 
-#~ msgid "Evento anterior"
-#~ msgstr "Evento anterior"
 
-#~ msgid "A Semente"
-#~ msgstr "A Semente"
 
-#~ msgid "Nascemos em Braga com a vontade de trazer produtos biológicos de qualidade à comunidade, movidos pela paixão pela alimentação saudável."
-#~ msgstr "Nascemos em Braga com a vontade de trazer produtos biológicos de qualidade à comunidade, movidos pela paixão pela alimentação saudável."
 
-#~ msgid "Certificação Biológica"
-#~ msgstr "Certificação Biológica"
 
-#~ msgid "Recebemos a certificação biológica da Certiplanet, validando o nosso compromisso com práticas agrícolas sustentáveis."
-#~ msgstr "Recebemos a certificação biológica da Certiplanet, validando o nosso compromisso com práticas agrícolas sustentáveis."
 
-#~ msgid "Abertura em Braga"
-#~ msgstr "Abertura em Braga"
 
-#~ msgid "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os frescos de produtores locais diretamente ao consumidor."
-#~ msgstr "Inaugurámos a nossa primeira loja física no coração de Braga, trazendo os frescos de produtores locais diretamente ao consumidor."
 
-#~ msgid "Expansão para Guimarães"
-#~ msgstr "Expansão para Guimarães"
 
-#~ msgid "Com a crescente procura, abrimos a segunda loja em Guimarães, fortalecendo a nossa presença no Minho."
-#~ msgstr "Com a crescente procura, abrimos a segunda loja em Guimarães, fortalecendo a nossa presença no Minho."
 
-#~ msgid "O Futuro é Bio"
-#~ msgstr "O Futuro é Bio"
 
-#~ msgid "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias com produtores locais da região."
-#~ msgstr "Continuamos a crescer, diversificando a oferta e fortalecendo parcerias com produtores locais da região."
 
-#~ msgid "Conhecer para valorizar."
-#~ msgstr "Conhecer para valorizar."
 
-#~ msgid "Da nossa terra, para a sua mesa."
-#~ msgstr "Da nossa terra, para a sua mesa."
 
-#~ msgid "Os Nossos Valores"
-#~ msgstr "Os Nossos Valores"
 
-#~ msgid "Terra"
-#~ msgstr "Terra"
 
-#~ msgid "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada estação."
-#~ msgstr "Valorizamos os ciclos naturais da terra e trabalhamos com produtores que utilizam técnicas de agricultura regenerativa, fortalecendo o solo a cada estação."
 
-#~ msgid "Acreditamos no comércio local e na criação de laços fortes com as famílias de Braga e Guimarães."
-#~ msgstr "Acreditamos no comércio local e na criação de laços fortes com as famílias de Braga e Guimarães."
 
-#~ msgid "Saúde"
-#~ msgstr "Saúde"
 
-#~ msgid "Cada produto que selecionamos é livre de químicos, pensado para nutrir o corpo e a alma de quem o consome."
-#~ msgstr "Cada produto que selecionamos é livre de químicos, pensado para nutrir o corpo e a alma de quem o consome."
 
-#~ msgid "Saber mais"
-#~ msgstr "Saber mais"
 
-#~ msgid "Brevemente — siga-nos no Instagram @biobrassica"
-#~ msgstr "Brevemente — siga-nos no Instagram @biobrassica"
 
-#~ msgid "Multibanco (referência válida por 48 horas)"
-#~ msgstr "Multibanco (referência válida por 48 horas)"
 
-#~ msgid "Cartão de crédito/débito"
-#~ msgstr "Cartão de crédito/débito"
 
-#~ msgid "Welcome back to"
-#~ msgstr "Bem-vindo de volta a"
 
-#~ msgid "Light"
-#~ msgstr "Claro"
 
-#~ msgid "Dark"
-#~ msgstr "Escuro"
 
-#~ msgid "Add row"
-#~ msgstr "Adicionar linha"
 
-#~ msgid "Run"
-#~ msgstr "Executar"
 
-#~ msgid "Run the selected action"
-#~ msgstr "Executar a ação selecionada"
 
-#~ msgid "Expand row"
-#~ msgstr "Expandir linha"
 
-#~ msgid "You don’t have permission to view or edit anything."
-#~ msgstr "Não tem permissão para ver ou editar nada."
 
-#~ msgid "Filters"
-#~ msgstr "Filtros"
 
-#~ msgid "History"
-#~ msgstr "Histórico"
 
-#~ msgid "Type to search"
-#~ msgstr "Escreva para pesquisar"
 
-#~ msgid "Toggle password visibility"
-#~ msgstr "Alternar visibilidade da palavra-passe"
 
-#~ msgid "Save"
-#~ msgstr "Guardar"
 
-#~ msgid "Save and continue editing"
-#~ msgstr "Guardar e continuar a editar"
 
-#~ msgid "Save and view"
-#~ msgstr "Guardar e ver"
 
-#~ msgid "Save and add another"
-#~ msgstr "Guardar e adicionar outro"
 
-#~ msgid "Save as new"
-#~ msgstr "Guardar como novo"
 
-#~ msgid "Close"
-#~ msgstr "Fechar"
 
-#~ msgid "Delete"
-#~ msgstr "Eliminar"
 
-#~ msgid "Delete?"
-#~ msgstr "Eliminar?"
 
-#~ msgid "Change"
-#~ msgstr "Alterar"
 
-#~ msgid "View"
-#~ msgstr "Ver"
 
-#~ msgid "Original"
-#~ msgstr "Original"
 
-#~ msgid "Currently:"
-#~ msgstr "Atual:"
 
-#~ msgid "Change:"
-#~ msgstr "Alterar:"
 
-#~ msgid "Change selected %(model)s"
-#~ msgstr "Alterar %(model)s selecionado"
 
-#~ msgid "Add another %(model)s"
-#~ msgstr "Adicionar outro %(model)s"
 
-#~ msgid "View selected %(model)s"
-#~ msgstr "Ver %(model)s selecionado"
 
-#~ msgid "Delete selected %(model)s"
-#~ msgstr "Eliminar %(model)s selecionado"
 
-#~ msgid "Add another %(verbose_name)s"
-#~ msgstr "Adicionar outro %(verbose_name)s"
 
-#~ msgid "Select %s"
-#~ msgstr "Selecionar %s"
 
-#~ msgid "Select %s to change"
-#~ msgstr "Selecionar %s para alterar"
 
-#~ msgid "Select %s to view"
-#~ msgstr "Selecionar %s para ver"
 
-#~ msgid "After you've created a user, you’ll be able to edit more user options."
-#~ msgstr "Depois de criar um utilizador, poderá editar mais opções do utilizador."
 
-#~ msgid "Change password"
-#~ msgstr "Alterar palavra-passe"
 
-#~ msgid "More actions"
-#~ msgstr "Mais ações"
 
-#~ msgid "All applications"
-#~ msgstr "Todas as aplicações"
 
-#~ msgid "View site"
-#~ msgstr "Ver site"
 
-#~ msgid "Log out"
-#~ msgstr "Terminar sessão"
 
-#~ msgid "You have been successfully logged out from the administration"
-#~ msgstr "Terminou sessão da administração com sucesso"
 
-#~ msgid "Thanks for spending some quality time with the web site today."
-#~ msgstr "Obrigado pelo tempo que passou no site hoje."
 
-#~ msgid "Log in again"
-#~ msgstr "Entrar novamente"
 
-#~ msgid "Recent searches"
-#~ msgstr "Pesquisas recentes"
 
-#~ msgid "No recent searches"
-#~ msgstr "Sem pesquisas recentes"
 
-#~ msgid "No data"
-#~ msgstr "Sem dados"
 
-#~ msgid "Unknown"
-#~ msgstr "Desconhecido"
 
-#~ msgid "True"
-#~ msgstr "Sim"
 
-#~ msgid "False"
-#~ msgstr "Não"
 
-#~ msgid "Select all rows"
-#~ msgstr "Selecionar todas as linhas"
 
-#~ msgid "Click here to select the objects across all pages"
-#~ msgstr "Clique aqui para selecionar os objetos de todas as páginas"
 
-#~ msgid "Select all %(total_count)s %(module_name)s"
-#~ msgstr "Selecionar todos os %(total_count)s %(module_name)s"
 
-#~ msgid "Select all objects on this page for an action"
-#~ msgstr "Selecionar todos os objetos desta página para uma ação"
 
-#~ msgid "Apply Filters"
-#~ msgstr "Aplicar filtros"
 
-#~ msgid "Hide counts"
-#~ msgstr "Ocultar contagens"
 
-#~ msgid "Show counts"
-#~ msgstr "Mostrar contagens"
 
-#~ msgid "Clear all filters"
-#~ msgstr "Limpar todos os filtros"
 
-#~ msgid "Click to download"
-#~ msgstr "Clique para descarregar"
 
-#~ msgid "Go back"
-#~ msgstr "Voltar"
 
-#~ msgid "Record picture"
-#~ msgstr "Imagem do registo"
 
-#~ msgid "Previous"
-#~ msgstr "Anterior"
 
-#~ msgid "Next"
-#~ msgstr "Seguinte"
 
-#~ msgid "No results found"
-#~ msgstr "Nenhum resultado encontrado"
 
-#~ msgid "This page yielded into no results. Create a new item or reset your filters."
-#~ msgstr "Esta página não devolveu resultados. Crie um novo item ou limpe os filtros."
 
-#~ msgid "Reset filters"
-#~ msgstr "Limpar filtros"
 
-#~ msgid "No, take me back"
-#~ msgstr "Não, voltar atrás"
 
-#~ msgid "Yes, I’m sure"
-#~ msgstr "Sim, tenho a certeza"
 
-#~ msgid "General"
-#~ msgstr "Geral"
 
-#~ msgid "No results matching your query"
-#~ msgstr "Nenhum resultado corresponde à sua pesquisa"
 
-#~ msgid "Loading more results..."
-#~ msgstr "A carregar mais resultados..."
 
-#~ msgid "Remove"
-#~ msgstr "Remover"
 
-#~ msgid "Available %s"
-#~ msgstr "Disponíveis: %s"
 
-#~ msgid "Chosen %s"
-#~ msgstr "Selecionados: %s"
 
-#~ msgid "Choose %s by selecting them and then select the \"Choose\" arrow button."
-#~ msgstr "Escolha %s selecionando-os e depois carregando na seta \"Escolher\"."
 
-#~ msgid "Remove %s by selecting them and then select the \"Remove\" arrow button."
-#~ msgstr "Remova %s selecionando-os e depois carregando na seta \"Remover\"."
 
-#~ msgid "(click to clear)"
-#~ msgstr "(clique para limpar)"
 
-#~ msgid "Hold down “Control”, or “Command” on a Mac, to select more than one."
-#~ msgstr "Mantenha premida a tecla “Control”, ou “Command” num Mac, para selecionar mais do que um."
 
-#~ msgid "Produtos biológicos frescos, cultivados de forma sustentável no coração do Minho."
-#~ msgstr "Produtos biológicos frescos, cultivados de forma sustentável no coração do Minho."
 
-#~ msgid "Couves biológicas"
-#~ msgstr "Couves biológicas"
 
-#~ msgid "Nabos biológicos"
-#~ msgstr "Nabos biológicos"
 
-#~ msgid "Mulher com legumes biológicos"
-#~ msgstr "Mulher com legumes biológicos"
+
+# Unfold admin UI translations (pt-PT)
+msgid " By %(filter_title)s "
+msgstr " Por %(filter_title)s "
+
+msgid "%(class_name)s %(instance)s"
+msgstr "%(class_name)s %(instance)s"
+
+msgid "Action"
+msgstr "Ação"
+
+msgid "Add"
+msgstr "Adicionar"
+
+msgid "Add new item"
+msgstr "Adicionar novo item"
+
+msgid "Add row"
+msgstr "Adicionar linha"
+
+msgid "After you've created a user, you’ll be able to edit more user options."
+msgstr "Depois de criar um utilizador poderá editar mais opções do utilizador."
+
+msgid "All"
+msgstr "Todos"
+
+msgid "All applications"
+msgstr "Todas as aplicações"
+
+msgid "Apply Filters"
+msgstr "Aplicar filtros"
+
+msgid "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'"
+msgstr "Abaixo está uma pré-visualização dos dados a importar. Se estiver satisfeito com o resultado, clique em 'Confirmar importação'"
+
+msgid "Bold"
+msgstr "Negrito"
+
+msgid "Change"
+msgstr "Alterar"
+
+msgid "Change History"
+msgstr "Histórico de alterações"
+
+msgid "Change password"
+msgstr "Alterar palavra-passe"
+
+msgid "Change reason"
+msgstr "Motivo da alteração"
+
+msgid "Changed by"
+msgstr "Alterado por"
+
+msgid "Changes"
+msgstr "Alterações"
+
+msgid "Choose a date from the list below to revert to a previous version of this object"
+msgstr "Escolha uma data da lista abaixo para reverter para uma versão anterior deste objeto"
+
+msgid "Choose file to upload"
+msgstr "Escolha o ficheiro a carregar"
+
+msgid "Clear all filters"
+msgstr "Limpar todos os filtros"
+
+msgid "Clear selection"
+msgstr "Limpar seleção"
+
+msgid "Click here to select the objects across all pages"
+msgstr "Clique aqui para selecionar os objetos em todas as páginas"
+
+msgid "Click to cancel"
+msgstr "Clique para cancelar"
+
+msgid "Click to download"
+msgstr "Clique para transferir"
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Code"
+msgstr "Código"
+
+msgid "Collapse"
+msgstr "Recolher"
+
+msgid "Comment"
+msgstr "Comentário"
+
+msgid "Confirm import"
+msgstr "Confirmar importação"
+
+msgid "Dark"
+msgstr "Escuro"
+
+msgid "Dataset not found. No action performed."
+msgstr "Conjunto de dados não encontrado. Nenhuma ação executada."
+
+msgid "Date"
+msgstr "Data"
+
+msgid "Date from"
+msgstr "Data de início"
+
+msgid "Date to"
+msgstr "Data de fim"
+
+msgid "Date/time"
+msgstr "Data/hora"
+
+msgid "Default"
+msgstr "Pré-definição"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Deleting %(class_name)s %(instance)s would require "
+msgstr "Eliminar %(class_name)s %(instance)s exigiria "
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Enter an URL"
+msgstr "Introduza um URL"
+
+msgid "Expand row"
+msgstr "Expandir linha"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "False"
+msgstr "Falso"
+
+msgid "Filter navigation items"
+msgstr "Filtrar itens de navegação"
+
+msgid "Filters"
+msgstr "Filtros"
+
+msgid "Forgotten your password or username?"
+msgstr "Esqueceu-se da palavra-passe ou do nome de utilizador?"
+
+msgid "From"
+msgstr "De"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Go back"
+msgstr "Voltar"
+
+msgid "Group"
+msgstr "Grupo"
+
+msgid "Group permissions"
+msgstr "Permissões de grupo"
+
+msgid "Heading"
+msgstr "Título"
+
+msgid "Hide counts"
+msgstr "Ocultar contagens"
+
+msgid "History"
+msgstr "Histórico"
+
+msgid "Image preview"
+msgstr "Pré-visualização da imagem"
+
+msgid "Import"
+msgstr "Importar"
+
+msgid "Indent decrease"
+msgstr "Diminuir indentação"
+
+msgid "Indent increase"
+msgstr "Aumentar indentação"
+
+msgid "Italic"
+msgstr "Itálico"
+
+msgid "Items must be selected in order to perform actions on them. No items have been changed."
+msgstr "É necessário selecionar itens para executar ações sobre eles. Nenhum item foi alterado."
+
+msgid "Light"
+msgstr "Claro"
+
+msgid "Line number"
+msgstr "Número de linha"
+
+msgid "Link"
+msgstr "Ligação"
+
+msgid "Loading more results..."
+msgstr "A carregar mais resultados..."
+
+msgid "Log in"
+msgstr "Iniciar sessão"
+
+msgid "Log in again"
+msgstr "Iniciar sessão novamente"
+
+msgid "Log out"
+msgstr "Terminar sessão"
+
+msgid "Manage group"
+msgstr "Gerir grupo"
+
+msgid "Manage user"
+msgstr "Gerir utilizador"
+
+msgid "More actions"
+msgstr "Mais ações"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "New"
+msgstr "Novo"
+
+msgid "Next"
+msgstr "Seguinte"
+
+msgid "No"
+msgstr "Não"
+
+msgid "No data"
+msgstr "Sem dados"
+
+msgid "No recent searches"
+msgstr "Sem pesquisas recentes"
+
+msgid "No results found"
+msgstr "Nenhum resultado encontrado"
+
+msgid "No results matching your query"
+msgstr "Sem resultados que correspondam à sua pesquisa"
+
+msgid "No, take me back"
+msgstr "Não, voltar atrás"
+
+msgid "Non field specific"
+msgstr "Não específico do campo"
+
+msgid "None"
+msgstr "Nenhum"
+
+msgid "Not enough data."
+msgstr "Dados insuficientes."
+
+msgid "Object"
+msgstr "Objeto"
+
+msgid "Object permissions"
+msgstr "Permissões do objeto"
+
+msgid "Objects"
+msgstr "Objetos"
+
+msgid "Ordered list"
+msgstr "Lista ordenada"
+
+msgid "Paragraph"
+msgstr "Parágrafo"
+
+msgid "Please correct these errors in your data where possible, then reupload it using the form above."
+msgstr "Por favor corrija estes erros nos seus dados sempre que possível e volte a carregá-los usando o formulário acima."
+
+msgid "Please enter your old password, for security’s sake, and then enter your new password twice so we can verify you typed it in correctly."
+msgstr "Por motivos de segurança, introduza a sua palavra-passe antiga e depois a nova palavra-passe duas vezes para que possamos verificar se a escreveu corretamente."
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Quote"
+msgstr "Citação"
+
+msgid "Raw passwords are not stored, so there is no way to see this "
+msgstr "As palavras-passe não são armazenadas em texto simples, por isso não é possível visualizá-la "
+
+msgid "Recent actions"
+msgstr "Ações recentes"
+
+msgid "Recent searches"
+msgstr "Pesquisas recentes"
+
+msgid "Record picture"
+msgstr "Imagem do registo"
+
+msgid "Redo"
+msgstr "Refazer"
+
+msgid "Remove"
+msgstr "Remover"
+
+msgid "Remove from sorting"
+msgstr "Remover da ordenação"
+
+msgid "Reset filters"
+msgstr "Limpar filtros"
+
+msgid "Reset to default"
+msgstr "Repor predefinição"
+
+msgid "Return to site"
+msgstr "Voltar ao site"
+
+msgid "Revert"
+msgstr "Reverter"
+
+msgid "Row"
+msgstr "Linha"
+
+msgid "Run"
+msgstr "Executar"
+
+msgid "Run the selected action"
+msgstr "Executar a ação selecionada"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Save and add another"
+msgstr "Guardar e adicionar outro"
+
+msgid "Save and continue editing"
+msgstr "Guardar e continuar a editar"
+
+msgid "Save and view"
+msgstr "Guardar e visualizar"
+
+msgid "Save as new"
+msgstr "Guardar como novo"
+
+msgid "Search apps and models..."
+msgstr "Pesquisar aplicações e modelos..."
+
+msgid "Select action"
+msgstr "Selecionar ação"
+
+msgid "Select action to run"
+msgstr "Selecionar ação a executar"
+
+msgid "Select all objects on this page for an action"
+msgstr "Selecionar todos os objetos nesta página para uma ação"
+
+msgid "Select all rows"
+msgstr "Selecionar todas as linhas"
+
+msgid "Select currency"
+msgstr "Selecionar moeda"
+
+msgid "Select format"
+msgstr "Selecionar formato"
+
+msgid "Select record"
+msgstr "Selecionar registo"
+
+msgid "Select value"
+msgstr "Selecionar valor"
+
+msgid "Show all"
+msgstr "Mostrar tudo"
+
+msgid "Show counts"
+msgstr "Mostrar contagens"
+
+msgid "Skipped"
+msgstr "Ignorado"
+
+msgid "Some rows failed to validate"
+msgstr "Algumas linhas falharam na validação"
+
+msgid "Strike"
+msgstr "Rasurado"
+
+msgid "Submit"
+msgstr "Submeter"
+
+msgid "Summary"
+msgstr "Resumo"
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "Thanks for spending some quality time with the web site today."
+msgstr "Obrigado por ter passado algum tempo connosco hoje."
+
+msgid "This exporter will export the following fields"
+msgstr "Este exportador irá exportar os seguintes campos"
+
+msgid "This exporter will export the following fields: "
+msgstr "Este exportador irá exportar os seguintes campos: "
+
+msgid "This importer will import the following fields: "
+msgstr "Este importador irá importar os seguintes campos: "
+
+msgid "This item will be deleted."
+msgstr "Este item será eliminado."
+
+msgid "This object doesn't have a change history."
+msgstr "Este objeto não tem histórico de alterações."
+
+msgid "This object doesn’t have a change history. It probably wasn’t added via this admin site."
+msgstr "Este objeto não tem histórico de alterações. Provavelmente não foi adicionado através deste portal de administração."
+
+msgid "This page yielded into no results. Create a new item or reset your filters."
+msgstr "Esta página não devolveu resultados. Crie um novo item ou limpe os filtros."
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "To"
+msgstr "Até"
+
+msgid "Toggle password visibility"
+msgstr "Alternar visibilidade da palavra-passe"
+
+msgid "Toggle sorting"
+msgstr "Alternar ordenação"
+
+msgid "True"
+msgstr "Verdadeiro"
+
+msgid "Type to search"
+msgstr "Escreva para pesquisar"
+
+msgid "Underlined"
+msgstr "Sublinhado"
+
+msgid "Undo"
+msgstr "Desfazer"
+
+msgid "Unknown"
+msgstr "Desconhecido"
+
+msgid "Unknown content"
+msgstr "Conteúdo desconhecido"
+
+msgid "Unlink"
+msgstr "Remover ligação"
+
+msgid "Unordered list"
+msgstr "Lista não ordenada"
+
+msgid "Update"
+msgstr "Atualizar"
+
+msgid "User"
+msgstr "Utilizador"
+
+msgid "User permissions"
+msgstr "Permissões do utilizador"
+
+msgid "Value"
+msgstr "Valor"
+
+msgid "View"
+msgstr "Visualizar"
+
+msgid "View on site"
+msgstr "Ver no site"
+
+msgid "View site"
+msgstr "Ver site"
+
+msgid "View traceback"
+msgstr "Ver traceback"
+
+msgid "Welcome"
+msgstr "Bem-vindo"
+
+msgid "Yes"
+msgstr "Sim"
+
+msgid "Yes, I’m sure"
+msgstr "Sim, tenho a certeza"
+
+msgid "You can not create nested object without parent"
+msgstr "Não é possível criar um objeto aninhado sem objeto pai"
+
+msgid "You don’t have permission to view or edit anything."
+msgstr "Não tem permissão para visualizar ou editar nada."
+
+msgid "You have been successfully logged out from the administration"
+msgstr "Sessão terminada com sucesso na administração"
+
+msgid "Your password was changed."
+msgstr "A sua palavra-passe foi alterada."
+
+msgid "and"
+msgstr "e"

@@ -51,10 +51,6 @@ if [ "${DJANGO_SETTINGS_MODULE:-}" = "config.settings.production" ]; then
         if [ "$collectstatic_on_start" = "1" ]; then
             /usr/local/bin/python manage.py collectstatic --noinput
         fi
-
-        if [ "${SITE_ROLE:-}" = "admin" ]; then
-            /usr/local/bin/python manage.py create_initial_admin
-        fi
     fi
 fi
 
