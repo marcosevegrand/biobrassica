@@ -1,7 +1,8 @@
 """Custom admin views (Calendário kanban, etc.)."""
 
-from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render
+from django.contrib import admin
+from django.core.exceptions import PermissionDenied
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -19,12 +20,15 @@ CALENDARIO_COLUMNS = (
 )
 
 
-@staff_member_required
 def calendario_view(request):
     """Kanban-style overview of in-flight orders, grouped by status."""
+    order_admin = admin.site._registry[Order]
+    if not order_admin.has_view_or_change_permission(request):
+        raise PermissionDenied
+
     qs = (
         Order.objects.exclude(status__in=[Order.Status.DELIVERED, Order.Status.CANCELLED])
-        .select_related()
+        .select_related('payment', 'user')
         .order_by('-created_at')
     )
 
@@ -43,16 +47,14 @@ def calendario_view(request):
             'orders': orders,
         })
 
+    request.current_app = admin.site.name
     context = {
+        **admin.site.each_context(request),
         'title': _('Calendário'),
+        'subtitle': None,
+        'opts': Order._meta,
+        'app_label': Order._meta.app_label,
         'columns': columns,
         'changelist_url': reverse('admin:orders_order_changelist'),
-        'has_permission': True,
-        'site_header': 'Biobrassica',
-        'site_title': 'Biobrassica',
-        'site_url': '/',
-        'is_popup': False,
-        'is_nav_sidebar_enabled': True,
-        'available_apps': [],
     }
-    return render(request, 'admin/core/calendario.html', context)
+    return TemplateResponse(request, 'admin/core/calendario.html', context)

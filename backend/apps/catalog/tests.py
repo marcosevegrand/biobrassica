@@ -553,6 +553,7 @@ class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
 		self.assertContains(response, 'name="brand_custom"', html=False)
 		self.assertContains(response, 'name="quantity_value"', html=False)
 		self.assertContains(response, 'name="quantity_unit"', html=False)
+		self.assertNotContains(response, 'image_preview', html=False)
 
 	def test_product_add_form_starts_without_prefilled_inline_entries(self):
 		response = self.client.get(reverse('admin:catalog_product_add'))
@@ -585,6 +586,17 @@ class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertFalse(self.product.is_active)
 		self.assertContains(response, 'Produto desativado até reposição.')
+
+	def test_product_quick_action_can_increase_stock(self):
+		response = self.client.get(
+			reverse('admin:catalog_product_increase_stock', args=[self.product.pk]),
+			follow=True,
+		)
+
+		self.product.refresh_from_db()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(self.product.stock, 3)
 
 	def test_product_admin_does_not_allow_is_active_inline_edit(self):
 		product_admin = admin.site._registry[Product]
@@ -670,6 +682,17 @@ class CatalogSupportAdminWorkflowTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'Ativos')
 		self.assertContains(response, 'Sem descrição')
+
+	def test_category_quick_action_can_hide_category(self):
+		response = self.client.get(
+			reverse('admin:catalog_category_toggle_active', args=[self.category.pk]),
+			follow=True,
+		)
+
+		self.category.refresh_from_db()
+
+		self.assertEqual(response.status_code, 200)
+		self.assertFalse(self.category.is_active)
 
 
 class CatalogSystemCheckTests(TestCase):

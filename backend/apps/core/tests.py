@@ -1,4 +1,3 @@
-import os
 import stat
 import subprocess
 import tempfile
@@ -6,6 +5,7 @@ from pathlib import Path
 
 from django.core.cache import cache
 from django.conf import settings
+from django.contrib.auth.models import Permission
 from django.db import connection
 from django.test import RequestFactory, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
@@ -253,7 +253,7 @@ class AdminDashboardTests(TestCase):
 			pickup_location=Order.PickupLocation.BRAGA,
 			subtotal='8.00',
 			total='8.00',
-			status=Order.Status.PREPARING,
+			status=Order.Status.PAYMENT_PENDING,
 		)
 		Payment.objects.create(
 			order=refunded_order,
@@ -261,6 +261,7 @@ class AdminDashboardTests(TestCase):
 			status=Payment.Status.REFUNDED,
 			amount='8.00',
 		)
+		Order.objects.filter(pk=refunded_order.pk).update(status=Order.Status.PREPARING)
 
 		response = self.client.get(reverse('admin:index'))
 		metric_map = {card['label']: card['value'] for card in response.context['dashboard_metric_cards']}
@@ -271,3 +272,34 @@ class AdminDashboardTests(TestCase):
 	def test_admin_branding_uses_biobrassica_sidebar_logo(self):
 		self.assertEqual(settings.UNFOLD['SITE_LOGO'], '/static/images/brand/favicon_green.png')
 		self.assertIsNone(settings.UNFOLD['SITE_SYMBOL'])
+
+	def test_calendario_view_preserves_admin_navigation_for_superuser(self):
+		response = self.client.get(reverse('operacoes_calendario'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.context['opts'], Order._meta)
+		self.assertTrue(response.context['sidebar_navigation'])
+		self.assertContains(response, 'Calendário')
+		self.assertContains(response, 'Encomendas')
+		self.assertContains(response, 'Produtos')
+		self.assertNotContains(response, 'You don’t have permission to view or edit anything.')
+
+	def test_calendario_view_blocks_staff_without_order_access(self):
+		staff_user = User.objects.create_user(
+			email='equipa@biobrassica.pt',
+			username='equipa',
+			password='testpass123',
+			is_staff=True,
+		)
+		staff_user.user_permissions.add(Permission.objects.get(codename='view_user'))
+
+		self.client.force_login(staff_user)
+		response = self.client.get(reverse('operacoes_calendario'))
+
+		self.assertEqual(response.status_code, 403)
+
+	def test_admin_change_form_no_longer_renders_form_navigation_block(self):
+		response = self.client.get(reverse('admin:catalog_category_add'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertNotContains(response, 'Navegação do formulário')

@@ -110,6 +110,39 @@ def render_status_badge(label, tone='neutral'):
     )
 
 
+def render_action_link(url, label, *, tone='neutral'):
+    palette = {
+        'neutral': ('#ffffff', '#cbd5e1', '#334155'),
+        'info': ('#eff6ff', '#bfdbfe', '#1d4ed8'),
+        'success': ('#f0fdf4', '#bbf7d0', '#166534'),
+        'warning': ('#fffbeb', '#fde68a', '#92400e'),
+        'danger': ('#fff1f2', '#fecdd3', '#be123c'),
+    }
+    background, border, foreground = palette.get(tone, palette['neutral'])
+    return format_html(
+        '<a href="{}" '
+        'style="display:inline-flex;align-items:center;justify-content:center;padding:0.3rem 0.65rem;'
+        'border-radius:9999px;border:1px solid {};background:{};color:{};font-size:0.75rem;'
+        'font-weight:600;text-decoration:none;white-space:nowrap;">{}</a>',
+        url,
+        border,
+        background,
+        foreground,
+        label,
+    )
+
+
+def render_action_group(actions):
+    if not actions:
+        return '—'
+
+    rendered_actions = format_html_join('', '{}', ((action,) for action in actions))
+    return format_html(
+        '<span style="display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;">{}</span>',
+        rendered_actions,
+    )
+
+
 def render_summary_panel(title, rows, *, footer=None):
     rendered_rows = format_html_join(
         '',

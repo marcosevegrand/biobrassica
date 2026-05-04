@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
 from django.forms.models import BaseInlineFormSet
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 from unfold.admin import ModelAdmin, TabularInline
@@ -23,6 +23,8 @@ from apps.core.admin_helpers import (
     DefaultLanguageInlineMixin,
     EditLinkAdminMixin,
     OrderableAdminMixin,
+    render_action_group,
+    render_action_link,
     render_image_preview,
     render_status_badge,
     render_summary_panel,
@@ -243,7 +245,7 @@ class CategoryTranslationInline(DefaultLanguageInlineMixin, TabularInline):
 @admin.register(Category)
 class CategoryAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/catalog/category/workflow_overview.html'
-    list_display = ('order_controls', '__str__', 'slug', 'category_health_badge', 'product_count_display', 'is_active', 'featured_badge', 'edit_link')
+    list_display = ('order_controls', '__str__', 'slug', 'category_health_badge', 'product_count_display', 'is_active', 'featured_badge', 'quick_actions', 'edit_link')
     list_editable = ('is_active',)
     search_fields = ('slug', 'translations__name')
     search_help_text = _('Pesquise por slug ou nome traduzido da categoria.')
@@ -261,6 +263,16 @@ class CategoryAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
             'fields': ('image', 'order'),
         }),
     )
+
+    def get_urls(self):
+        custom_urls = [
+            path(
+                '<int:object_id>/toggle-active/',
+                self.admin_site.admin_view(self.toggle_active_view),
+                name='catalog_category_toggle_active',
+            ),
+        ]
+        return custom_urls + super().get_urls()
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
@@ -352,6 +364,31 @@ class CategoryAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin,
             footer=_('Use o atalho superior para abrir o catálogo filtrado desta categoria.'),
         )
 
+    def toggle_active_view(self, request, object_id):
+        category = self.get_object(request, object_id)
+        if category is None:
+            self.message_user(request, _('Categoria não encontrada.'), level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:catalog_category_changelist'))
+
+        category.is_active = not category.is_active
+        category.save(update_fields=['is_active'])
+        self.message_user(
+            request,
+            _('Categoria visível na loja.') if category.is_active else _('Categoria escondida da loja.'),
+            level=messages.SUCCESS,
+        )
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:catalog_category_changelist'))
+
+    @admin.display(description=_('Ações rápidas'))
+    def quick_actions(self, obj):
+        return render_action_group([
+            render_action_link(
+                reverse('admin:catalog_category_toggle_active', args=[obj.pk]),
+                _('Ocultar') if obj.is_active else _('Mostrar'),
+                tone='warning' if obj.is_active else 'success',
+            ),
+        ])
+
 
 # --- Product ---
 
@@ -395,18 +432,13 @@ class ProductImageInline(TabularInline):
     extra = 0
     min_num = 0
     validate_min = False
-    fields = ('image', 'image_preview', 'alt_text', 'order', 'is_primary')
-    readonly_fields = ('image_preview',)
+    fields = ('image', 'alt_text', 'order', 'is_primary')
     verbose_name = _('imagem')
     verbose_name_plural = _('Imagens do produto')
     section_description = _('A galeria começa vazia. Adicione só as imagens finais e marque uma como principal.')
     section_cta_label = _('Adicionar imagem')
     section_empty_title = _('Galeria vazia')
     section_empty_body = _('Adicione imagens finais do produto e defina uma como principal para a loja e o merchandising.')
-
-    @admin.display(description='Pré-visualização')
-    def image_preview(self, obj):
-        return render_image_preview(getattr(obj, 'image', None), width=56, height=56)
 
 
 class ProductOpsQueueFilter(admin.SimpleListFilter):
@@ -452,7 +484,7 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_before_template = 'admin/catalog/product/workflow_overview.html'
 
     form = ProductAdminForm
-    list_display = ('__str__', 'brand', 'category', 'price', 'quantity', 'stock', 'stock_badge', 'availability_badge', 'replenishment_priority', 'catalog_health_display', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'edit_link')
+    list_display = ('__str__', 'brand', 'category', 'price', 'quantity', 'stock', 'stock_badge', 'availability_badge', 'replenishment_priority', 'catalog_health_display', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'quick_actions', 'edit_link')
     list_filter = (ProductOpsQueueFilter, 'category', 'allow_shipping', 'is_active', 'is_preview_only', 'is_highlight', 'available_locations')
     list_editable = ('price', 'allow_shipping', 'stock', 'is_highlight')
     search_fields = ('slug', 'brand', 'bio_code', 'translations__name')
@@ -497,6 +529,31 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             'all': ('css/admin/product_editor.css',),
         }
         js = ('js/admin/product_slug_autofill.js', 'js/admin/product_editor.js')
+
+    def get_urls(self):
+        custom_urls = [
+            path(
+                '<int:object_id>/stock/increase/',
+                self.admin_site.admin_view(self.increase_stock_view),
+                name='catalog_product_increase_stock',
+            ),
+            path(
+                '<int:object_id>/stock/decrease/',
+                self.admin_site.admin_view(self.decrease_stock_view),
+                name='catalog_product_decrease_stock',
+            ),
+            path(
+                '<int:object_id>/toggle-preview/',
+                self.admin_site.admin_view(self.toggle_preview_view),
+                name='catalog_product_toggle_preview',
+            ),
+            path(
+                '<int:object_id>/toggle-active/',
+                self.admin_site.admin_view(self.toggle_active_view),
+                name='catalog_product_toggle_active',
+            ),
+        ]
+        return custom_urls + super().get_urls()
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('category').prefetch_related(
@@ -643,6 +700,9 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     @admin.display(description=_('Checklist de publicação'))
     def catalog_readiness_panel(self, obj):
+        if obj is None:
+            return _('Guarde o produto para ver o checklist de publicação.')
+
         translation_state = _('%(count)s tradução(ões)') % {'count': getattr(obj, 'translation_count', obj.translations.count())}
         pt_state = _('Sim') if getattr(obj, 'pt_translation_count', obj.translations.filter(language='pt').count()) else _('Não')
         image_count = getattr(obj, 'image_count', obj.images.count())
@@ -663,6 +723,9 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     @admin.display(description=_('Plano de reposição'))
     def replenishment_panel(self, obj):
+        if obj is None:
+            return _('Guarde o produto para ver o plano de reposição.')
+
         location_count = getattr(obj, 'location_count', obj.available_locations.count())
         if obj.stock <= 0:
             next_step = _('Desativar ou repor imediatamente.') if obj.is_active else _('Aguardar reposição antes de reativar.')
@@ -689,6 +752,90 @@ class ProductAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     def _can_reactivate_product(self, obj):
         return not obj.get_activation_blockers()
+
+    def _save_product_quick_action(self, request, product, *, success_message):
+        try:
+            product.save()
+        except ValidationError as error:
+            self.message_user(request, '; '.join(error.messages), level=messages.WARNING)
+        else:
+            self.message_user(request, success_message, level=messages.SUCCESS)
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:catalog_product_changelist'))
+
+    def increase_stock_view(self, request, object_id):
+        product = self.get_object(request, object_id)
+        if product is None:
+            self.message_user(request, _('Produto não encontrado.'), level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:catalog_product_changelist'))
+
+        product.stock += 1
+        return self._save_product_quick_action(request, product, success_message=_('Stock aumentado em 1 unidade.'))
+
+    def decrease_stock_view(self, request, object_id):
+        product = self.get_object(request, object_id)
+        if product is None:
+            self.message_user(request, _('Produto não encontrado.'), level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:catalog_product_changelist'))
+
+        product.stock = max(product.stock - 1, 0)
+        if product.stock == 0 and product.is_active and not product.is_preview_only:
+            product.is_active = False
+        return self._save_product_quick_action(request, product, success_message=_('Stock reduzido em 1 unidade.'))
+
+    def toggle_preview_view(self, request, object_id):
+        product = self.get_object(request, object_id)
+        if product is None:
+            self.message_user(request, _('Produto não encontrado.'), level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:catalog_product_changelist'))
+
+        product.is_preview_only = not product.is_preview_only
+        if not product.is_preview_only and product.stock <= 0 and product.is_active:
+            product.is_active = False
+        message = _('Produto marcado como só visualização.') if product.is_preview_only else _('Produto voltou a estar comprável quando visível.')
+        return self._save_product_quick_action(request, product, success_message=message)
+
+    def toggle_active_view(self, request, object_id):
+        product = self.get_object(request, object_id)
+        if product is None:
+            self.message_user(request, _('Produto não encontrado.'), level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:catalog_product_changelist'))
+
+        product.is_active = not product.is_active
+        if product.is_active:
+            blockers = product.get_activation_blockers()
+            if blockers:
+                product.is_active = False
+                self.message_user(request, '; '.join(blockers), level=messages.WARNING)
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:catalog_product_changelist'))
+
+        message = _('Produto visível na loja.') if product.is_active else _('Produto escondido da loja.')
+        return self._save_product_quick_action(request, product, success_message=message)
+
+    @admin.display(description=_('Ações rápidas'))
+    def quick_actions(self, obj):
+        actions = [
+            render_action_link(
+                reverse('admin:catalog_product_increase_stock', args=[obj.pk]),
+                '+1',
+                tone='success',
+            ),
+            render_action_link(
+                reverse('admin:catalog_product_decrease_stock', args=[obj.pk]),
+                '-1',
+                tone='warning',
+            ),
+            render_action_link(
+                reverse('admin:catalog_product_toggle_preview', args=[obj.pk]),
+                _('Permitir compra') if obj.is_preview_only else _('Só visualização'),
+                tone='info',
+            ),
+            render_action_link(
+                reverse('admin:catalog_product_toggle_active', args=[obj.pk]),
+                _('Mostrar') if not obj.is_active else _('Ocultar'),
+                tone='success' if not obj.is_active else 'warning',
+            ),
+        ]
+        return render_action_group(actions)
 
 
 @admin.register(ProductImage)
