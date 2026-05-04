@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+import json
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
@@ -36,6 +37,50 @@ PICKUP_HOURS_WEEKDAY_LABELS = {
     'sat': _('Sábado'),
     'sun': _('Domingo'),
 }
+
+PICKUP_SLOT_START_HOUR = 8
+PICKUP_SLOT_END_HOUR = 20
+
+
+def build_pickup_slots():
+    slots = []
+    for hour in range(PICKUP_SLOT_START_HOUR, PICKUP_SLOT_END_HOUR + 1):
+        for minute in (0, 30):
+            if hour == PICKUP_SLOT_END_HOUR and minute == 30:
+                continue
+            slots.append(f'{hour:02d}:{minute:02d}')
+    return tuple(slots)
+
+
+PICKUP_TIME_SLOTS = build_pickup_slots()
+
+
+def compress_pickup_slots(slots):
+    ordered_slots = [slot for slot in PICKUP_TIME_SLOTS if slot in set(slots or [])]
+    if not ordered_slots:
+        return ''
+
+    ranges = []
+    start = ordered_slots[0]
+    previous = ordered_slots[0]
+    for current in ordered_slots[1:]:
+        prev_hour, prev_minute = map(int, previous.split(':'))
+        current_hour, current_minute = map(int, current.split(':'))
+        previous_total = prev_hour * 60 + prev_minute
+        current_total = current_hour * 60 + current_minute
+        if current_total - previous_total == 30:
+            previous = current
+            continue
+
+        end_total = previous_total + 30
+        ranges.append(f'{start}-{end_total // 60:02d}:{end_total % 60:02d}')
+        start = current
+        previous = current
+
+    prev_hour, prev_minute = map(int, previous.split(':'))
+    end_total = prev_hour * 60 + prev_minute + 30
+    ranges.append(f'{start}-{end_total // 60:02d}:{end_total % 60:02d}')
+    return ', '.join(ranges)
 
 
 class OrderedEntityPosition(models.Model):
@@ -104,6 +149,16 @@ class Location(models.Model):
         super().clean()
         errors = {}
 
+        if not self.pickup_location_code and self.name:
+            normalized_name = self.name.removeprefix('Loja ').strip()
+            self.pickup_location_code = slugify(normalized_name).replace('-', '_').replace('_', '')
+            if self.pickup_location_code == 'guimaraes':
+                self.pickup_location_code = 'guimaraes'
+            elif self.pickup_location_code == 'braga':
+                self.pickup_location_code = 'braga'
+            else:
+                self.pickup_location_code = slugify(normalized_name)
+
         try:
             self.phone = normalize_portuguese_phone(self.phone)
         except ValidationError as error:
@@ -122,9 +177,27 @@ class Location(models.Model):
                     if key_norm not in PICKUP_HOURS_WEEKDAY_KEYS:
                         errors['pickup_hours'] = [_('Use chaves de dia válidas para o horário de levantamento.')]
                         break
-                    cleaned[key_norm] = str(value or '').strip()
+                    if isinstance(value, str):
+                        try:
+                            parsed_value = json.loads(value)
+                        except json.JSONDecodeError:
+                            parsed_value = value
+                    else:
+                        parsed_value = value
+
+                    if isinstance(parsed_value, list):
+                        cleaned[key_norm] = [slot for slot in PICKUP_TIME_SLOTS if slot in {str(slot).strip() for slot in parsed_value}]
+                    else:
+                        text_value = str(parsed_value or '').strip()
+                        cleaned[key_norm] = [text_value] if text_value else []
                 else:
                     self.pickup_hours = cleaned
+
+        self.opening_hours = '\n'.join(
+            f'{PICKUP_HOURS_WEEKDAY_LABELS[key]}: {compress_pickup_slots(self.pickup_hours.get(key, []))}'
+            for key in PICKUP_HOURS_WEEKDAY_KEYS
+            if compress_pickup_slots(self.pickup_hours.get(key, []))
+        )
 
         if errors:
             raise ValidationError(errors)
@@ -134,7 +207,7 @@ class Location(models.Model):
         data = self.pickup_hours or {}
         rows = []
         for key in PICKUP_HOURS_WEEKDAY_KEYS:
-            value = data.get(key)
+            value = compress_pickup_slots(data.get(key))
             if value:
                 rows.append((PICKUP_HOURS_WEEKDAY_LABELS[key], value))
         return rows

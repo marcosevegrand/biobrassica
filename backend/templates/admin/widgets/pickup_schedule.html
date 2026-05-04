@@ -1,0 +1,42 @@
+<div class="pickup-schedule-widget flex flex-col gap-4" data-pickup-schedule data-input-id="{{ widget.attrs.id|default:widget.name }}">
+    <input type="hidden" name="{{ widget.name }}" id="{{ widget.attrs.id|default:widget.name }}" value="{{ widget.value_json|escape }}">
+    <div class="rounded-default border border-base-200 bg-white p-4 shadow-xs dark:border-base-800 dark:bg-base-900">
+        <div class="mb-4 flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold text-font-important-light dark:text-font-important-dark">Horário semanal de levantamento</p>
+                <p class="text-xs text-base-500 dark:text-base-400">Clique nos slots de 30 minutos para marcar disponibilidade.</p>
+            </div>
+            <button type="button" class="rounded-full border border-base-200 px-3 py-1 text-xs font-medium text-base-600 dark:border-base-700 dark:text-base-300" data-clear-week>
+                Limpar semana
+            </button>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {% for day in widget.days %}
+                <section class="rounded-default border border-base-200 p-3 dark:border-base-800">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h3 class="text-sm font-semibold text-font-important-light dark:text-font-important-dark">{{ day.label }}</h3>
+                        <button type="button" class="text-xs text-base-500 hover:text-primary-600 dark:text-base-400 dark:hover:text-primary-400" data-clear-day="{{ day.key }}">
+                            Limpar
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        {% for slot in widget.slots %}
+                            <label class="pickup-slot-label cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    class="peer sr-only"
+                                    data-day="{{ day.key }}"
+                                    data-slot="{{ slot }}"
+                                    {% if slot in day.selected %}checked{% endif %}
+                                >
+                                <span class="flex items-center justify-center rounded-full border border-base-200 px-2 py-1 text-xs font-medium text-base-600 transition-colors peer-checked:border-primary-600 peer-checked:bg-primary-600 peer-checked:text-white dark:border-base-700 dark:text-base-300 dark:peer-checked:border-primary-500 dark:peer-checked:bg-primary-500 dark:peer-checked:text-base-950">
+                                    {{ slot }}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+    </div>
+</div>

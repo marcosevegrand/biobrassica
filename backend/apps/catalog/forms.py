@@ -1,7 +1,9 @@
 from django import forms
+import json
 from django.utils.translation import gettext_lazy as _
 
-from apps.catalog.models import Category, CategoryTranslation, Location, Product, ProductTranslation
+from apps.catalog.models import Category, CategoryTranslation, DeliveryMethod, Location, Product, ProductTranslation
+from apps.catalog.widgets import PickupScheduleWidget
 
 
 class BaseAdminStyleFormMixin:
@@ -108,6 +110,55 @@ class ProductTranslationInlineForm(BaseAdminStyleFormMixin, forms.ModelForm):
 
     class Meta:
         model = ProductTranslation
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_shared_admin_styles()
+
+
+class LocationAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
+    pickup_hours = forms.CharField(
+        label=_('horário'),
+        required=False,
+        widget=PickupScheduleWidget(),
+        help_text=_('Selecione os blocos de 30 minutos em que o levantamento está disponível.'),
+    )
+    string_placeholders = {
+        'name': _('Nome do local'),
+        'address': _('Morada do local'),
+        'phone': _('Telefone de contacto'),
+    }
+
+    class Meta:
+        model = Location
+        fields = ('name', 'address', 'phone', 'is_active', 'pickup_hours')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_shared_admin_styles()
+        self.initial['pickup_hours'] = json.dumps(self.instance.pickup_hours or {}) if getattr(self.instance, 'pk', None) else '{}'
+
+    def clean_pickup_hours(self):
+        raw_value = str(self.cleaned_data.get('pickup_hours') or '{}').strip() or '{}'
+        try:
+            data = json.loads(raw_value)
+        except json.JSONDecodeError as error:
+            raise forms.ValidationError(_('Horário inválido.')) from error
+        if not isinstance(data, dict):
+            raise forms.ValidationError(_('Horário inválido.'))
+        return data
+
+
+class DeliveryMethodAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
+    string_placeholders = {
+        'name': _('Nome do método'),
+        'description': _('Descrição curta do método'),
+    }
+    textarea_fields = {'description': 3}
+
+    class Meta:
+        model = DeliveryMethod
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):

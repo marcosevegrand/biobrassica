@@ -5,6 +5,8 @@ from unfold.admin import ModelAdmin, TabularInline
 from apps.catalog.forms import (
     CategoryAdminForm,
     CategoryTranslationInlineForm,
+    DeliveryMethodAdminForm,
+    LocationAdminForm,
     ProductAdminForm,
     ProductTranslationInlineForm,
 )
@@ -44,17 +46,14 @@ class ProductTranslationInline(TabularInline):
 
 @admin.register(Location)
 class LocationAdmin(EditLinkAdminMixin, ModelAdmin):
-    list_display = ('name', 'pickup_location_code', 'is_active', 'image_preview', 'edit_link')
+    form = LocationAdminForm
+    list_display = ('name', 'address', 'phone', 'is_active', 'edit_link')
     list_filter = ('is_active',)
-    search_fields = ('name', 'address', 'phone', 'email')
-    fields = ('name', 'pickup_location_code', 'address', 'image', 'image_preview', 'phone', 'email', 'opening_hours', 'pickup_hours', 'map_embed_url', 'is_active')
-    readonly_fields = ('image_preview',)
+    search_fields = ('name', 'address', 'phone')
+    fields = ('name', 'address', 'phone', 'is_active', 'pickup_hours')
+    readonly_fields = ()
     list_filter_submit = True
     compressed_fields = True
-
-    @admin.display(description=_('Pré-visualização'))
-    def image_preview(self, obj):
-        return render_image_preview(getattr(obj, 'image', None), width=112, height=84)
 
 
 @admin.register(LocationPosition)
@@ -68,6 +67,7 @@ class LocationPositionAdmin(EditLinkAdminMixin, ModelAdmin):
 
 @admin.register(DeliveryMethod)
 class DeliveryMethodAdmin(EditLinkAdminMixin, ModelAdmin):
+    form = DeliveryMethodAdminForm
     list_display = ('name', 'is_active', 'edit_link')
     list_filter = ('is_active',)
     search_fields = ('name', 'description')

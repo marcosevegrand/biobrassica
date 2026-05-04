@@ -382,91 +382,58 @@ class AccountsAdminWorkflowTests(TestCase):
 			username='sem-morada',
 			password='testpass123',
 		)
+		self.staff_user = User.objects.create_superuser(
+			email='staff@biobrassica.pt',
+			username='staff',
+			password='testpass123',
+		)
 
 		self.client.defaults['HTTP_HOST'] = 'admin.lvh.me'
 		self.client.force_login(self.admin_user)
 
-	def test_user_admin_changelist_shows_customer_workflow_cards(self):
+	def test_user_admin_changelist_only_lists_customers(self):
 		response = self.client.get(reverse('admin:accounts_user_changelist'))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Clientes ativos')
-		self.assertContains(response, 'Sem telefone')
-		self.assertContains(response, 'Sem morada predefinida')
+		self.assertContains(response, self.customer.email)
+		self.assertContains(response, self.customer_without_default.email)
+		self.assertNotContains(response, self.staff_user.email)
 
-	def test_user_change_form_shows_support_panels_and_tools(self):
+	def test_user_change_form_is_flat_and_without_permission_fields(self):
 		response = self.client.get(reverse('admin:accounts_user_change', args=[self.customer.pk]))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Resumo do cliente')
-		self.assertContains(response, 'Serviço e acesso')
-		self.assertContains(response, 'Ver encomendas')
-		self.assertContains(response, 'Desativar acesso')
+		self.assertContains(response, 'name="email"', html=False)
+		self.assertContains(response, 'name="phone"', html=False)
+		self.assertContains(response, 'name="nif"', html=False)
+		self.assertNotContains(response, 'Resumo do cliente')
+		self.assertNotContains(response, 'name="is_staff"', html=False)
+		self.assertNotContains(response, 'name="is_superuser"', html=False)
 
-	def test_user_change_form_submit_action_deactivates_customer(self):
-		response = self.client.post(
-			reverse('admin:accounts_user_change', args=[self.customer.pk]),
-			{'_deactivate_customer': '1'},
-			follow=True,
-		)
-
-		self.customer.refresh_from_db()
+	def test_staff_admin_uses_separate_url(self):
+		response = self.client.get(reverse('admin:accounts_staffaccount_changelist'))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertFalse(self.customer.is_active)
-		self.assertContains(response, 'Cliente desativado.')
+		self.assertContains(response, self.staff_user.email)
+		self.assertNotContains(response, self.customer.email)
 
-	def test_address_change_form_shows_customer_context(self):
+	def test_address_change_form_is_flat(self):
 		response = self.client.get(reverse('admin:accounts_address_change', args=[self.address.pk]))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Resumo da morada')
-		self.assertContains(response, 'Abrir cliente')
-		self.assertContains(response, 'Histórico de encomendas')
+		self.assertContains(response, 'name="line1"', html=False)
 		self.assertContains(response, 'name="country"', html=False)
 		self.assertContains(response, 'Portugal')
+		self.assertNotContains(response, 'Resumo da morada')
 
-	def test_user_admin_lifetime_revenue_excludes_refunded_orders(self):
-		paid_order = Order.objects.create(
-			user=self.customer,
-			name='Cliente Ativo',
-			email=self.customer.email,
-			fulfillment_method=Order.FulfillmentMethod.PICKUP,
-			pickup_location=Order.PickupLocation.BRAGA,
-			subtotal='20.00',
-			total='20.00',
-			status=Order.Status.PAID,
-		)
-		Payment.objects.create(
-			order=paid_order,
-			method=Payment.Method.MBWAY_MANUAL,
-			status=Payment.Status.PAID,
-			amount='20.00',
-			paid_at=timezone.now(),
-		)
-		refunded_order = Order.objects.create(
-			user=self.customer,
-			name='Cliente Ativo',
-			email=self.customer.email,
-			fulfillment_method=Order.FulfillmentMethod.PICKUP,
-			pickup_location=Order.PickupLocation.BRAGA,
-			subtotal='10.00',
-			total='10.00',
-			status=Order.Status.CANCELLED,
-		)
-		Payment.objects.create(
-			order=refunded_order,
-			method=Payment.Method.MBWAY_MANUAL,
-			status=Payment.Status.REFUNDED,
-			amount='10.00',
-		)
-
+	def test_user_admin_queryset_excludes_staff(self):
 		request = RequestFactory().get(reverse('admin:accounts_user_changelist'), HTTP_HOST='admin.lvh.me')
 		request.user = self.admin_user
 		user_admin = admin.site._registry[User]
-		customer = user_admin.get_queryset(request).get(pk=self.customer.pk)
+		queryset = user_admin.get_queryset(request)
 
-		self.assertEqual(customer.lifetime_revenue, Decimal('20.00'))
+		self.assertTrue(queryset.filter(pk=self.customer.pk).exists())
+		self.assertFalse(queryset.filter(pk=self.staff_user.pk).exists())
 
 
 class ResetAdminPasswordCommandTests(TestCase):

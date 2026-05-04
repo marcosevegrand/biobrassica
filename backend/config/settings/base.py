@@ -287,6 +287,13 @@ UNFOLD = {
                 ],
             },
             {
+                'title': 'Staff',
+                'icon': 'admin_panel_settings',
+                'items': [
+                    {'title': 'Staff', 'link': '/admin/accounts/staffaccount/', 'icon': 'admin_panel_settings'},
+                ],
+            },
+            {
                 'title': 'Catálogo',
                 'icon': 'inventory_2',
                 'items': [

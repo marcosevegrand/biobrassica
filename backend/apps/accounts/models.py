@@ -67,6 +67,20 @@ class User(AbstractUser):
         return super().save(*args, **kwargs)
 
 
+class CustomerAccount(User):
+    class Meta:
+        proxy = True
+        verbose_name = _('cliente')
+        verbose_name_plural = _('clientes')
+
+
+class StaffAccount(User):
+    class Meta:
+        proxy = True
+        verbose_name = _('staff')
+        verbose_name_plural = _('staff')
+
+
 class Address(models.Model):
     class Country(models.TextChoices):
         PORTUGAL = 'PT', _('Portugal')

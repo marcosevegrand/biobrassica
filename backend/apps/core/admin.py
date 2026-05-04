@@ -12,32 +12,21 @@ from apps.core.models import ShopSettings
 
 @admin.register(ShopSettings)
 class ShopSettingsAdmin(ModelAdmin):
-    fieldsets = (
-        (_('Loja'), {
-            'fields': ('is_shop_active', 'min_order_total'),
-            'description': _(
-                'Desative a loja para impedir o avanço do checkout. A configuração é '
-                'persistida em base de dados e mantém-se entre deployments.'
-            ),
-        }),
-        (_('MB WAY'), {
-            'fields': ('mbway_enabled', 'mbway_number'),
-        }),
-        (_('Transferência bancária'), {
-            'fields': ('bank_transfer_enabled', 'bank_beneficiary', 'bank_iban', 'bank_bic'),
-        }),
-        (_('Locais de levantamento e métodos de entrega'), {
-            'fields': ('locations_link', 'delivery_methods_link'),
-            'description': _(
-                'Configure os locais de levantamento (com horário) e os métodos de entrega '
-                'disponíveis na loja.'
-            ),
-        }),
-        (_('Auditoria'), {
-            'fields': ('updated_at',),
-        }),
+    fields = (
+        'is_shop_active',
+        'min_order_total',
+        'mbway_enabled',
+        'mbway_number',
+        'bank_transfer_enabled',
+        'bank_beneficiary',
+        'bank_iban',
+        'bank_bic',
+        'locations_link',
+        'delivery_methods_link',
+        'updated_at',
     )
     readonly_fields = ('updated_at', 'locations_link', 'delivery_methods_link')
+    compressed_fields = True
 
     def has_add_permission(self, request):
         return not ShopSettings.objects.filter(pk=1).exists()
@@ -70,5 +59,4 @@ class ShopSettingsAdmin(ModelAdmin):
             url, _('Gerir métodos'),
             add_url, _('+ Novo método'),
         )
-
 
