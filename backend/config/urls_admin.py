@@ -11,7 +11,9 @@ from apps.core.admin_views import calendario_view
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/admin/', permanent=False)),
-    path('admin/operacoes/calendario/', admin.site.admin_view(calendario_view), name='operacoes_calendario'),
+    path('admin/', RedirectView.as_view(pattern_name='operacoes_painel', permanent=False)),
+    path('admin/operacoes/painel/', admin.site.admin_view(calendario_view), name='operacoes_painel'),
+    path('admin/operacoes/calendario/', RedirectView.as_view(pattern_name='operacoes_painel', permanent=False), name='operacoes_calendario'),
     path('admin/', admin.site.urls),
     path('_health/', include('apps.core.health_urls')),
 ]

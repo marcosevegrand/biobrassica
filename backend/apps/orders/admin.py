@@ -32,7 +32,7 @@ from apps.payments.models import Payment
 class OrderAdminForm(forms.ModelForm):
     class Meta:
         model = Order
-        exclude = ('access_token', 'subtotal', 'total', 'created_at', 'updated_at')
+        exclude = ('access_token', 'created_at', 'updated_at')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,6 +40,10 @@ class OrderAdminForm(forms.ModelForm):
         self.fields['name'].widget.attrs.setdefault('placeholder', _('Nome do cliente'))
         self.fields['email'].widget.attrs.setdefault('placeholder', _('cliente@exemplo.pt'))
         self.fields['phone'].widget.attrs.setdefault('placeholder', _('912 345 678'))
+        self.fields['subtotal'].required = False
+        self.fields['total'].required = False
+        self.fields['subtotal'].widget.attrs.setdefault('step', '0.01')
+        self.fields['total'].widget.attrs.setdefault('step', '0.01')
 
         if self.instance.pk:
             allowed_statuses = {self.instance.status, *self.instance.valid_next_statuses()}
@@ -164,36 +168,19 @@ class OrderItemInline(TabularInline):
 @admin.register(Order)
 class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     form = OrderAdminForm
-    list_before_template = 'admin/orders/order/workflow_overview.html'
     list_display = (
         '__str__',
-        'customer_display',
         'status_badge',
-        'payment_status_badge',
-        'payment_method_display',
-        'workflow_next_step',
-        'items_count_display',
         'fulfillment_method',
         'pickup_location',
         'total',
-        'created_since',
         'created_at',
-        'quick_actions',
         'edit_link',
     )
     list_filter = ('status', 'payment__status', 'fulfillment_method', 'pickup_location', 'created_at')
     search_fields = ('=pk', 'email', 'name', 'phone')
     search_help_text = _('Pesquise por número de encomenda, email, nome ou telefone.')
-    readonly_fields = (
-        'workflow_summary',
-        'customer_snapshot',
-        'payment_summary',
-        'fulfillment_snapshot',
-        'subtotal',
-        'total',
-        'created_at',
-        'updated_at',
-    )
+    readonly_fields = ()
     inlines = [OrderItemInline]
     list_filter_submit = True
     compressed_fields = True
@@ -201,38 +188,46 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     actions = ('mark_preparing', 'mark_ready', 'mark_delivered', 'cancel_unpaid_orders')
 
     add_fieldsets = (
-        (_('Operação'), {
-            'fields': ('status',),
-        }),
-        (_('Cliente'), {
-            'fields': ('user', 'name', 'email', 'phone', 'language'),
-        }),
-        (_('Encomenda'), {
-            'fields': ('fulfillment_method', 'pickup_location', 'notes'),
-        }),
-        (_('Envio'), {
-            'fields': ('shipping_address_line1', 'shipping_address_line2', 'shipping_postal_code', 'shipping_city'),
+        (None, {
+            'fields': (
+                'user',
+                'name',
+                'email',
+                'phone',
+                'status',
+                'fulfillment_method',
+                'pickup_location',
+                'shipping_address_line1',
+                'shipping_address_line2',
+                'shipping_postal_code',
+                'shipping_city',
+                'language',
+                'notes',
+                'subtotal',
+                'total',
+            ),
         }),
     )
 
     fieldsets = (
-        ('Operação', {
-            'fields': ('status', 'workflow_summary', 'payment_summary'),
-        }),
-        ('Cliente', {
-            'fields': ('user', 'customer_snapshot', 'name', 'email', 'phone'),
-        }),
-        ('Encomenda', {
-            'fields': ('fulfillment_method', 'pickup_location', 'fulfillment_snapshot', 'language', 'notes'),
-        }),
-        ('Envio', {
-            'fields': ('shipping_address_line1', 'shipping_address_line2', 'shipping_postal_code', 'shipping_city'),
-        }),
-        ('Valores', {
-            'fields': ('subtotal', 'total'),
-        }),
-        ('Datas', {
-            'fields': ('created_at', 'updated_at'),
+        (None, {
+            'fields': (
+                'user',
+                'name',
+                'email',
+                'phone',
+                'status',
+                'fulfillment_method',
+                'pickup_location',
+                'shipping_address_line1',
+                'shipping_address_line2',
+                'shipping_postal_code',
+                'shipping_city',
+                'language',
+                'notes',
+                'subtotal',
+                'total',
+            ),
         }),
     )
 
@@ -258,27 +253,12 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return custom_urls + super().get_urls()
 
     def get_fieldsets(self, request, obj=None):
-        if obj is None:
-            return self.add_fieldsets
-        return super().get_fieldsets(request, obj)
+        return self.add_fieldsets if obj is None else self.fieldsets
 
     def get_readonly_fields(self, request, obj=None):
-        if obj is None:
-            return ()
-        return super().get_readonly_fields(request, obj)
+        return ()
 
     def changelist_view(self, request, extra_context=None):
-        queryset = self.get_queryset(request)
-        base_url = reverse('admin:orders_order_changelist')
-        extra_context = {
-            **(extra_context or {}),
-            'workflow_metric_cards': [
-                {'label': 'A aguardar pagamento', 'value': queryset.filter(status=Order.Status.PAYMENT_PENDING).count(), 'context': 'Prioridade comercial', 'link': f'{base_url}?status__exact={Order.Status.PAYMENT_PENDING}'},
-                {'label': 'Pagas por preparar', 'value': queryset.filter(status=Order.Status.PAID).count(), 'context': 'Próximo passo: preparação', 'link': f'{base_url}?status__exact={Order.Status.PAID}'},
-                {'label': 'Em preparação', 'value': queryset.filter(status=Order.Status.PREPARING).count(), 'context': 'Acompanhar equipa', 'link': f'{base_url}?status__exact={Order.Status.PREPARING}'},
-                {'label': 'Prontas para entrega', 'value': queryset.filter(status=Order.Status.READY).count(), 'context': 'Operação de saída', 'link': f'{base_url}?status__exact={Order.Status.READY}'},
-            ],
-        }
         return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description='Estado')
@@ -339,30 +319,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return actions
 
     def get_changeform_custom_tools(self, request, obj):
-        tools = []
-        payment = getattr(obj, 'payment', None)
-        if payment is not None:
-            tools.append({
-                'title': _('Abrir pagamento'),
-                'link': reverse('admin:payments_payment_change', args=[payment.pk]),
-                'icon': 'payments',
-                'blank': False,
-            })
-        if obj.user_id:
-            tools.append({
-                'title': _('Abrir cliente'),
-                'link': reverse('admin:accounts_user_change', args=[obj.user_id]),
-                'icon': 'person',
-                'blank': False,
-            })
-        if self._can_cancel_from_change_form(obj):
-            tools.append({
-                'title': _('Cancelar não paga'),
-                'link': reverse('admin:orders_order_cancel_unpaid', args=[obj.pk]),
-                'icon': 'cancel',
-                'blank': False,
-            })
-        return tools
+        return []
 
     def cancel_unpaid_view(self, request, object_id):
         order = self.get_object(request, object_id)

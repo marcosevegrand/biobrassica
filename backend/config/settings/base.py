@@ -277,17 +277,10 @@ UNFOLD = {
     'SIDEBAR': {
         'navigation': [
             {
-                'title': 'Painél',
-                'icon': 'dashboard',
-                'items': [
-                    {'title': 'Painél', 'link': '/admin/', 'icon': 'dashboard'},
-                ],
-            },
-            {
                 'title': 'Operações',
                 'icon': 'shopping_bag',
                 'items': [
-                    {'title': 'Calendário', 'link': '/admin/operacoes/calendario/', 'icon': 'calendar_month'},
+                    {'title': 'Painel', 'link': '/admin/operacoes/painel/', 'icon': 'dashboard'},
                     {'title': 'Encomendas', 'link': '/admin/orders/order/', 'icon': 'shopping_bag'},
                     {'title': 'Pagamentos', 'link': '/admin/payments/payment/', 'icon': 'payments'},
                     {'title': 'Clientes', 'link': '/admin/accounts/user/', 'icon': 'group'},

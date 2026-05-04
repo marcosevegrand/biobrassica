@@ -1,8 +1,8 @@
 {% load i18n %}
 
 <div id="cart-item-{{ item.pk }}" data-cart-item-row class="flex items-center gap-6 border-b border-stone/30 pb-6">
-  {% if item.product.primary_image %}
-  <img src="{{ item.product.primary_image.image.url }}" alt="{{ item.product.get_name }}"
+  {% if item.product.image %}
+  <img src="{{ item.product.image.url }}" alt="{{ item.product.get_name }}"
        class="w-20 h-20 object-cover rounded-sm" />
   {% else %}
   <div class="w-20 h-20 bg-stone/20 rounded-sm"></div>

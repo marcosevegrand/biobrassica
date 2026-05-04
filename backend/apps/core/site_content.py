@@ -119,7 +119,7 @@ def get_pickup_locations_label(*, lang=None, contact_locations=None):
         if contact_locations is None:
             names = [
                 _display_location_name(location.name)
-                for location in Location.objects.filter(is_active=True).order_by('order', 'name')
+                for location in Location.objects.filter(is_active=True).select_related('sort_order').order_by('sort_order__position', 'name', 'pk')
                 if _display_location_name(location.name)
             ]
         else:
@@ -286,7 +286,7 @@ def _build_contact_locations():
     locations = []
     default_email = DEFAULT_SUPPORT_EMAIL
 
-    for location in Location.objects.filter(is_active=True).order_by('order', 'name'):
+    for location in Location.objects.filter(is_active=True).select_related('sort_order').order_by('sort_order__position', 'name', 'pk'):
         default_key = 'guimaraes' if 'guimar' in location.name.lower() else 'braga'
         defaults = DEFAULT_LOCATION_CONTENT[default_key]
         locations.append({

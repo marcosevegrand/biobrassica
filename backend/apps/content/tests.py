@@ -294,12 +294,17 @@ class ContentListAndDetailViewTests(TestCase):
         product = Product.objects.create(
             category=category,
             slug='arroz-bio',
+            name='Arroz bio',
             brand='Biobrassica',
+            description='Arroz biológico.',
+            allergens='Sem alergénios declarados.',
             price=Decimal('4.50'),
             quantity='1 kg',
             stock=10,
             is_active=True,
+            allow_shipping=True,
             bio_code='PT-BIO-04',
+            image=SimpleUploadedFile('arroz.gif', GIF_BYTES, content_type='image/gif'),
         )
         ProductTranslation.objects.create(
             product=product,

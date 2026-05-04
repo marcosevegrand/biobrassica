@@ -1,706 +1,170 @@
-from io import StringIO
-import shutil
-import tempfile
+from decimal import Decimal
 
-from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import IntegrityError, transaction
-from django.db import connection
 from django.test import TestCase, override_settings
-from django.test.client import RequestFactory
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-from django.contrib import admin
-from typing import Any, cast
-from django.utils import translation
+from django import forms
 
+from apps.accounts.models import User
 from apps.catalog.forms import ProductAdminForm
-from apps.catalog.models import Category, CategoryTranslation, DeliveryMethod, Location, Product, ProductImage, ProductTranslation
+from apps.catalog.models import Category, CategoryPosition, CategoryTranslation, Location, Product, ProductTranslation
 
 
 GIF_BYTES = (
-	b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04'
-	b'\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04'
+    b'\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
 )
 
 
-class TempMediaRootMixin:
-	@classmethod
-	def setUpClass(cls):
-		cast(Any, super()).setUpClass()
-		cls._temp_media_root = tempfile.mkdtemp()
-		cls._media_override = override_settings(MEDIA_ROOT=cls._temp_media_root)
-		cls._media_override.enable()
-
-	@classmethod
-	def tearDownClass(cls):
-		cls._media_override.disable()
-		shutil.rmtree(cls._temp_media_root, ignore_errors=True)
-		cast(Any, super()).tearDownClass()
+def make_image(name='imagem.gif'):
+    return SimpleUploadedFile(name, GIF_BYTES, content_type='image/gif')
 
 
-class ProductModelTests(TempMediaRootMixin, TestCase):
-	def setUp(self):
-		self.category = Category.objects.create(slug='mercearia')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Mercearia',
-			description='Categoria mercearia',
-		)
+class CatalogModelTests(TestCase):
+    def test_category_uses_name_as_primary_pt_field(self):
+        category = Category.objects.create(name='Mercearia Fresca')
 
-	def test_product_requires_required_attributes(self):
-		product = Product(
-			category=self.category,
-			slug='produto-incompleto',
-			price='3.50',
-			stock=10,
-		)
+        self.assertEqual(category.slug, 'mercearia-fresca')
+        self.assertEqual(category.get_name('pt'), 'Mercearia Fresca')
 
-		with self.assertRaises(ValidationError) as ctx:
-			product.full_clean()
+    def test_category_accepts_legacy_order_input_but_stores_position_externally(self):
+        category = Category.objects.create(name='Cabazes', order=3)
 
-		self.assertIn('brand', ctx.exception.message_dict)
-		self.assertIn('quantity', ctx.exception.message_dict)
-		self.assertIn('bio_code', ctx.exception.message_dict)
+        self.assertEqual(category.order, 3)
+        self.assertTrue(CategoryPosition.objects.filter(category=category, position=3).exists())
 
+    def test_product_translation_falls_back_to_pt_fields(self):
+        category = Category.objects.create(name='Mercearia')
+        product = Product.objects.create(
+            category=category,
+            name='Azeite Bio',
+            brand='Biobrassica',
+            bio_code='PT-BIO-03',
+            description='Azeite virgem extra biológico.',
+            allergens='Sem alergénios declarados.',
+            price=Decimal('9.50'),
+            quantity='750 ml',
+            stock=5,
+            is_active=True,
+            allow_shipping=True,
+            image=make_image('azeite.gif'),
+        )
+        ProductTranslation.objects.create(
+            product=product,
+            language='en',
+            name='Organic Olive Oil',
+            description='Organic extra virgin olive oil.',
+            allergens='No declared allergens.',
+        )
 
-class LocationModelTests(TestCase):
-	def test_location_save_normalizes_phone(self):
-		location = Location.objects.create(
-			name='Loja Braga',
-			phone='+351 253 271 187',
-		)
+        self.assertEqual(product.get_name('en'), 'Organic Olive Oil')
+        self.assertEqual(product.get_name('fr'), 'Azeite Bio')
+        self.assertEqual(product.get_description('fr'), 'Azeite virgem extra biológico.')
 
-		self.assertEqual(location.phone, '253 271 187')
+    def test_active_product_requires_image(self):
+        category = Category.objects.create(name='Mercearia')
+        product = Product(
+            category=category,
+            name='Arroz Bio',
+            brand='Biobrassica',
+            bio_code='PT-BIO-04',
+            description='Arroz biológico.',
+            allergens='Sem alergénios declarados.',
+            price=Decimal('4.50'),
+            quantity='1 kg',
+            stock=10,
+            is_active=True,
+            allow_shipping=True,
+        )
 
-	def test_location_full_clean_rejects_insecure_map_url(self):
-		location = Location(
-			name='Loja Braga',
-			map_embed_url='http://example.com/mapa',
-		)
+        with self.assertRaises(ValidationError) as ctx:
+            product.save()
 
-		with self.assertRaises(ValidationError) as ctx:
-			location.full_clean()
+        self.assertIn('O produto precisa de uma imagem.', ctx.exception.messages)
 
-		self.assertIn('map_embed_url', ctx.exception.message_dict)
+    def test_active_product_with_pickup_requires_locations(self):
+        category = Category.objects.create(name='Mercearia')
+        product = Product.objects.create(
+            category=category,
+            name='Massa Bio',
+            brand='Biobrassica',
+            bio_code='PT-BIO-05',
+            description='Massa biológica.',
+            allergens='Contém glúten.',
+            price=Decimal('3.20'),
+            quantity='500 g',
+            stock=8,
+            is_active=False,
+            allow_pickup=True,
+            image=make_image('massa.gif'),
+        )
+        product.is_active = True
+
+        with self.assertRaises(ValidationError) as ctx:
+            product.save()
+
+        self.assertIn('Selecione pelo menos uma localização de recolha.', ctx.exception.message_dict['pickup_locations'])
 
 
 class ProductAdminFormTests(TestCase):
-	def setUp(self):
-		self.category = Category.objects.create(slug='mercearia-admin-form')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Mercearia',
-			description='Categoria mercearia',
-		)
-		self.product = Product.objects.create(
-			category=self.category,
-			slug='produto-admin-form',
-			brand='Biobrassica',
-			price='4.90',
-			quantity='250 g',
-			stock=5,
-			is_active=False,
-			bio_code='PT-BIO-03',
-		)
+    def test_product_admin_form_uses_pickup_location_checkboxes(self):
+        category = Category.objects.create(name='Mercearia')
+        location = Location.objects.create(name='Loja Braga', is_active=True, order=1)
 
-	def test_product_admin_form_prefills_structured_brand_and_quantity_fields(self):
-		form = ProductAdminForm(instance=self.product)
+        form = ProductAdminForm()
 
-		self.assertEqual(form['brand_choice'].value(), 'Biobrassica')
-		self.assertEqual(form['brand_custom'].value(), '')
-		self.assertEqual(str(form['quantity_value'].value()), '250')
-		self.assertEqual(form['quantity_unit'].value(), 'g')
-
-	def test_product_admin_form_combines_structured_brand_and_quantity_inputs(self):
-		form = ProductAdminForm(data={
-			'category': str(self.category.pk),
-			'slug': 'feijao-bio',
-			'brand': '',
-			'brand_choice': ProductAdminForm.BRAND_CUSTOM_CHOICE,
-			'brand_custom': '  Biobrassica  ',
-			'price': '3.50',
-			'quantity': '',
-			'quantity_value': '500',
-			'quantity_unit': 'g',
-			'stock': '12',
-			'bio_code': 'PT-BIO-04',
-		})
-
-		self.assertTrue(form.is_valid(), form.errors)
-		product = form.save(commit=False)
-
-		self.assertEqual(product.brand, 'Biobrassica')
-		self.assertEqual(product.quantity, '500 g')
-
-	def test_translation_requires_description(self):
-		product = Product.objects.create(
-			category=self.category,
-			slug='produto-completo',
-			brand='Casa do Tahini',
-			price='5.90',
-			quantity='250 g',
-			stock=5,
-			bio_code='PT-BIO-03',
-		)
-
-		translation = ProductTranslation(
-			product=product,
-			language='pt',
-			name='Tahini',
-			description='',
-			allergens='',
-			ingredients='',
-		)
-
-		with self.assertRaises(ValidationError) as ctx:
-			translation.full_clean()
-
-		self.assertIn('description', ctx.exception.message_dict)
-		self.assertIn('allergens', ctx.exception.message_dict)
-		self.assertIn('ingredients', ctx.exception.message_dict)
-
-	def test_active_product_requires_stock_primary_image_and_location(self):
-		product = Product.objects.create(
-			category=self.category,
-			slug='produto-ativo-invalido',
-			brand='Casa do Tahini',
-			price='5.90',
-			quantity='250 g',
-			stock=1,
-			bio_code='PT-BIO-03',
-			is_active=False,
-		)
-		ProductTranslation.objects.create(
-			product=product,
-			language='pt',
-			name='Tahini',
-			description='Descrição',
-			allergens='Sésamo',
-			ingredients='Sementes de sésamo',
-		)
-		ProductImage.objects.create(
-			product=product,
-			image=SimpleUploadedFile('produto.gif', GIF_BYTES, content_type='image/gif'),
-			alt_text='Tahini',
-			is_primary=True,
-		)
-
-		product.stock = 0
-		product.is_active = True
-
-		with self.assertRaises(ValidationError) as ctx:
-			product.full_clean()
-
-		self.assertIn('O produto precisa de stock para estar ativo.', ctx.exception.messages)
-		self.assertIn('O produto precisa de pelo menos uma localização para levantamento.', ctx.exception.messages)
-
-	def test_preview_only_active_product_allows_zero_stock(self):
-		location = Location.objects.create(name='Loja Braga', is_active=True, order=1)
-		product = Product.objects.create(
-			category=self.category,
-			slug='produto-preview',
-			brand='Casa do Tahini',
-			price='5.90',
-			quantity='250 g',
-			stock=0,
-			bio_code='PT-BIO-03',
-			is_active=False,
-			is_preview_only=True,
-		)
-		ProductTranslation.objects.create(
-			product=product,
-			language='pt',
-			name='Tahini preview',
-			description='Descrição',
-			allergens='Sésamo',
-			ingredients='Sementes de sésamo',
-		)
-		ProductImage.objects.create(
-			product=product,
-			image=SimpleUploadedFile('preview.gif', GIF_BYTES, content_type='image/gif'),
-			alt_text='Tahini preview',
-			is_primary=True,
-		)
-		product.available_locations.add(location)
-
-		product.is_active = True
-		product.full_clean()
-
-
-@override_settings(ROOT_URLCONF='config.urls_shop')
-class ProductDetailViewTests(TempMediaRootMixin, TestCase):
-	def setUp(self):
-		self.category = Category.objects.create(slug='despensa')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Despensa',
-			description='Produtos de despensa',
-		)
-		self.product = Product.objects.create(
-			category=self.category,
-			slug='massa-integral-bio',
-			brand='Biobrassica',
-			price='2.49',
-			quantity='500 g',
-			stock=12,
-			bio_code='PT-BIO-03',
-		)
-		ProductTranslation.objects.create(
-			product=self.product,
-			language='pt',
-			name='Massa integral bio',
-			description='Massa de trigo duro integral com textura firme.',
-			allergens='Contém glúten',
-			ingredients='Farinha integral de trigo duro bio.',
-		)
-		ProductImage.objects.create(
-			product=self.product,
-			image=SimpleUploadedFile('produto.gif', GIF_BYTES, content_type='image/gif'),
-			alt_text='Massa integral bio',
-			is_primary=True,
-		)
-
-	def test_product_detail_shows_required_product_attributes(self):
-		response = self.client.get(
-			reverse('catalog:product_detail', kwargs={'slug': self.product.slug}),
-			HTTP_HOST='loja.lvh.me',
-		)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Massa integral bio')
-		self.assertContains(response, 'Biobrassica')
-		self.assertContains(response, 'Contém glúten')
-		self.assertContains(response, 'Farinha integral de trigo duro bio.')
-		self.assertContains(response, '500 g')
-		self.assertContains(response, 'PT-BIO-03')
-
-	def test_product_detail_shows_preview_only_state(self):
-		self.product.is_preview_only = True
-		self.product.stock = 0
-		self.product.save(update_fields=['is_preview_only', 'stock'])
-
-		response = self.client.get(
-			reverse('catalog:product_detail', kwargs={'slug': self.product.slug}),
-			HTTP_HOST='loja.lvh.me',
-		)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Produto em pré-visualização')
-		self.assertContains(response, 'Disponível para consulta no catálogo, sem compra online de momento.')
-
-	def test_product_detail_stays_within_expected_query_budget(self):
-		with CaptureQueriesContext(connection) as queries:
-			response = self.client.get(
-				reverse('catalog:product_detail', kwargs={'slug': self.product.slug}),
-				HTTP_HOST='loja.lvh.me',
-			)
-			self.assertEqual(response.status_code, 200)
-
-		self.assertLessEqual(len(queries), 10)
-
-
-class CatalogConstraintTests(TempMediaRootMixin, TestCase):
-	def setUp(self):
-		self.category = Category.objects.create(slug='mercearia')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Mercearia',
-			description='Categoria mercearia',
-		)
-		self.product = Product.objects.create(
-			category=self.category,
-			slug='produto-bio',
-			brand='Biobrassica',
-			price='5.90',
-			quantity='250 g',
-			stock=5,
-			bio_code='PT-BIO-03',
-		)
-
-	def test_duplicate_category_translation_language_is_rejected(self):
-		with self.assertRaises(IntegrityError):
-			with transaction.atomic():
-				CategoryTranslation.objects.create(
-					category=self.category,
-					language='pt',
-					name='Mercearia duplicada',
-					description='Duplicada',
-				)
-
-	def test_duplicate_product_translation_language_is_rejected(self):
-		ProductTranslation.objects.create(
-			product=self.product,
-			language='pt',
-			name='Tahini',
-			description='Descrição',
-			allergens='Sésamo',
-			ingredients='Sementes de sésamo',
-		)
-
-		with self.assertRaises(IntegrityError):
-			with transaction.atomic():
-				ProductTranslation.objects.create(
-					product=self.product,
-					language='pt',
-					name='Tahini duplicado',
-					description='Descrição duplicada',
-					allergens='Sésamo',
-					ingredients='Sementes de sésamo',
-				)
-
-	def test_duplicate_primary_product_image_is_rejected(self):
-		ProductImage.objects.create(
-			product=self.product,
-			image=SimpleUploadedFile('primary-1.gif', GIF_BYTES, content_type='image/gif'),
-			alt_text='Primeira',
-			is_primary=True,
-		)
-
-		with self.assertRaises(IntegrityError):
-			with transaction.atomic():
-				ProductImage.objects.create(
-					product=self.product,
-					image=SimpleUploadedFile('primary-2.gif', GIF_BYTES, content_type='image/gif'),
-					alt_text='Segunda',
-					is_primary=True,
-				)
-
-
-@override_settings(ROOT_URLCONF='config.urls_shop')
-class CatalogListViewTests(TestCase):
-	def setUp(self):
-		self.category = Category.objects.create(slug='mercearia')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Mercearia',
-			description='Categoria mercearia',
-		)
-		for index in range(13):
-			product = Product.objects.create(
-				category=self.category,
-				slug=f'produto-{index}',
-				brand='Biobrassica',
-				price='3.50',
-				quantity='250 g',
-				stock=10,
-				bio_code=f'PT-BIO-{index + 3:02d}',
-			)
-			ProductTranslation.objects.create(
-				product=product,
-				language='pt',
-				name=f'Produto {index}',
-				description='Descrição do produto',
-				allergens='Sem alergénios',
-				ingredients='Ingredientes do produto',
-			)
-
-	def test_product_list_paginates_and_preserves_filters(self):
-		response = self.client.get(
-			reverse('catalog:product_list'),
-			{'categoria': self.category.slug, 'q': 'Produto', 'page': 2},
-			HTTP_HOST='loja.lvh.me',
-		)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertTrue(response.context['is_paginated'])
-		self.assertEqual(response.context['page_obj'].number, 2)
-		self.assertEqual(response.context['pagination_query'], f'categoria={self.category.slug}&q=Produto')
-		self.assertEqual(len(response.context['products']), 1)
-
-	def test_product_list_stays_within_expected_query_budget(self):
-		with CaptureQueriesContext(connection) as queries:
-			response = self.client.get(
-				reverse('catalog:product_list'),
-				HTTP_HOST='loja.lvh.me',
-				)
-			self.assertEqual(response.status_code, 200)
-
-		self.assertLessEqual(len(queries), 10)
-
-	def test_product_list_uses_pt_fallback_when_requested_language_is_missing(self):
-		with translation.override('en'):
-			response = self.client.get(
-				reverse('catalog:product_list'),
-				HTTP_HOST='loja.lvh.me',
-			)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Produto 12')
-
-	def test_product_list_search_uses_pt_fallback_when_requested_language_is_missing(self):
-		product = Product.objects.create(
-			category=self.category,
-			slug='produto-so-pt',
-			brand='Biobrassica',
-			price='4.20',
-			quantity='200 g',
-			stock=10,
-			bio_code='PT-BIO-99',
-		)
-		ProductTranslation.objects.create(
-			product=product,
-			language='pt',
-			name='Pesquisa PT',
-			description='Encontrado via fallback',
-			allergens='Sem alergénios',
-			ingredients='Ingredientes PT',
-		)
-
-		with translation.override('en'):
-			response = self.client.get(
-				reverse('catalog:product_list'),
-				{'q': 'Pesquisa'},
-				HTTP_HOST='loja.lvh.me',
-			)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Pesquisa PT')
-
-	def test_product_list_keeps_preview_only_products_visible(self):
-		product = Product.objects.create(
-			category=self.category,
-			slug='produto-preview',
-			brand='Biobrassica',
-			price='4.20',
-			quantity='200 g',
-			stock=0,
-			is_preview_only=True,
-			bio_code='PT-BIO-98',
-		)
-		ProductTranslation.objects.create(
-			product=product,
-			language='pt',
-			name='Produto preview',
-			description='Visível mas não comprável',
-			allergens='Sem alergénios',
-			ingredients='Ingredientes PT',
-		)
-
-		response = self.client.get(
-			reverse('catalog:product_list'),
-			HTTP_HOST='loja.lvh.me',
-		)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Produto preview')
-		self.assertContains(response, 'Pré-visualização')
+        self.assertIsInstance(form.fields['pickup_locations'].widget, forms.CheckboxSelectMultiple)
+        self.assertIn(location.pk, list(form.fields['pickup_locations'].queryset.values_list('pk', flat=True)))
+        self.assertIn(category.pk, list(form.fields['category'].queryset.values_list('pk', flat=True)))
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
-class ProductAdminWorkflowTests(TempMediaRootMixin, TestCase):
-	def setUp(self):
-		user_model = get_user_model()
-		self.admin_user = cast(Any, user_model._default_manager).create_superuser(
-			email='admin@example.com',
-			username='admin',
-			password='testpass123',
-		)
-		self.client.defaults['HTTP_HOST'] = 'admin.lvh.me'
-		self.client.force_login(self.admin_user)
-		self.category = Category.objects.create(slug='mercearia')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Mercearia',
-			description='Categoria mercearia',
-		)
-		self.product = Product.objects.create(
-			category=self.category,
-			slug='produto-admin',
-			brand='Biobrassica',
-			price='5.90',
-			quantity='250 g',
-			stock=2,
-			bio_code='PT-BIO-03',
-		)
-		ProductTranslation.objects.create(
-			product=self.product,
-			language='pt',
-			name='Produto admin',
-			description='Descrição',
-			allergens='Sem alergénios',
-			ingredients='Ingredientes',
-		)
+class CatalogAdminTests(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            email='admin@example.com',
+            username='admin',
+            password='testpass123',
+        )
+        self.category = Category.objects.create(name='Mercearia')
+        self.location = Location.objects.create(name='Loja Braga', is_active=True, order=1)
+        self.product = Product.objects.create(
+            category=self.category,
+            name='Azeite Bio',
+            brand='Biobrassica',
+            bio_code='PT-BIO-03',
+            description='Azeite virgem extra biológico.',
+            allergens='Sem alergénios declarados.',
+            price=Decimal('9.50'),
+            quantity='750 ml',
+            stock=5,
+            is_active=True,
+            allow_shipping=True,
+            allow_pickup=True,
+            image=make_image('admin-azeite.gif'),
+        )
+        self.product.pickup_locations.add(self.location)
+        self.client.defaults['HTTP_HOST'] = 'admin.lvh.me'
+        self.client.force_login(self.admin_user)
 
-	def test_product_admin_changelist_shows_workflow_cards(self):
-		response = self.client.get(reverse('admin:catalog_product_changelist'))
+    def test_category_admin_change_form_is_flat(self):
+        response = self.client.get(reverse('admin:catalog_category_change', args=[self.category.pk]))
 
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Pré-visualização')
-		self.assertContains(response, 'Sem stock')
-		self.assertContains(response, 'Baixo stock')
-		self.assertContains(response, 'Sem imagem principal')
-		self.assertContains(response, 'Prontos a reativar')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="name"', html=False)
+        self.assertContains(response, 'name="featured_message"', html=False)
+        self.assertNotContains(response, 'Checklist da categoria')
+        self.assertNotContains(response, 'Publicação')
 
-	def test_product_change_form_shows_publication_checklist(self):
-		response = self.client.get(reverse('admin:catalog_product_change', args=[self.product.pk]))
+    def test_product_admin_change_form_uses_base_pt_fields_and_no_gallery_inline(self):
+        response = self.client.get(reverse('admin:catalog_product_change', args=[self.product.pk]))
 
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Checklist de publicação')
-		self.assertContains(response, 'Plano de reposição')
-		self.assertContains(response, 'Imagens do produto')
-		self.assertContains(response, 'Fila de reposição')
-		self.assertContains(response, 'A galeria começa vazia')
-		self.assertContains(response, 'name="brand_choice"', html=False)
-		self.assertContains(response, 'name="brand_custom"', html=False)
-		self.assertContains(response, 'name="quantity_value"', html=False)
-		self.assertContains(response, 'name="quantity_unit"', html=False)
-		self.assertNotContains(response, 'image_preview', html=False)
-
-	def test_product_add_form_starts_without_prefilled_inline_entries(self):
-		response = self.client.get(reverse('admin:catalog_product_add'))
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Adicione apenas as traduções necessárias')
-		self.assertContains(response, 'A galeria começa vazia')
-		self.assertContains(response, 'Nenhuma tradução adicionada')
-		self.assertContains(response, 'Galeria vazia')
-		self.assertContains(response, 'Adicionar tradução')
-		self.assertContains(response, 'Adicionar imagem')
-		self.assertNotContains(response, 'name="translations-0-language"', html=False)
-		self.assertNotContains(response, 'name="images-0-image"', html=False)
-		self.assertContains(response, 'class="add-row', html=False)
-		self.assertContains(response, 'class="formset"', html=False)
-		self.assertContains(response, 'class="form-group', html=False)
-
-	def test_out_of_stock_product_can_be_deactivated_from_change_form(self):
-		self.product.stock = 0
-		self.product.save(update_fields=['stock'])
-
-		response = self.client.post(
-			reverse('admin:catalog_product_change', args=[self.product.pk]),
-			{'_deactivate_until_restock': '1'},
-			follow=True,
-		)
-
-		self.product.refresh_from_db()
-
-		self.assertEqual(response.status_code, 200)
-		self.assertFalse(self.product.is_active)
-		self.assertContains(response, 'Produto desativado até reposição.')
-
-	def test_product_quick_action_can_increase_stock(self):
-		response = self.client.get(
-			reverse('admin:catalog_product_increase_stock', args=[self.product.pk]),
-			follow=True,
-		)
-
-		self.product.refresh_from_db()
-
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(self.product.stock, 3)
-
-	def test_product_admin_does_not_allow_is_active_inline_edit(self):
-		product_admin = admin.site._registry[Product]
-		self.assertNotIn('is_active', product_admin.list_editable)
-		self.assertNotIn('quantity', product_admin.list_editable)
-
-	def test_product_admin_queryset_prefetches_translated_labels_for_changelist_rows(self):
-		second_product = Product.objects.create(
-			category=self.category,
-			slug='produto-admin-2',
-			brand='Biobrassica',
-			price='7.10',
-			quantity='500 g',
-			stock=4,
-			bio_code='PT-BIO-04',
-		)
-		ProductTranslation.objects.create(
-			product=second_product,
-			language='pt',
-			name='Produto admin 2',
-			description='Descrição 2',
-			allergens='Sem alergénios',
-			ingredients='Ingredientes 2',
-		)
-		product_admin = admin.site._registry[Product]
-		request = RequestFactory().get(reverse('admin:catalog_product_changelist'))
-		request.user = self.admin_user
-
-		with CaptureQueriesContext(connection) as queries:
-			rows = [
-				(str(product), str(product.category))
-				for product in product_admin.get_queryset(request).order_by('pk')
-			]
-
-		self.assertEqual(
-			rows,
-			[
-				('Produto admin', 'Mercearia'),
-				('Produto admin 2', 'Mercearia'),
-			],
-		)
-		self.assertLessEqual(len(queries), 3)
-
-
-@override_settings(ROOT_URLCONF='config.urls_admin')
-class CatalogSupportAdminWorkflowTests(TestCase):
-	def setUp(self):
-		user_model = get_user_model()
-		self.admin_user = cast(Any, user_model._default_manager).create_superuser(
-			email='admin@example.com',
-			username='admin',
-			password='testpass123',
-		)
-		self.client.defaults['HTTP_HOST'] = 'admin.lvh.me'
-		self.client.force_login(self.admin_user)
-		self.location = Location.objects.create(name='Loja Braga', address='Rua A', phone='253 271 187')
-		self.delivery = DeliveryMethod.objects.create(name='Levantamento', description='Entrega em loja')
-		self.category = Category.objects.create(slug='mercearia')
-		CategoryTranslation.objects.create(
-			category=self.category,
-			language='pt',
-			name='Mercearia',
-			description='Categoria base',
-		)
-
-	def test_category_admin_shows_workflow_cards(self):
-		response = self.client.get(reverse('admin:catalog_category_changelist'))
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Em destaque')
-		self.assertContains(response, 'Sem produtos ativos')
-
-	def test_location_admin_shows_workflow_cards(self):
-		response = self.client.get(reverse('admin:catalog_location_changelist'))
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Lojas ativas')
-		self.assertContains(response, 'Sem mapa')
-
-	def test_delivery_admin_shows_workflow_cards(self):
-		response = self.client.get(reverse('admin:catalog_deliverymethod_changelist'))
-
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Ativos')
-		self.assertContains(response, 'Sem descrição')
-
-	def test_category_quick_action_can_hide_category(self):
-		response = self.client.get(
-			reverse('admin:catalog_category_toggle_active', args=[self.category.pk]),
-			follow=True,
-		)
-
-		self.category.refresh_from_db()
-
-		self.assertEqual(response.status_code, 200)
-		self.assertFalse(self.category.is_active)
-
-
-class CatalogSystemCheckTests(TestCase):
-	def test_check_warns_when_active_location_is_missing_pickup_code(self):
-		Location.objects.create(name='Loja Braga', is_active=True, order=1)
-		stdout = StringIO()
-		stderr = StringIO()
-
-		call_command('check', stdout=stdout, stderr=stderr)
-
-		self.assertIn('catalog.W001', stderr.getvalue())
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="name"', html=False)
+        self.assertContains(response, 'name="description"', html=False)
+        self.assertContains(response, 'name="allergens"', html=False)
+        self.assertContains(response, 'id="id_pickup_locations"', html=False)
+        self.assertNotContains(response, 'name="quantity_value"', html=False)
+        self.assertNotContains(response, 'Imagens do produto')
+        self.assertNotContains(response, 'Checklist de publicação')

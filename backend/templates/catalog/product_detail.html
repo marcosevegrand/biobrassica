@@ -17,8 +17,8 @@
     
     <!-- Row 1, Column 1: Images -->
     <div>
-      {% if product.primary_image %}
-      <img src="{{ product.primary_image.image.url }}" alt="{{ product.get_name }}"
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.get_name }}"
            class="w-full aspect-square object-cover rounded-sm" />
       {% else %}
       <div class="w-full aspect-square bg-stone/20 rounded-sm flex items-center justify-center">
@@ -26,14 +26,6 @@
       </div>
       {% endif %}
 
-      {% if product.images.count > 1 %}
-      <div class="grid grid-cols-4 gap-2 mt-4">
-        {% for img in product.images.all %}
-        <img src="{{ img.image.url }}" alt="{{ img.alt_text }}"
-             class="aspect-square object-cover rounded-sm border border-stone/30 cursor-pointer hover:border-forest transition-colors" />
-        {% endfor %}
-      </div>
-      {% endif %}
     </div>
 
     <!-- Row 1, Column 2: Info, Price, Buttons -->
@@ -47,26 +39,26 @@
         <span class="mt-2 text-sm uppercase tracking-[0.14em] text-muted">{{ product.quantity }}</span>
       </div>
 
-      {% if product.available_locations.all %}
+      {% if product.allow_pickup and product.pickup_locations.all %}
       <div class="flex flex-wrap gap-2 mb-6">
-        {% for loc in product.available_locations.all %}
+        {% for loc in product.pickup_locations.all %}
         <span class="text-[10px] uppercase tracking-widest text-muted border border-stone/30 px-3 py-1 rounded-sm">
           {{ loc.name }}
         </span>
         {% endfor %}
         <span class="text-[10px] uppercase tracking-widest border px-3 py-1 rounded-sm {% if product.allow_shipping %}text-forest border-forest/30{% else %}text-muted border-stone/30{% endif %}">
-          {% if product.allow_shipping %}{% trans "Envio disponível" %}{% else %}{% trans "Apenas levantamento" %}{% endif %}
+          {% if product.allow_shipping %}{% trans "Envio e recolha" %}{% else %}{% trans "Apenas recolha" %}{% endif %}
         </span>
       </div>
       {% else %}
       <div class="flex flex-wrap gap-2 mb-6">
         <span class="text-[10px] uppercase tracking-widest border px-3 py-1 rounded-sm {% if product.allow_shipping %}text-forest border-forest/30{% else %}text-muted border-stone/30{% endif %}">
-          {% if product.allow_shipping %}{% trans "Envio disponível" %}{% else %}{% trans "Apenas levantamento" %}{% endif %}
+          {% if product.allow_shipping %}{% trans "Apenas envio" %}{% else %}{% trans "Sem modo disponível" %}{% endif %}
         </span>
       </div>
       {% endif %}
 
-      {% if product.is_preview_only %}
+      {% if product.is_preview %}
       <p class="mb-6 text-xs uppercase tracking-widest text-terracotta">{% trans "Produto em pré-visualização" %}</p>
       {% endif %}
 
@@ -90,11 +82,11 @@
         <button type="submit"
                 class="flex-1 text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors {% if not product.can_add_to_cart %}opacity-50 cursor-not-allowed{% endif %}"
                 {% if not product.can_add_to_cart %}disabled{% endif %}>
-          {% if product.is_preview_only %}{% trans "Pré-visualização" %}{% elif product.in_stock %}{% trans "Adicionar ao carrinho" %}{% else %}{% trans "Esgotado" %}{% endif %}
+          {% if product.is_preview %}{% trans "Pré-visualização" %}{% elif product.in_stock %}{% trans "Adicionar ao carrinho" %}{% else %}{% trans "Esgotado" %}{% endif %}
         </button>
       </form>
 
-      {% if product.is_preview_only %}
+      {% if product.is_preview %}
       <p class="text-xs text-terracotta">{% trans "Disponível para consulta no catálogo, sem compra online de momento." %}</p>
       {% elif product.in_stock %}
       <p class="text-xs text-terracotta">{% trans "Em stock" %}</p>
@@ -124,10 +116,6 @@
       <div>
         <dt class="text-[10px] uppercase tracking-widest text-muted mb-2">{% trans "Quantidade" %}</dt>
         <dd class="text-sm text-forest">{{ product.quantity }}</dd>
-      </div>
-      <div>
-        <dt class="text-[10px] uppercase tracking-widest text-muted mb-2">{% trans "Ingredientes" %}</dt>
-        <dd class="text-sm text-forest leading-relaxed">{{ product.get_ingredients }}</dd>
       </div>
       <div class="flex items-center gap-3">
         <div>

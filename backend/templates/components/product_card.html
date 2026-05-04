@@ -2,9 +2,9 @@
 <div class="group border border-stone/40 rounded-sm overflow-hidden bg-paper">
   <a href="{% url 'catalog:product_detail' slug=product.slug %}">
     <div class="overflow-hidden">
-      {% if product.primary_image %}
+      {% if product.image %}
       <img
-        src="{{ product.primary_image.image.url }}"
+        src="{{ product.image.url }}"
         alt="{{ product.get_name }}"
         class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"
@@ -31,26 +31,26 @@
       <p class="mt-1 text-xs uppercase tracking-[0.14em] text-terracotta">{{ product.quantity }}</p>
     </div>
 
-    {% if product.available_locations.all %}
+    {% if product.allow_pickup and product.pickup_locations.all %}
     <div class="flex flex-wrap gap-1 mb-3">
-      {% for loc in product.available_locations.all %}
+      {% for loc in product.pickup_locations.all %}
       <span class="text-[10px] uppercase tracking-widest text-muted border border-stone/30 px-2 py-0.5 rounded-sm">
         {{ loc.name }}
       </span>
       {% endfor %}
       <span class="text-[10px] uppercase tracking-widest border px-2 py-0.5 rounded-sm {% if product.allow_shipping %}text-forest border-forest/30{% else %}text-muted border-stone/30{% endif %}">
-        {% if product.allow_shipping %}{% trans "Envio disponível" %}{% else %}{% trans "Apenas levantamento" %}{% endif %}
+        {% if product.allow_shipping %}{% trans "Envio e recolha" %}{% else %}{% trans "Apenas recolha" %}{% endif %}
       </span>
     </div>
     {% else %}
     <div class="flex flex-wrap gap-1 mb-3">
       <span class="text-[10px] uppercase tracking-widest border px-2 py-0.5 rounded-sm {% if product.allow_shipping %}text-forest border-forest/30{% else %}text-muted border-stone/30{% endif %}">
-        {% if product.allow_shipping %}{% trans "Envio disponível" %}{% else %}{% trans "Apenas levantamento" %}{% endif %}
+        {% if product.allow_shipping %}{% trans "Apenas envio" %}{% else %}{% trans "Sem modo disponível" %}{% endif %}
       </span>
     </div>
     {% endif %}
 
-    {% if product.is_preview_only %}
+    {% if product.is_preview %}
     <p class="mb-3 text-[10px] uppercase tracking-widest text-terracotta">{% trans "Pré-visualização" %}</p>
     {% endif %}
 
@@ -75,7 +75,7 @@
       <button type="submit"
               class="w-full text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors cursor-pointer {% if not product.can_add_to_cart %}opacity-50 cursor-not-allowed{% endif %}"
               {% if not product.can_add_to_cart %}disabled{% endif %}>
-        {% if product.is_preview_only %}{% trans "Pré-visualização" %}{% elif product.in_stock %}{% trans "Adicionar ao carrinho" %}{% else %}{% trans "Esgotado" %}{% endif %}
+        {% if product.is_preview %}{% trans "Pré-visualização" %}{% elif product.in_stock %}{% trans "Adicionar ao carrinho" %}{% else %}{% trans "Esgotado" %}{% endif %}
       </button>
     </form>
   </div>

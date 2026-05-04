@@ -1,4 +1,4 @@
-"""Custom admin views (Calendário kanban, etc.)."""
+"""Custom admin views (Painel operacional, etc.)."""
 
 from django.contrib import admin
 from django.core.exceptions import PermissionDenied
@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.orders.models import Order
 
 
-# Status columns to display on the Calendário kanban (excludes terminal states by default)
+# Status columns to display on the Painel operacional.
 CALENDARIO_COLUMNS = (
     Order.Status.PENDING,
     Order.Status.PAYMENT_PENDING,
@@ -21,7 +21,7 @@ CALENDARIO_COLUMNS = (
 
 
 def calendario_view(request):
-    """Kanban-style overview of in-flight orders, grouped by status."""
+    """Painel operacional das encomendas em curso."""
     order_admin = admin.site._registry[Order]
     if not order_admin.has_view_or_change_permission(request):
         raise PermissionDenied
@@ -50,7 +50,7 @@ def calendario_view(request):
     request.current_app = admin.site.name
     context = {
         **admin.site.each_context(request),
-        'title': _('Calendário'),
+        'title': _('Painel'),
         'subtitle': None,
         'opts': Order._meta,
         'app_label': Order._meta.app_label,

@@ -24,7 +24,7 @@ def about(request):
     lang = get_language() or 'pt'
     return render(request, 'website/about.html', {
         'lang': lang,
-        'team_members': TeamMember.objects.filter(is_active=True).order_by('order', 'name'),
+        'team_members': TeamMember.objects.filter(is_active=True).select_related('sort_order').order_by('sort_order__position', 'name', 'pk'),
         'website_content': get_website_content(lang=lang),
     })
 

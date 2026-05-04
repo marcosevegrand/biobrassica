@@ -32,9 +32,9 @@ def get_or_create_cart_for_request(request):
 
 def get_cart_items_queryset(cart):
     return (
-        cart.items.filter(product__is_active=True, product__is_preview_only=False)
+        cart.items.filter(product__is_active=True, product__is_preview=False)
         .select_related('product')
-        .prefetch_related('product__translations', 'product__images')
+        .prefetch_related('product__translations', 'product__pickup_locations')
     )
 
 
@@ -49,7 +49,7 @@ def get_cart_totals(cart):
             'cart_total': Decimal('0'),
         }
 
-    totals = cart.items.filter(product__is_active=True, product__is_preview_only=False).aggregate(
+    totals = cart.items.filter(product__is_active=True, product__is_preview=False).aggregate(
         cart_item_count=Coalesce(Sum('quantity'), 0),
         cart_total=Coalesce(
             Sum(
@@ -80,7 +80,7 @@ def get_cart_summary(cart, *, preview_limit=3):
 
 
 def add_product_to_cart(cart, product, *, quantity):
-    if not product.is_active or product.is_preview_only:
+    if not product.is_active or product.is_preview:
         raise ValueError('Cannot add an unavailable product to cart.')
 
     with transaction.atomic():
@@ -105,7 +105,7 @@ def add_product_to_cart(cart, product, *, quantity):
 def set_cart_item_quantity(item, *, quantity):
     with transaction.atomic():
         locked_item = CartItem.objects.select_for_update().select_related('product').get(pk=item.pk)
-        if not locked_item.product.is_active or locked_item.product.is_preview_only:
+        if not locked_item.product.is_active or locked_item.product.is_preview:
             locked_item.delete()
             return None, False
         final_quantity, was_capped = _cap_quantity_to_stock(locked_item.product, quantity)
@@ -131,7 +131,7 @@ def clear_cart(cart):
 
 def remove_inactive_cart_items(cart):
     deleted_count, _ = cart.items.filter(
-        Q(product__is_active=False) | Q(product__is_preview_only=True)
+        Q(product__is_active=False) | Q(product__is_preview=True)
     ).delete()
     return deleted_count
 

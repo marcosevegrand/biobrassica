@@ -91,37 +91,49 @@ class PaymentAdminForm(forms.ModelForm):
 @admin.register(Payment)
 class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     form = PaymentAdminForm
-    list_display = ('__str__', 'order', 'customer_display', 'method_display', 'status_badge', 'amount', 'paid_at', 'created_at', 'quick_actions', 'edit_link')
+    list_display = ('__str__', 'order', 'method_display', 'status_badge', 'amount', 'paid_at', 'created_at', 'edit_link')
     list_filter = ('method', 'status', 'created_at')
     actions = ('approve_pending_payments', 'reject_pending_payments')
     search_fields = ('=order__pk',)
     search_help_text = _('Pesquise pelo número da encomenda.')
-    readonly_fields = ('customer_display', 'order_summary', 'created_at')
+    readonly_fields = ()
     list_filter_submit = True
     compressed_fields = True
     autocomplete_fields = ('order',)
 
     add_fieldsets = (
-        (_('Pagamento'), {
-            'fields': ('order', 'method', 'status', 'amount'),
-        }),
-        (_('Referências e prazos'), {
-            'fields': ('provider_reference', 'provider_payment_id', 'checkout_url', 'expires_at'),
-        }),
-        (_('Dados adicionais'), {
-            'fields': ('provider_data', 'last_error', 'paid_at'),
+        (None, {
+            'fields': (
+                'order',
+                'method',
+                'status',
+                'amount',
+                'provider_reference',
+                'provider_payment_id',
+                'checkout_url',
+                'expires_at',
+                'provider_data',
+                'last_error',
+                'paid_at',
+            ),
         }),
     )
 
     fieldsets = (
-        (_('Operação'), {
-            'fields': ('order', 'customer_display', 'status', 'order_summary'),
-        }),
-        (_('Dados do pagamento'), {
-            'fields': ('method', 'amount', 'provider_reference', 'provider_payment_id', 'checkout_url', 'expires_at', 'provider_data'),
-        }),
-        (_('Auditoria'), {
-            'fields': ('paid_at', 'created_at', 'last_error'),
+        (None, {
+            'fields': (
+                'order',
+                'method',
+                'status',
+                'amount',
+                'provider_reference',
+                'provider_payment_id',
+                'checkout_url',
+                'expires_at',
+                'provider_data',
+                'last_error',
+                'paid_at',
+            ),
         }),
     )
 
@@ -136,14 +148,10 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return custom_urls + super().get_urls()
 
     def get_fieldsets(self, request, obj=None):
-        if obj is None:
-            return self.add_fieldsets
-        return super().get_fieldsets(request, obj)
+        return self.add_fieldsets if obj is None else self.fieldsets
 
     def get_readonly_fields(self, request, obj=None):
-        if obj is None:
-            return ()
-        return super().get_readonly_fields(request, obj)
+        return ()
 
     def _is_pending_manual(self, payment):
         return payment.status == Payment.Status.PENDING and payment.method in {Payment.Method.MBWAY_MANUAL, Payment.Method.BANK_TRANSFER}
@@ -304,16 +312,6 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             self._sync_order_for_pending_payment(obj)
 
     def changelist_view(self, request, extra_context=None):
-        queryset = self.get_queryset(request)
-        base_url = reverse('admin:payments_payment_changelist')
-        extra_context = {
-            **(extra_context or {}),
-            'workflow_metric_cards': [
-                {'label': _('Pendentes'), 'value': queryset.filter(status=Payment.Status.PENDING).count(), 'context': _('A aguardar validação manual'), 'link': f'{base_url}?status__exact={Payment.Status.PENDING}'},
-                {'label': _('Pagos'), 'value': queryset.filter(status=Payment.Status.PAID).count(), 'context': _('Confirmados'), 'link': f'{base_url}?status__exact={Payment.Status.PAID}'},
-                {'label': _('Falhados'), 'value': queryset.filter(status=Payment.Status.FAILED).count(), 'context': _('Rever motivos'), 'link': f'{base_url}?status__exact={Payment.Status.FAILED}'},
-            ],
-        }
         return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description=_('Estado'))
@@ -331,14 +329,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return super().get_queryset(request).select_related('order', 'order__user')
 
     def get_changeform_custom_tools(self, request, obj):
-        return [
-            {
-                'title': _('Abrir encomenda'),
-                'link': reverse('admin:orders_order_change', args=[obj.order_id]),
-                'icon': 'shopping_bag',
-                'blank': False,
-            },
-        ]
+        return []
 
     def has_delete_permission(self, request, obj=None):
         return bool(request.user.is_superuser)

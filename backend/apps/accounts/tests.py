@@ -4,6 +4,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.core.management import call_command, CommandError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from typing import cast
 from decimal import Decimal
@@ -18,6 +19,11 @@ from apps.payments.models import Payment
 
 
 User = AccountUser
+
+GIF_BYTES = (
+	b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04'
+	b'\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
+)
 
 
 class UserValidationTests(TestCase):
@@ -109,13 +115,17 @@ class RegistrationViewTests(TestCase):
 		self.product = Product.objects.create(
 			category=self.category,
 			slug='azeite-bio',
+			name='Azeite bio',
 			brand='Biobrassica',
+			description='Azeite virgem extra biológico.',
+			allergens='Sem alergénios declarados.',
 			price='9.50',
 			quantity='750 ml',
 			stock=10,
 			is_active=True,
 			allow_shipping=True,
 			bio_code='PT-BIO-03',
+			image=SimpleUploadedFile('azeite.gif', GIF_BYTES, content_type='image/gif'),
 		)
 		ProductTranslation.objects.create(
 			product=self.product,

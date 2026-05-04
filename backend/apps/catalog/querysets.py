@@ -3,26 +3,25 @@ from apps.core.translations import translation_prefetch
 
 
 def active_category_queryset(*, lang=None):
-    return Category.objects.filter(is_active=True).prefetch_related(
+    return Category.objects.filter(is_active=True).select_related('sort_order').prefetch_related(
         translation_prefetch(CategoryTranslation, lang=lang),
     )
 
 
 def display_category_queryset(*, lang=None):
-    return active_category_queryset(lang=lang).order_by('-is_featured', 'slug')
+    return active_category_queryset(lang=lang).order_by('-is_special', 'sort_order__position', 'name', 'pk')
 
 
 def active_product_queryset(*, lang=None):
     return Product.objects.filter(is_active=True).select_related('category').prefetch_related(
         translation_prefetch(ProductTranslation, lang=lang),
         translation_prefetch(CategoryTranslation, related_name='category__translations', lang=lang),
-        'images',
-        'available_locations',
+        'pickup_locations',
     )
 
 
 def display_product_queryset(*, lang=None):
-    return active_product_queryset(lang=lang).order_by('-is_highlight', '-created_at')
+    return active_product_queryset(lang=lang).order_by('-is_highlight', 'name', 'pk')
 
 
 def highlighted_product_queryset(*, lang=None):

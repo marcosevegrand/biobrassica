@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.db.models import Q
 from django.utils.translation import get_language
 
 from apps.catalog.querysets import (
@@ -8,7 +9,6 @@ from apps.catalog.querysets import (
     latest_product_queryset,
     product_detail_queryset,
 )
-from apps.core.translations import language_choices
 from apps.core.pagination import paginate_queryset
 
 
@@ -39,8 +39,11 @@ def product_list(request):
     search = request.GET.get('q')
     if search:
         products = products.filter(
-            translations__name__icontains=search,
-            translations__language__in=language_choices(lang=lang),
+            Q(name__icontains=search)
+            | Q(brand__icontains=search)
+            | Q(description__icontains=search)
+            | Q(translations__name__icontains=search)
+            | Q(translations__description__icontains=search)
         ).distinct()
 
     pagination = paginate_queryset(request, products, per_page=PRODUCTS_PER_PAGE)

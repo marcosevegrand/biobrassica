@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Max
 from django.utils import translation
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -79,11 +80,13 @@ class TeamMember(models.Model):
     name = models.CharField(_('nome'), max_length=255, help_text=_('Nome do membro da equipa'))
     role = models.CharField(_('função'), max_length=255, help_text=_('Cargo / Função'))
     photo = models.ImageField(_('foto'), upload_to='team/', help_text=_('Foto do membro'))
-    order = models.PositiveIntegerField(_('ordem'), default=0)
     is_active = models.BooleanField(_('ativo'), default=True)
 
+    def __init__(self, *args, **kwargs):
+        self._pending_order = kwargs.pop('order', None)
+        super().__init__(*args, **kwargs)
+
     class Meta:
-        ordering = ['order', 'name']
         verbose_name = _('membro da equipa')
         verbose_name_plural = _('membros da equipa')
 
@@ -92,8 +95,56 @@ class TeamMember(models.Model):
         self.name = str(self.name or '').strip()
         self.role = ' '.join(str(self.role or '').split())
 
+    @property
+    def position(self):
+        return getattr(getattr(self, 'sort_order', None), 'position', 0)
+
+    @property
+    def order(self):
+        return self.position
+
+    @order.setter
+    def order(self, value):
+        self._pending_order = value
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        result = super().save(*args, **kwargs)
+        position_value = self._pending_order if self._pending_order is not None else TeamMemberPosition.next_position()
+        sort_order, created = TeamMemberPosition.objects.get_or_create(
+            team_member=self,
+            defaults={'position': position_value},
+        )
+        if not created and self._pending_order is not None and sort_order.position != self._pending_order:
+            sort_order.position = self._pending_order
+            sort_order.save(update_fields=['position'])
+        self._pending_order = None
+        return result
+
     def __str__(self):
         return self.name
+
+
+class TeamMemberPosition(models.Model):
+    team_member = models.OneToOneField(
+        TeamMember,
+        on_delete=models.CASCADE,
+        related_name='sort_order',
+        verbose_name=_('membro da equipa'),
+    )
+    position = models.PositiveIntegerField(_('posição'), default=0)
+
+    class Meta:
+        ordering = ['position', 'pk']
+        verbose_name = _('ordem de membro da equipa')
+        verbose_name_plural = _('ordens de membros da equipa')
+
+    @classmethod
+    def next_position(cls):
+        return (cls.objects.aggregate(max_position=Max('position'))['max_position'] or 0) + 1
+
+    def __str__(self):
+        return f'{self.team_member} ({self.position})'
 
 
 class WebsiteContent(models.Model):
@@ -186,4 +237,3 @@ class WebsiteContent(models.Model):
 
     def for_language(self, lang=None):
         return LocalizedWebsiteContent(self, lang=lang)
-

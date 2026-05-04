@@ -40,7 +40,12 @@ class CheckoutForm(forms.Form):
         cast(forms.ChoiceField, self.fields['pickup_location']).choices = self.pickup_choices
 
     def _build_pickup_choices(self):
-        queryset = Location.objects.filter(is_active=True).exclude(pickup_location_code='').order_by('order', 'name')
+        queryset = (
+            Location.objects.filter(is_active=True)
+            .exclude(pickup_location_code='')
+            .select_related('sort_order')
+            .order_by('sort_order__position', 'name', 'pk')
+        )
         if self.allowed_pickup_locations is not None:
             if not self.allowed_pickup_locations:
                 return []
@@ -57,9 +62,12 @@ class CheckoutForm(forms.Form):
 
         allowed_sets = []
         for cart_item in self.cart_items:
+            if not cart_item.product.allow_pickup:
+                allowed_sets.append(set())
+                continue
             location_values = {
                 location.pickup_location_code
-                for location in cart_item.product.available_locations.all()
+                for location in cart_item.product.pickup_locations.all()
                 if location.pickup_location_code
             }
             allowed_sets.append(location_values)

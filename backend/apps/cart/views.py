@@ -150,7 +150,7 @@ def add_to_cart(request, product_id):
     try:
         item, was_capped = add_product_to_cart(cart, product, quantity=form.cleaned_data['quantity'])
     except ValueError:
-        if product.is_preview_only:
+        if product.is_preview:
             messages.error(request, _('Este produto está disponível apenas para pré-visualização.'))
         else:
             messages.error(request, _('Este produto já não está disponível.'))
@@ -183,7 +183,7 @@ def update_cart_item(request, item_id):
         return redirect('cart:detail')
 
     updated_item, was_capped = set_cart_item_quantity(item, quantity=form.cleaned_data['quantity'])
-    if updated_item is None and (not item.product.is_active or item.product.is_preview_only):
+    if updated_item is None and (not item.product.is_active or item.product.is_preview):
         messages.warning(request, UNAVAILABLE_CART_ITEMS_MESSAGE)
     elif updated_item is None and item.product.stock <= 0:
         messages.warning(request, _('Este produto está esgotado.'))

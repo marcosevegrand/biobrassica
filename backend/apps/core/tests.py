@@ -227,64 +227,37 @@ class AdminDashboardTests(TestCase):
 		self.client.defaults['HTTP_HOST'] = 'admin.lvh.me'
 		self.client.force_login(self.admin_user)
 
-	def test_admin_dashboard_renders_operational_panels(self):
+	def test_admin_root_redirects_to_operational_panel(self):
 		response = self.client.get(reverse('admin:index'))
+
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response['Location'], reverse('operacoes_painel'))
+
+	def test_operational_panel_renders_in_flight_orders(self):
+		response = self.client.get(reverse('operacoes_painel'))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'Contas ativas')
-		self.assertContains(response, 'Encomendas pagas')
-		self.assertContains(response, 'Volume transacionado')
-		self.assertContains(response, '12.00€')
-		self.assertContains(response, 'Reposição urgente')
-		self.assertContains(response, 'Levantamentos de hoje')
-		self.assertContains(response, 'Recuperação de pagamentos')
-		self.assertContains(response, 'Fila operacional')
-		self.assertNotContains(response, 'Painel operacional')
-		self.assertNotContains(response, 'Atalhos rápidos')
-		self.assertNotContains(response, 'Authentication and Authorization')
-		self.assertNotContains(response, 'Gerir equipa')
-
-	def test_admin_dashboard_excludes_refunded_orders_from_paid_metrics(self):
-		refunded_order = Order.objects.create(
-			user=self.customer,
-			name='Cliente Reembolso',
-			email='refund@example.com',
-			fulfillment_method=Order.FulfillmentMethod.PICKUP,
-			pickup_location=Order.PickupLocation.BRAGA,
-			subtotal='8.00',
-			total='8.00',
-			status=Order.Status.PAYMENT_PENDING,
-		)
-		Payment.objects.create(
-			order=refunded_order,
-			method=Payment.Method.MBWAY_MANUAL,
-			status=Payment.Status.REFUNDED,
-			amount='8.00',
-		)
-		Order.objects.filter(pk=refunded_order.pk).update(status=Order.Status.PREPARING)
-
-		response = self.client.get(reverse('admin:index'))
-		metric_map = {card['label']: card['value'] for card in response.context['dashboard_metric_cards']}
-		paid_orders = metric_map.get('Encomendas pagas', metric_map.get('Paid orders'))
-
-		self.assertEqual(paid_orders, 1)
+		self.assertContains(response, 'Painel')
+		self.assertContains(response, 'Cliente Dashboard')
+		self.assertContains(response, 'Encomendas')
+		self.assertContains(response, 'Produtos')
 
 	def test_admin_branding_uses_biobrassica_sidebar_logo(self):
 		self.assertEqual(settings.UNFOLD['SITE_LOGO'], '/static/images/brand/favicon_green.png')
 		self.assertIsNone(settings.UNFOLD['SITE_SYMBOL'])
 
-	def test_calendario_view_preserves_admin_navigation_for_superuser(self):
-		response = self.client.get(reverse('operacoes_calendario'))
+	def test_operational_panel_preserves_admin_navigation_for_superuser(self):
+		response = self.client.get(reverse('operacoes_painel'))
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.context['opts'], Order._meta)
 		self.assertTrue(response.context['sidebar_navigation'])
-		self.assertContains(response, 'Calendário')
+		self.assertContains(response, 'Painel')
 		self.assertContains(response, 'Encomendas')
 		self.assertContains(response, 'Produtos')
 		self.assertNotContains(response, 'You don’t have permission to view or edit anything.')
 
-	def test_calendario_view_blocks_staff_without_order_access(self):
+	def test_operational_panel_blocks_staff_without_order_access(self):
 		staff_user = User.objects.create_user(
 			email='equipa@biobrassica.pt',
 			username='equipa',
@@ -294,7 +267,7 @@ class AdminDashboardTests(TestCase):
 		staff_user.user_permissions.add(Permission.objects.get(codename='view_user'))
 
 		self.client.force_login(staff_user)
-		response = self.client.get(reverse('operacoes_calendario'))
+		response = self.client.get(reverse('operacoes_painel'))
 
 		self.assertEqual(response.status_code, 403)
 

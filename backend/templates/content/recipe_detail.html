@@ -137,10 +137,10 @@
       {% for product in related_products %}
       <a href="{% shop_url 'catalog:product_detail' slug=product.slug %}"
          class="group bg-paper rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-        {% with img=product.primary_image %}
+        {% with img=product.image %}
         {% if img %}
         <div class="aspect-square overflow-hidden bg-stone/10">
-          <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.get_name }}"
+          <img src="{{ img.url }}" alt="{{ product.get_name }}"
                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         </div>
         {% else %}
@@ -178,5 +178,4 @@
 </div>
 
 {% endblock %}
-
 

@@ -7,17 +7,17 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 
-from apps.core.admin_helpers import EditLinkAdminMixin, OrderableAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
+from apps.core.admin_helpers import EditLinkAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
 from apps.core.site_content import get_manual_mbway_details, get_payments_availability  # noqa: F401  # legacy public API
 from apps.website.forms import TeamMemberAdminForm, WebsiteContentAdminForm
-from apps.website.models import TeamMember, WebsiteContent
+from apps.website.models import TeamMember, TeamMemberPosition, WebsiteContent
 
 
 @admin.register(TeamMember)
-class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixin, ModelAdmin):
+class TeamMemberAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 	form = TeamMemberAdminForm
 	list_before_template = 'admin/website/teammember/workflow_overview.html'
-	list_display = ('order_controls', 'name', 'role', 'visibility_badge', 'is_active', 'edit_link')
+	list_display = ('name', 'role', 'visibility_badge', 'is_active', 'edit_link')
 	list_editable = ('is_active',)
 	list_filter = ('is_active',)
 	search_fields = ('name', 'role')
@@ -43,7 +43,7 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 			'workflow_metric_cards': [
 				{'label': _('Equipa ativa'), 'value': queryset.filter(is_active=True).count(), 'context': _('Visível na página pública'), 'link': f'{base_url}?is_active__exact=1'},
 				{'label': _('Ocultos'), 'value': queryset.filter(is_active=False).count(), 'context': _('Fora da página pública'), 'link': f'{base_url}?is_active__exact=0'},
-				{'label': _('Primeiros quatro'), 'value': queryset.filter(is_active=True, order__lt=4).count(), 'context': _('Topo da grelha pública'), 'link': base_url},
+				{'label': _('Primeiros quatro'), 'value': queryset.filter(is_active=True, sort_order__position__lte=4).count(), 'context': _('Topo da grelha pública'), 'link': base_url},
 				{'label': _('Total gerido'), 'value': queryset.count(), 'context': _('Backoffice do website'), 'link': base_url},
 			],
 		}
@@ -86,7 +86,7 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 				(_('Nome'), obj.name),
 				(_('Função'), obj.role),
 				(_('Estado'), _('Publicado') if obj.is_active else _('Oculto')),
-				(_('Ordem'), obj.order),
+				(_('Posição'), obj.position),
 				(_('Página'), _('Quem Somos')),
 			],
 			footer=_('A página pública usa a ordem configurada aqui para apresentar a equipa.'),
@@ -95,6 +95,14 @@ class TeamMemberAdmin(WorkflowAdminMixin, OrderableAdminMixin, EditLinkAdminMixi
 	@admin.display(description=_('Pré-visualização'))
 	def photo_preview(self, obj):
 		return render_image_preview(getattr(obj, 'photo', None), width=112, height=112)
+
+
+@admin.register(TeamMemberPosition)
+class TeamMemberPositionAdmin(EditLinkAdminMixin, ModelAdmin):
+	list_display = ('team_member', 'position', 'edit_link')
+	autocomplete_fields = ('team_member',)
+	search_fields = ('team_member__name',)
+	fields = ('team_member', 'position')
 
 
 @admin.register(WebsiteContent)

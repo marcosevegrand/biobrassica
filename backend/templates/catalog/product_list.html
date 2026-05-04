@@ -28,7 +28,6 @@
   {% if categories %}
   <div class="flex flex-wrap gap-2 mb-12" id="category-filters">
     {% for category in categories %}
-    {% with cat_name=category.translations.all.0 %}
     <a href="{% if current_category == category.slug %}{% url 'catalog:product_list' %}{% if search_query %}?q={{ search_query }}{% endif %}{% else %}{% url 'catalog:product_list' %}?categoria={{ category.slug }}{% if search_query %}&q={{ search_query }}{% endif %}{% endif %}"
        class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-200
               {% if current_category == category.slug %}bg-forest text-paper{% else %}bg-stone/15 text-forest hover:bg-forest/10{% endif %}"
@@ -36,14 +35,13 @@
       {% if category.image %}
       <img src="{{ category.image.url }}" alt="" class="w-5 h-5 rounded-full object-cover" />
       {% endif %}
-      <span>{% if cat_name %}{{ cat_name.name }}{% else %}{{ category.slug }}{% endif %}</span>
+      <span>{{ category.get_name }}</span>
       {% if current_category == category.slug %}
       <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
       {% endif %}
     </a>
-    {% endwith %}
     {% endfor %}
   </div>
   {% endif %}
