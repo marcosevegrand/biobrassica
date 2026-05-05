@@ -404,7 +404,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
         if obj.method == Payment.Method.MBWAY_MANUAL:
             return render_summary_panel(
-                _('Snapshot MB WAY'),
+                _('Resumo MB WAY'),
                 [
                     (_('Número MB WAY'), provider_data.get('mbway_number') or '—'),
                     (_('Referência'), provider_data.get('order_reference') or '—'),
@@ -412,7 +412,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             )
         if obj.method == Payment.Method.BANK_TRANSFER:
             return render_summary_panel(
-                _('Snapshot transferência'),
+                _('Resumo da transferência'),
                 [
                     (_('Beneficiário'), provider_data.get('beneficiary') or '—'),
                     (_('IBAN'), provider_data.get('iban') or '—'),

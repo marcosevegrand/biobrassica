@@ -42,7 +42,7 @@
                     {% if inline_admin_formset.has_add_permission %}
                     <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
                         <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
-                            {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
+                            <span class="sr-only">Adicionar registo</span>
                         </div>
                     </div>
                     {% endif %}

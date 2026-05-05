@@ -77,8 +77,8 @@ class CustomerAccount(User):
 class StaffAccount(User):
     class Meta:
         proxy = True
-        verbose_name = _('staff')
-        verbose_name_plural = _('staff')
+        verbose_name = _('equipa')
+        verbose_name_plural = _('equipa')
 
 
 class Address(models.Model):

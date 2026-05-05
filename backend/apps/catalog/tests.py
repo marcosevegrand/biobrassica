@@ -106,6 +106,25 @@ class CatalogModelTests(TestCase):
 
         self.assertIn('Selecione pelo menos uma localização de recolha.', ctx.exception.message_dict['pickup_locations'])
 
+    def test_product_str_returns_name_for_admin_titles(self):
+        category = Category.objects.create(name='Mercearia')
+        product = Product.objects.create(
+            category=category,
+            name='Azeite Bio',
+            brand='Biobrassica',
+            bio_code='PT-BIO-03',
+            description='Azeite virgem extra biológico.',
+            allergens='Sem alergénios declarados.',
+            price=Decimal('9.50'),
+            quantity='750 ml',
+            stock=5,
+            is_active=True,
+            allow_shipping=True,
+            image=make_image('azeite-str.gif'),
+        )
+
+        self.assertEqual(str(product), 'Azeite Bio')
+
 
 class ProductAdminFormTests(TestCase):
     def test_product_admin_form_uses_pickup_location_checkboxes(self):
@@ -158,6 +177,13 @@ class CatalogAdminTests(TestCase):
         self.assertNotContains(response, 'Publicação')
 
     def test_product_admin_change_form_uses_base_pt_fields_and_no_gallery_inline(self):
+        ProductTranslation.objects.create(
+            product=self.product,
+            language='en',
+            name='Organic Olive Oil',
+            description='Organic extra virgin olive oil.',
+            allergens='No declared allergens.',
+        )
         response = self.client.get(reverse('admin:catalog_product_change', args=[self.product.pk]))
 
         self.assertEqual(response.status_code, 200)
@@ -165,7 +191,8 @@ class CatalogAdminTests(TestCase):
         self.assertContains(response, 'name="description"', html=False)
         self.assertContains(response, 'name="allergens"', html=False)
         self.assertContains(response, self.location.name)
-        self.assertContains(response, 'Adicionar tradução EN/FR')
+        self.assertContains(response, 'Adicionar tradução EN/FR', count=1)
+        self.assertContains(response, 'Eliminar')
         self.assertNotContains(response, 'name="quantity_value"', html=False)
         self.assertNotContains(response, 'Imagens do produto')
         self.assertNotContains(response, 'Checklist de publicação')

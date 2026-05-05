@@ -241,7 +241,7 @@ class LocationPosition(OrderedEntityPosition):
 class DeliveryMethod(models.Model):
     """CRUD-managed delivery / fulfillment methods."""
 
-    name = models.CharField('nome', max_length=100, help_text='Ex: Levantamento na loja, Entrega ao domicílio')
+    name = models.CharField('nome', max_length=100, help_text='Ex: CTT Express, DHL')
     estimated_delivery_time = models.CharField('tempo estimado de entrega', max_length=120, blank=True)
     is_active = models.BooleanField('ativo', default=True)
 
@@ -448,6 +448,9 @@ class Product(models.Model):
         ordering = ['-is_highlight', 'name', 'pk']
         verbose_name = 'produto'
         verbose_name_plural = 'produtos'
+
+    def __str__(self):
+        return self.name or self.slug
 
     def clean_fields(self, exclude=None):
         if not self.name and self.slug:

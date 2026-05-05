@@ -288,10 +288,10 @@ UNFOLD = {
                 ],
             },
             {
-                'title': 'Staff',
+                'title': 'Equipa',
                 'icon': 'admin_panel_settings',
                 'items': [
-                    {'title': 'Staff', 'link': '/admin/accounts/staffaccount/', 'icon': 'admin_panel_settings'},
+                    {'title': 'Equipa', 'link': '/admin/accounts/staffaccount/', 'icon': 'admin_panel_settings'},
                 ],
             },
             {
