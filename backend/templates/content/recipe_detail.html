@@ -1,15 +1,15 @@
 {% extends "base_website.html" %}
 {% load i18n shop_urls static %}
 
-{% block title %}{{ recipe.safe_translation.title }} | Biobrassica{% endblock %}
-{% block meta_description %}{{ recipe.safe_translation.description|default:recipe.safe_translation.title }}{% endblock %}
+{% block title %}{{ recipe.get_title }} | Biobrassica{% endblock %}
+{% block meta_description %}{{ recipe.safe_translation.meta_description|default:recipe.get_summary }}{% endblock %}
 
 {% block content %}
 
 <!-- ── Hero ── -->
 <section class="relative h-[50vh] min-h-[350px] mt-16 overflow-hidden">
   {% if recipe.cover_image %}
-  <img src="{{ recipe.cover_image.url }}" alt="{{ recipe.safe_translation.title }}"
+  <img src="{{ recipe.cover_image.url }}" alt="{{ recipe.get_title }}"
        class="absolute inset-0 w-full h-full object-cover" loading="eager" />
   {% else %}
   <div class="absolute inset-0 bg-forest/20"></div>
@@ -38,7 +38,7 @@
 
     <!-- Title -->
     <h1 class="font-serif text-3xl md:text-5xl italic text-paper leading-tight mb-3">
-      {{ recipe.safe_translation.title }}
+      {{ recipe.get_title }}
     </h1>
 
     <!-- Tags -->
@@ -58,67 +58,25 @@
 {% if recipe.cover_image %}
 <div class="max-w-5xl mx-auto px-6 -mt-12 relative z-10">
   <div class="rounded-sm overflow-hidden shadow-lg aspect-video max-h-[480px]">
-    <img src="{{ recipe.cover_image.url }}" alt="{{ recipe.safe_translation.title }}"
+    <img src="{{ recipe.cover_image.url }}" alt="{{ recipe.get_title }}"
          class="w-full h-full object-cover" loading="eager" />
   </div>
 </div>
 {% endif %}
 
-{% if recipe.safe_translation.description %}
+{% if recipe.get_summary %}
 <div class="bg-paper border-b border-stone/20">
   <div class="max-w-5xl mx-auto px-6 py-6">
-    <p class="text-muted leading-relaxed max-w-2xl">{{ recipe.safe_translation.description }}</p>
+    <p class="text-muted leading-relaxed max-w-2xl">{{ recipe.get_summary }}</p>
   </div>
 </div>
 {% endif %}
 
-<!-- ── Body: Ingredientes + Preparação ── -->
+<!-- ── Body ── -->
 <section class="bg-paper">
-  <div class="max-w-5xl mx-auto px-6 py-16">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
-      <!-- Ingredientes (1/3) -->
-      <aside class="lg:col-span-1">
-        <div class="sticky top-28">
-          <h2 class="font-serif text-2xl italic mb-6 pb-3 border-b border-stone/40">
-            {% trans "Ingredientes" %}
-          </h2>
-          {% if translation and translation.ingredients %}
-          <ul class="space-y-3">
-            {% for ingredient in translation.ingredients %}
-            <li class="flex items-start gap-3 text-sm text-muted">
-              <span class="w-1.5 h-1.5 rounded-full bg-terracotta mt-1.5 shrink-0"></span>
-              <span>{{ ingredient }}</span>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="text-sm text-muted italic">{% trans "Ingredientes não disponíveis." %}</p>
-          {% endif %}
-        </div>
-      </aside>
-
-      <!-- Preparação (2/3) -->
-      <div class="lg:col-span-2">
-        <h2 class="font-serif text-2xl italic mb-6 pb-3 border-b border-stone/40">
-          {% trans "Preparação" %}
-        </h2>
-        {% if translation and translation.instructions %}
-        <ol class="space-y-8">
-          {% for step in translation.instructions %}
-          <li class="flex items-start gap-5">
-            <span class="shrink-0 w-8 h-8 rounded-full bg-forest text-paper flex items-center justify-center font-bold text-sm leading-none">
-              {{ forloop.counter }}
-            </span>
-            <p class="text-sm text-muted leading-relaxed pt-1.5">{{ step }}</p>
-          </li>
-          {% endfor %}
-        </ol>
-        {% else %}
-        <p class="text-sm text-muted italic">{% trans "Instruções não disponíveis." %}</p>
-        {% endif %}
-      </div>
-
+  <div class="max-w-3xl mx-auto px-6 py-16">
+    <div class="prose">
+      {{ recipe.get_rendered_content }}
     </div>
   </div>
 </section>
@@ -178,4 +136,3 @@
 </div>
 
 {% endblock %}
-

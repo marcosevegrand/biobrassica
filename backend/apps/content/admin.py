@@ -11,6 +11,7 @@ from unfold.admin import ModelAdmin, TabularInline
 
 from apps.content.forms import (
     BlogPostAdminForm,
+    BlogPostTranslationAdminForm,
     RecipeAdminForm,
     RecipeTranslationAdminForm,
 )
@@ -18,16 +19,26 @@ from apps.content.models import (
     BlogPost, BlogPostTranslation,
     Recipe, RecipeTranslation,
 )
-from apps.core.admin_helpers import DefaultLanguageInlineMixin, EditLinkAdminMixin, render_image_preview
+from apps.core.admin_helpers import EditLinkAdminMixin, render_image_preview
 from apps.core.admin_helpers import WorkflowAdminMixin, render_status_badge, render_summary_panel
 
 
 # --- Blog ---
 
-class BlogPostTranslationInline(DefaultLanguageInlineMixin, TabularInline):
+class BlogPostTranslationInline(TabularInline):
     model = BlogPostTranslation
-    extra = 1
-    max_num = 3
+    form = BlogPostTranslationAdminForm
+    extra = 0
+    max_num = 2
+    fields = ('language', 'title', 'excerpt', 'content', 'meta_description')
+    verbose_name = _('tradução')
+    verbose_name_plural = _('Traduções EN/FR')
+    section_cta_label = _('Adicionar tradução EN/FR')
+    section_empty_title = _('Sem traduções EN/FR')
+    section_empty_body = _('Adicione Inglês e/ou Francês quando precisar de tradução adicional.')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).exclude(language='pt')
 
 
 @admin.register(BlogPost)
@@ -48,7 +59,6 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_filter = ('is_published', 'author', 'created_at', 'published_at')
     search_fields = ('slug', 'translations__title')
     search_help_text = _('Pesquise por slug ou título traduzido do artigo.')
-    prepopulated_fields = {'slug': ()}
     inlines = [BlogPostTranslationInline]
     readonly_fields = ('editorial_readiness_panel', 'cover_image_preview', 'created_at', 'updated_at')
     list_filter_submit = True
@@ -56,7 +66,7 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('slug', 'author', 'cover_image', 'cover_image_preview', 'tags'),
+            'fields': ('slug', 'title', 'excerpt', 'content', 'author', 'cover_image', 'cover_image_preview', 'tags'),
         }),
         (_('Publicação'), {
             'fields': ('is_published', 'published_at', 'editorial_readiness_panel'),
@@ -88,11 +98,26 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         blog_post = cast(BlogPost, obj)
+        blog_post.slug = blog_post.slug or ''
+        publish_after_related = not change and blog_post.is_published
+        if publish_after_related:
+            blog_post.is_published = False
         if blog_post.is_published and blog_post.published_at is None:
             blog_post.published_at = timezone.now()
         if not blog_post.is_published:
             blog_post.published_at = None
+        blog_post._publish_after_related = publish_after_related
         super().save_model(request, blog_post, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        blog_post = cast(BlogPost, form.instance)
+        self._sync_pt_translation(blog_post, form.cleaned_data)
+        if getattr(blog_post, '_publish_after_related', False):
+            blog_post.is_published = True
+            blog_post.published_at = timezone.now()
+            blog_post.full_clean()
+            blog_post.save(update_fields=['is_published', 'published_at', 'updated_at'])
 
     def get_changeform_submit_actions(self, request, obj):
         if obj.is_published:
@@ -161,6 +186,22 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def _blog_publish_blockers(self, obj):
         return self._publication_blockers(obj)
 
+    def _sync_pt_translation(self, obj, cleaned_data):
+        BlogPostTranslation.objects.update_or_create(
+            blog_post=obj,
+            language='pt',
+            defaults={
+                'title': cleaned_data['title'],
+                'excerpt': cleaned_data['excerpt'],
+                'content': cleaned_data['content'],
+                'meta_description': '',
+            },
+        )
+        if not obj.slug:
+            obj.slug = obj.slug or ''
+            obj.full_clean()
+            obj.save(update_fields=['slug', 'updated_at'])
+
     def _publication_blockers(self, obj: Any):
         original_is_published = obj.is_published
         original_published_at = getattr(obj, 'published_at', None)
@@ -184,11 +225,20 @@ class BlogPostAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
 # --- Recipes ---
 
-class RecipeTranslationInline(DefaultLanguageInlineMixin, StackedInline):
+class RecipeTranslationInline(StackedInline):
     model = RecipeTranslation
     form = RecipeTranslationAdminForm
-    extra = 1
-    max_num = 3
+    extra = 0
+    max_num = 2
+    fields = ('language', 'title', 'description', 'content', 'meta_description')
+    verbose_name = _('tradução')
+    verbose_name_plural = _('Traduções EN/FR')
+    section_cta_label = _('Adicionar tradução EN/FR')
+    section_empty_title = _('Sem traduções EN/FR')
+    section_empty_body = _('Adicione Inglês e/ou Francês quando precisar de tradução adicional.')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).exclude(language='pt')
 
 
 @admin.register(Recipe)
@@ -212,7 +262,6 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_filter = ('is_published', 'difficulty', 'created_at', 'related_products')
     search_fields = ('slug', 'translations__title')
     search_help_text = _('Pesquise por slug ou título traduzido da receita.')
-    prepopulated_fields = {'slug': ()}
     filter_horizontal = ('related_products',)
     inlines = [RecipeTranslationInline]
     readonly_fields = ('editorial_readiness_panel', 'cover_image_preview', 'created_at', 'updated_at')
@@ -221,7 +270,7 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('slug', 'cover_image', 'cover_image_preview', 'tags'),
+            'fields': ('slug', 'title', 'description', 'content', 'cover_image', 'cover_image_preview', 'tags'),
         }),
         (_('Detalhes'), {
             'fields': ('prep_time', 'cook_time', 'servings', 'difficulty'),
@@ -263,6 +312,15 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             return [{'action_name': '_unpublish_recipe', 'description': _('Retirar publicação')}]
         return [{'action_name': '_publish_recipe', 'description': _('Publicar receita')}]
 
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        recipe = cast(Recipe, form.instance)
+        self._sync_pt_translation(recipe, form.cleaned_data)
+        if getattr(recipe, '_publish_after_related', False):
+            recipe.is_published = True
+            recipe.full_clean()
+            recipe.save(update_fields=['is_published', 'updated_at'])
+
     def handle_changeform_submit_action(self, request, obj, action_name):
         if action_name == '_publish_recipe':
             blockers = self._recipe_publish_blockers(obj)
@@ -283,6 +341,14 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             return HttpResponseRedirect(request.path)
 
         return None
+
+    def save_model(self, request, obj, form, change):
+        recipe = cast(Recipe, obj)
+        recipe.slug = recipe.slug or ''
+        recipe._publish_after_related = not change and recipe.is_published
+        if recipe._publish_after_related:
+            recipe.is_published = False
+        super().save_model(request, recipe, form, change)
 
     @admin.display(description=_('Estado'))
     def publication_badge(self, obj):
@@ -313,8 +379,8 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             return _('Guarde a receita para ver o checklist editorial.')
 
         pt_translation = obj.translations.filter(language='pt').first()
-        has_ingredients = bool(pt_translation and obj.get_ingredients(lang='pt'))
-        has_instructions = bool(pt_translation and obj.get_instructions(lang='pt'))
+        has_summary = bool(pt_translation and obj.get_summary(lang='pt'))
+        has_content = bool(pt_translation and obj.get_content(lang='pt'))
         blockers = self._recipe_publish_blockers(obj, pt_translation=pt_translation)
         footer = (_('Bloqueadores: ') + '; '.join(str(blocker) for blocker in blockers)) if blockers else _('Receita pronta. Considere apenas relacionar produtos para reforçar conversão.')
         return render_summary_panel(
@@ -323,8 +389,8 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 (_('Estado'), _('Publicada') if obj.is_published else _('Rascunho')),
                 (_('Traduções'), getattr(obj, 'translation_count', obj.translations.count())),
                 (_('Tradução PT'), _('Sim') if getattr(obj, 'pt_translation_count', obj.translations.filter(language='pt').count()) else _('Não')),
-                (_('Ingredientes PT'), _('Sim') if has_ingredients else _('Não')),
-                (_('Passos PT'), _('Sim') if has_instructions else _('Não')),
+                (_('Resumo PT'), _('Sim') if has_summary else _('Não')),
+                (_('Conteúdo PT'), _('Sim') if has_content else _('Não')),
                 (_('Imagem de capa'), _('Sim') if obj.cover_image else _('Não')),
                 (_('Produtos relacionados'), getattr(obj, 'related_product_count', obj.related_products.count())),
                 (_('Tags'), ', '.join(obj.tags_list) or _('Sem tags')),
@@ -334,6 +400,24 @@ class RecipeAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     def _recipe_publish_blockers(self, obj, *, pt_translation=None):
         return self._publication_blockers(obj)
+
+    def _sync_pt_translation(self, obj, cleaned_data):
+        RecipeTranslation.objects.update_or_create(
+            recipe=obj,
+            language='pt',
+            defaults={
+                'title': cleaned_data['title'],
+                'description': cleaned_data['description'],
+                'content': cleaned_data['content'],
+                'ingredients': [],
+                'instructions': [],
+                'meta_description': '',
+            },
+        )
+        if not obj.slug:
+            obj.slug = obj.slug or ''
+            obj.full_clean()
+            obj.save(update_fields=['slug', 'updated_at'])
 
     def _publication_blockers(self, obj):
         original_is_published = obj.is_published

@@ -1,8 +1,8 @@
 {% extends "base_website.html" %}
 {% load i18n static %}
 
-{% block title %}{{ post.safe_translation.title }} | Biobrassica{% endblock %}
-{% block meta_description %}{{ post.safe_translation.meta_description|default:post.safe_translation.excerpt }}{% endblock %}
+{% block title %}{{ post.get_title }} | Biobrassica{% endblock %}
+{% block meta_description %}{{ post.safe_translation.meta_description|default:post.get_summary }}{% endblock %}
 
 {% block content %}
 <!-- Hero -->
@@ -17,7 +17,7 @@
       {% endif %}
     </div>
     <h1 class="text-3xl md:text-5xl font-serif italic leading-tight">
-      {{ post.safe_translation.title }}
+      {{ post.get_title }}
     </h1>
     {% if post.tags %}
     <div class="mt-4 flex items-center justify-center gap-2 flex-wrap">
@@ -32,7 +32,7 @@
 <!-- Cover Image -->
 {% if post.cover_image %}
 <div class="max-w-4xl mx-auto px-6 -mt-8 mb-8">
-  <img src="{{ post.cover_image.url }}" alt="{{ post.safe_translation.title }}"
+  <img src="{{ post.cover_image.url }}" alt="{{ post.get_title }}"
        class="w-full aspect-2/1 object-cover rounded-lg shadow-md" />
 </div>
 {% endif %}
@@ -41,7 +41,7 @@
 <section class="bg-paper py-12">
   <div class="max-w-3xl mx-auto px-6">
     <div class="prose">
-      {{ post.safe_translation.rendered_content }}
+      {{ post.get_rendered_content }}
     </div>
 
     <!-- Back to Blog -->

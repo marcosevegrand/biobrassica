@@ -5,10 +5,27 @@ with user-friendly dynamic list widgets.
 import json
 
 from django import forms
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from apps.content.models import BlogPost, Recipe, RecipeTranslation
+from apps.content.models import BlogPost, BlogPostTranslation, Recipe, RecipeTranslation
 from apps.content.widgets import IngredientListWidget, StepListWidget, TagListWidget
+
+
+class BaseAdminStyleFormMixin:
+    string_placeholders = {}
+    textarea_fields = {}
+
+    def _apply_shared_admin_styles(self):
+        for field_name, placeholder in self.string_placeholders.items():
+            field = self.fields.get(field_name)
+            if field is not None:
+                field.widget.attrs.setdefault('placeholder', placeholder)
+
+        for field_name, rows in self.textarea_fields.items():
+            field = self.fields.get(field_name)
+            if field is not None:
+                field.widget.attrs.setdefault('rows', rows)
 
 
 # ── Custom form fields ──────────────────────────────────────────────────────
@@ -131,42 +148,131 @@ class StepListField(forms.Field):
 
 # ── ModelForms ──────────────────────────────────────────────────────────────
 
-class BlogPostAdminForm(forms.ModelForm):
+class BlogPostAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
+    title = forms.CharField(label=_('Título'))
+    excerpt = forms.CharField(label=_('Resumo'), widget=forms.Textarea)
+    content = forms.CharField(label=_('Conteúdo'), widget=forms.Textarea)
     tags = TagListField(
         required=False,
         label=_('Tags'),
         help_text=_('Adicione tags para categorizar este artigo.'),
     )
+    string_placeholders = {
+        'slug': _('Gerado automaticamente a partir do título'),
+        'title': _('Título em Português'),
+    }
+    textarea_fields = {
+        'excerpt': 3,
+        'content': 16,
+    }
 
     class Meta:
         model = BlogPost
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_shared_admin_styles()
+        self.fields['slug'].required = False
+        self.fields['content'].help_text = _('Escreva o conteúdo em Markdown.')
+        if self.instance.pk:
+            self.fields['title'].initial = self.instance.get_title('pt')
+            self.fields['excerpt'].initial = self.instance.get_excerpt('pt')
+            self.fields['content'].initial = self.instance.get_content('pt')
 
-class RecipeAdminForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get('slug') and cleaned_data.get('title'):
+            cleaned_data['slug'] = slugify(cleaned_data['title'])[:200]
+            self.instance.slug = cleaned_data['slug']
+        self.instance._pt_translation_draft = {
+            'title': cleaned_data.get('title', ''),
+            'excerpt': cleaned_data.get('excerpt', ''),
+            'content': cleaned_data.get('content', ''),
+        }
+        return cleaned_data
+
+
+class BlogPostTranslationAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
+    string_placeholders = {
+        'title': _('Título traduzido'),
+    }
+    textarea_fields = {
+        'excerpt': 3,
+        'content': 12,
+    }
+
+    class Meta:
+        model = BlogPostTranslation
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_shared_admin_styles()
+        self.fields['content'].help_text = _('Escreva o conteúdo traduzido em Markdown.')
+        self.fields['language'].choices = [('en', _('Inglês')), ('fr', _('Francês'))]
+
+
+class RecipeAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
+    title = forms.CharField(label=_('Título'))
+    description = forms.CharField(label=_('Resumo'), widget=forms.Textarea)
+    content = forms.CharField(label=_('Conteúdo'), widget=forms.Textarea)
     tags = TagListField(
         required=False,
         label=_('Tags'),
         help_text=_('Adicione tags para categorizar esta receita.'),
     )
+    string_placeholders = {
+        'slug': _('Gerado automaticamente a partir do título'),
+        'title': _('Título em Português'),
+    }
+    textarea_fields = {
+        'description': 3,
+        'content': 16,
+    }
 
     class Meta:
         model = Recipe
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_shared_admin_styles()
+        self.fields['slug'].required = False
+        self.fields['content'].help_text = _('Escreva o conteúdo da receita em Markdown.')
+        if self.instance.pk:
+            self.fields['title'].initial = self.instance.get_title('pt')
+            self.fields['description'].initial = self.instance.get_description('pt')
+            self.fields['content'].initial = self.instance.get_content('pt')
 
-class RecipeTranslationAdminForm(forms.ModelForm):
-    ingredients = IngredientListField(
-        required=False,
-        label=_('Ingredientes'),
-        help_text=_('Adicione os ingredientes necessários para esta receita (ex: "200g farinha espelta").'),
-    )
-    instructions = StepListField(
-        required=False,
-        label=_('Preparação'),
-        help_text=_('Adicione cada passo de preparação. O sistema numera automaticamente.'),
-    )
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get('slug') and cleaned_data.get('title'):
+            cleaned_data['slug'] = slugify(cleaned_data['title'])[:200]
+            self.instance.slug = cleaned_data['slug']
+        self.instance._pt_translation_draft = {
+            'title': cleaned_data.get('title', ''),
+            'description': cleaned_data.get('description', ''),
+            'content': cleaned_data.get('content', ''),
+        }
+        return cleaned_data
+
+
+class RecipeTranslationAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
+    string_placeholders = {
+        'title': _('Título traduzido'),
+    }
+    textarea_fields = {
+        'description': 3,
+        'content': 12,
+    }
 
     class Meta:
         model = RecipeTranslation
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_shared_admin_styles()
+        self.fields['content'].help_text = _('Escreva o conteúdo traduzido em Markdown.')
+        self.fields['language'].choices = [('en', _('Inglês')), ('fr', _('Francês'))]

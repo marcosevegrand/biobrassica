@@ -24,7 +24,7 @@
         <a href="{% url 'content:blog_detail' slug=post.slug %}">
           <div class="aspect-3/2 rounded-lg overflow-hidden mb-4 bg-stone/20">
             {% if post.cover_image %}
-            <img src="{{ post.cover_image.url }}" alt="{{ post.safe_translation.title }}"
+            <img src="{{ post.cover_image.url }}" alt="{{ post.get_title }}"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
             {% else %}
             <div class="w-full h-full flex items-center justify-center">
@@ -41,10 +41,10 @@
           <span class="text-xs text-forest/60 ml-2">{{ post.tags }}</span>
           {% endif %}
           <h2 class="font-serif text-lg text-forest mt-1 group-hover:text-forest/80 transition-colors">
-            {{ post.safe_translation.title }}
+            {{ post.get_title }}
           </h2>
           <p class="text-sm text-muted mt-2 line-clamp-3">
-            {{ post.safe_translation.excerpt }}
+            {{ post.get_summary }}
           </p>
         </a>
       </article>

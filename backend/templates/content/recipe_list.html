@@ -24,7 +24,7 @@
         <a href="{% url 'content:recipe_detail' slug=recipe.slug %}">
           <div class="aspect-4/3 rounded-lg overflow-hidden mb-4 bg-stone/20">
             {% if recipe.cover_image %}
-            <img src="{{ recipe.cover_image.url }}" alt="{{ recipe.safe_translation.title }}"
+            <img src="{{ recipe.cover_image.url }}" alt="{{ recipe.get_title }}"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
             {% else %}
             <div class="w-full h-full flex items-center justify-center">
@@ -44,10 +44,10 @@
             <span class="px-2 py-0.5 bg-forest/10 text-forest rounded-full text-xs">{{ recipe.get_difficulty_display }}</span>
           </div>
           <h2 class="font-serif text-lg text-forest group-hover:text-forest/80 transition-colors">
-            {{ recipe.safe_translation.title }}
+            {{ recipe.get_title }}
           </h2>
-          {% if recipe.safe_translation.description %}
-          <p class="text-sm text-muted mt-1 line-clamp-2">{{ recipe.safe_translation.description }}</p>
+          {% if recipe.get_summary %}
+          <p class="text-sm text-muted mt-1 line-clamp-2">{{ recipe.get_summary }}</p>
           {% endif %}
         </a>
       </article>

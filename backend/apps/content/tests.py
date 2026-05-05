@@ -22,7 +22,7 @@ GIF_BYTES = (
 
 
 @override_settings(ROOT_URLCONF='config.urls_website')
-class BlogPostSanitizationTests(TestCase):
+class BlogPostMarkdownTests(TestCase):
     def setUp(self):
         self.post = BlogPost.objects.create(
             slug='seguranca-no-blog',
@@ -31,38 +31,25 @@ class BlogPostSanitizationTests(TestCase):
             tags=['bio'],
         )
 
-    def test_blog_translation_save_sanitizes_unsafe_html(self):
+    def test_blog_translation_keeps_markdown_source(self):
         translation = BlogPostTranslation.objects.create(
             blog_post=self.post,
             language='pt',
             title='Segurança no Blog',
             excerpt='Resumo',
-            content='''
-                <p>Introdução <strong>segura</strong>.</p>
-                <script>alert("xss")</script>
-                <a href="javascript:alert(1)" onclick="alert(2)">ligação</a>
-                <img src="https://example.com/image.jpg" onerror="alert(3)" alt="capa">
-            ''',
+            content='## Introdução\n\nTexto com **destaque** e [ligação](https://biobrassica.pt).',
         )
 
-        self.assertNotIn('<script>', translation.content)
-        self.assertNotIn('onclick=', translation.content)
-        self.assertNotIn('javascript:alert', translation.content)
-        self.assertIn('<strong>segura</strong>', translation.content)
-        self.assertIn('<img src="https://example.com/image.jpg" alt="capa">', translation.content)
+        self.assertIn('## Introdução', translation.content)
+        self.assertIn('**destaque**', translation.content)
 
-    def test_blog_detail_renders_sanitized_content_only(self):
+    def test_blog_detail_renders_markdown_as_safe_html(self):
         BlogPostTranslation.objects.create(
             blog_post=self.post,
             language='pt',
             title='Segurança no Blog',
             excerpt='Resumo',
-            content='''
-                <h2>Título</h2>
-                <p><a href="https://biobrassica.pt" target="_blank">Fonte</a></p>
-                <script>alert("xss")</script>
-                <p><a href="javascript:alert(1)">Malicioso</a></p>
-            ''',
+            content='## Título\n\n[Fonte](https://biobrassica.pt)\n\n[Malicioso](javascript:alert(1))',
         )
 
         response = self.client.get(
@@ -72,7 +59,6 @@ class BlogPostSanitizationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<h2>Título</h2>', html=True)
         self.assertContains(response, 'href="https://biobrassica.pt"')
-        self.assertNotContains(response, 'alert("xss")')
         self.assertNotContains(response, 'javascript:alert(1)')
 
 
@@ -88,7 +74,7 @@ class ContentConstraintTests(TestCase):
             language='pt',
             title='Artigo bio',
             excerpt='Resumo',
-            content='<p>Conteúdo</p>',
+            content='Conteúdo',
         )
 
         self.recipe = Recipe.objects.create(
@@ -103,6 +89,7 @@ class ContentConstraintTests(TestCase):
             language='pt',
             title='Sopa bio',
             description='Descrição',
+            content='Conteúdo da receita',
             ingredients=['1 cebola'],
             instructions=['Cortar e cozinhar'],
         )
@@ -175,6 +162,7 @@ class ContentConstraintTests(TestCase):
             language='en',
             title='Soup',
             description='Description',
+            content='Recipe content',
             ingredients='1 onion\n2 carrots',
             instructions='Chop\nCook',
         )
@@ -189,6 +177,7 @@ class ContentConstraintTests(TestCase):
             recipe=self.recipe,
             language='en',
             title='Soup',
+            description='Description',
             ingredients=['1 onion'],
             instructions=[{'step': 'Cook'}],
         )
@@ -228,7 +217,7 @@ class ContentListAndDetailViewTests(TestCase):
                 language='pt',
                 title=f'Artigo {index}',
                 excerpt='Resumo',
-                content='<p>Conteúdo</p>',
+                content='Conteúdo',
             )
 
         for index in range(10):
@@ -245,6 +234,7 @@ class ContentListAndDetailViewTests(TestCase):
                 language='pt',
                 title=f'Receita {index}',
                 description='Descrição',
+                content='Conteúdo',
                 ingredients=['1 ingrediente'],
                 instructions=['1 passo'],
             )
@@ -261,6 +251,7 @@ class ContentListAndDetailViewTests(TestCase):
             language='pt',
             title='Receita com relação',
             description='Descrição',
+            content='Conteúdo',
             ingredients=['1 ingrediente'],
             instructions=['1 passo'],
         )
@@ -343,7 +334,7 @@ class ContentAdminWorkflowTests(TestCase):
             language='pt',
             title='Artigo admin',
             excerpt='Resumo editorial',
-            content='<p>Conteúdo editorial</p>',
+            content='Conteúdo editorial',
         )
 
         self.recipe = Recipe.objects.create(
@@ -358,6 +349,7 @@ class ContentAdminWorkflowTests(TestCase):
             language='pt',
             title='Receita admin',
             description='Descrição da receita',
+            content='Conteúdo da receita',
             ingredients=['2 cenouras'],
             instructions=['Misturar tudo'],
         )
@@ -376,7 +368,20 @@ class ContentAdminWorkflowTests(TestCase):
 
         response = self.client.post(
             reverse('admin:content_blogpost_change', args=[self.blog_post.pk]),
-            {'_publish_post': '1'},
+            {
+                'slug': self.blog_post.slug,
+                'title': 'Artigo admin',
+                'excerpt': 'Resumo editorial',
+                'content': 'Conteúdo editorial',
+                'author': str(self.admin_user.pk),
+                'tags': '["bio", "novidade"]',
+                'is_published': 'on',
+                '_publish_post': '1',
+                'translations-TOTAL_FORMS': '0',
+                'translations-INITIAL_FORMS': '0',
+                'translations-MIN_NUM_FORMS': '0',
+                'translations-MAX_NUM_FORMS': '2',
+            },
             follow=True,
         )
 
@@ -402,7 +407,22 @@ class ContentAdminWorkflowTests(TestCase):
     def test_recipe_publish_action_requires_cover_image(self):
         response = self.client.post(
             reverse('admin:content_recipe_change', args=[self.recipe.pk]),
-            {'_publish_recipe': '1'},
+            {
+                'slug': self.recipe.slug,
+                'title': 'Receita admin',
+                'description': 'Descrição da receita',
+                'content': 'Conteúdo da receita',
+                'prep_time': '20',
+                'cook_time': '10',
+                'servings': '4',
+                'difficulty': self.recipe.difficulty,
+                'tags': '["bio"]',
+                '_publish_recipe': '1',
+                'translations-TOTAL_FORMS': '0',
+                'translations-INITIAL_FORMS': '0',
+                'translations-MIN_NUM_FORMS': '0',
+                'translations-MAX_NUM_FORMS': '2',
+            },
             follow=True,
         )
 

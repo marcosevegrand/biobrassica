@@ -1,15 +1,35 @@
 import json
+from django.utils.text import slugify
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from typing import Any, cast
 
 from apps.core.translations import get_translated_attr, translation_proxy
-from apps.content.sanitization import sanitize_html
+from apps.content.markdown import render_markdown
+
+
+TRANSLATION_LANGUAGE_CHOICES = [('pt', _('Português')), ('en', _('Inglês')), ('fr', _('Francês'))]
+INLINE_TRANSLATION_LANGUAGE_CHOICES = [('en', _('Inglês')), ('fr', _('Francês'))]
+
+
+def _generate_unique_slug(model, value, *, instance_pk=None):
+    base_slug = slugify(str(value or '').strip())[:180]
+    if not base_slug:
+        return ''
+
+    slug = base_slug
+    suffix = 2
+    queryset = model.objects.all()
+    if instance_pk is not None:
+        queryset = queryset.exclude(pk=instance_pk)
+    while queryset.filter(slug=slug).exists():
+        slug = f'{base_slug[:180]}-{suffix}'
+        suffix += 1
+    return slug
 
 
 def _normalize_string_list(value, *, field_name):
@@ -64,12 +84,18 @@ class BlogPost(models.Model):
         ]
 
     def __str__(self):
-        return get_translated_attr(self, 'title', default=self.slug, lang='pt')
+        return self.get_title('pt') or self.slug
 
     def clean(self):
         super().clean()
         translations = cast(Any, self).translations
         errors = {}
+        draft_translation = getattr(self, '_pt_translation_draft', None) or {}
+
+        self.slug = str(self.slug or '').strip()
+        pt_title = draft_translation.get('title') or self.get_title('pt')
+        if not self.slug and pt_title:
+            self.slug = _generate_unique_slug(self.__class__, pt_title, instance_pk=self.pk)
 
         try:
             self.tags = _normalize_string_list(self.tags, field_name='tags')
@@ -82,9 +108,13 @@ class BlogPost(models.Model):
             return
 
         publish_errors = []
-        has_pt_translation = self.pk and translations.filter(language='pt').exists()
+        has_pt_translation = bool(draft_translation) or (self.pk and translations.filter(language='pt').exists())
         if not has_pt_translation:
             publish_errors.append(_('adicionar tradução PT'))
+        elif not (draft_translation.get('excerpt') or self.get_summary(lang='pt')):
+            publish_errors.append(_('preencher resumo PT'))
+        elif not (draft_translation.get('content') or self.get_content(lang='pt')):
+            publish_errors.append(_('preencher conteúdo PT'))
         if not self.cover_image:
             publish_errors.append(_('carregar imagem de capa'))
 
@@ -94,13 +124,25 @@ class BlogPost(models.Model):
             raise ValidationError(errors)
 
     def get_title(self, lang=None):
+        if not self.pk:
+            return self.slug
         return get_translated_attr(self, 'title', default=self.slug, lang=lang)
 
-    def get_excerpt(self, lang=None):
+    def get_summary(self, lang=None):
+        if not self.pk:
+            return ''
         return get_translated_attr(self, 'excerpt', default='', lang=lang)
 
+    def get_excerpt(self, lang=None):
+        return self.get_summary(lang=lang)
+
     def get_content(self, lang=None):
+        if not self.pk:
+            return ''
         return get_translated_attr(self, 'content', default='', lang=lang)
+
+    def get_rendered_content(self, lang=None):
+        return render_markdown(self.get_content(lang=lang))
 
     @property
     def safe_translation(self):
@@ -118,10 +160,10 @@ class BlogPost(models.Model):
 
 class BlogPostTranslation(models.Model):
     blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='translations', verbose_name=_('artigo do blog'))
-    language = models.CharField(_('idioma'), max_length=2, choices=[('pt', _('Português')), ('en', _('Inglês')), ('fr', _('Francês'))])
+    language = models.CharField(_('idioma'), max_length=2, choices=TRANSLATION_LANGUAGE_CHOICES)
     title = models.CharField(_('título'), max_length=255)
-    excerpt = models.TextField(_('resumo'), blank=True, help_text=_('Resumo curto para listagens'))
-    content = models.TextField(_('conteúdo'), help_text=_('Conteúdo do artigo (HTML)'))
+    excerpt = models.TextField(_('resumo'), help_text=_('Resumo curto para listagens'))
+    content = models.TextField(_('conteúdo'), help_text=_('Conteúdo do artigo em Markdown'))
     meta_description = models.CharField(_('meta descrição'), max_length=160, blank=True)
 
     class Meta:
@@ -139,11 +181,7 @@ class BlogPostTranslation(models.Model):
 
     @property
     def rendered_content(self):
-        return mark_safe(self.content)
-
-    def save(self, *args, **kwargs):
-        self.content = sanitize_html(self.content)
-        super().save(*args, **kwargs)
+        return render_markdown(self.content)
 
 
 class Recipe(models.Model):
@@ -179,12 +217,18 @@ class Recipe(models.Model):
         ]
 
     def __str__(self):
-        return get_translated_attr(self, 'title', default=self.slug, lang='pt')
+        return self.get_title('pt') or self.slug
 
     def clean(self):
         super().clean()
         translations = cast(Any, self).translations
         errors = {}
+        draft_translation = getattr(self, '_pt_translation_draft', None) or {}
+
+        self.slug = str(self.slug or '').strip()
+        pt_title = draft_translation.get('title') or self.get_title('pt')
+        if not self.slug and pt_title:
+            self.slug = _generate_unique_slug(self.__class__, pt_title, instance_pk=self.pk)
 
         try:
             self.tags = _normalize_string_list(self.tags, field_name='tags')
@@ -197,14 +241,14 @@ class Recipe(models.Model):
             return
 
         publish_errors = []
-        has_pt_translation = self.pk and translations.filter(language='pt').exists()
+        has_pt_translation = bool(draft_translation) or (self.pk and translations.filter(language='pt').exists())
         if not has_pt_translation:
             publish_errors.append(_('adicionar tradução PT'))
         else:
-            if not self.get_ingredients(lang='pt'):
-                publish_errors.append(_('preencher ingredientes PT'))
-            if not self.get_instructions(lang='pt'):
-                publish_errors.append(_('preencher passos PT'))
+            if not (draft_translation.get('description') or self.get_summary(lang='pt')):
+                publish_errors.append(_('preencher resumo PT'))
+            if not (draft_translation.get('content') or self.get_content(lang='pt')):
+                publish_errors.append(_('preencher conteúdo PT'))
         if not self.cover_image:
             publish_errors.append(_('carregar imagem de capa'))
 
@@ -214,10 +258,25 @@ class Recipe(models.Model):
             raise ValidationError(errors)
 
     def get_title(self, lang=None):
+        if not self.pk:
+            return self.slug
         return get_translated_attr(self, 'title', default=self.slug, lang=lang)
 
     def get_description(self, lang=None):
+        if not self.pk:
+            return ''
         return get_translated_attr(self, 'description', default='', lang=lang)
+
+    def get_summary(self, lang=None):
+        return self.get_description(lang=lang)
+
+    def get_content(self, lang=None):
+        if not self.pk:
+            return ''
+        return get_translated_attr(self, 'content', default='', lang=lang)
+
+    def get_rendered_content(self, lang=None):
+        return render_markdown(self.get_content(lang=lang))
 
     @property
     def tags_list(self):
@@ -265,9 +324,10 @@ class Recipe(models.Model):
 
 class RecipeTranslation(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='translations', verbose_name=_('receita'))
-    language = models.CharField(_('idioma'), max_length=2, choices=[('pt', _('Português')), ('en', _('Inglês')), ('fr', _('Francês'))])
+    language = models.CharField(_('idioma'), max_length=2, choices=TRANSLATION_LANGUAGE_CHOICES)
     title = models.CharField(_('título'), max_length=255)
-    description = models.TextField(_('descrição'), blank=True, help_text=_('Descrição curta'))
+    description = models.TextField(_('resumo'), help_text=_('Resumo curto'))
+    content = models.TextField(_('conteúdo'), blank=True, help_text=_('Conteúdo da receita em Markdown'))
     ingredients = models.JSONField(
         _('ingredientes'),
         default=list,
@@ -292,6 +352,10 @@ class RecipeTranslation(models.Model):
 
     def __str__(self):
         return f'{self.title} ({self.language})'
+
+    @property
+    def rendered_content(self):
+        return render_markdown(self.content)
 
     def clean(self):
         super().clean()
