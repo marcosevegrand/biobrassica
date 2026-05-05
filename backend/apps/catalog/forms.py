@@ -3,7 +3,7 @@ import json
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Category, CategoryTranslation, DeliveryMethod, Location, Product, ProductTranslation
-from apps.catalog.widgets import PickupScheduleWidget
+from apps.catalog.widgets import PickupLocationSelectWidget, PickupScheduleWidget
 
 
 class BaseAdminStyleFormMixin:
@@ -86,7 +86,8 @@ class ProductAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
             .select_related('sort_order')
             .order_by('sort_order__position', 'name', 'pk')
         )
-        self.fields['pickup_locations'].widget = forms.CheckboxSelectMultiple()
+        self.fields['pickup_locations'].widget = PickupLocationSelectWidget()
+        self.fields['pickup_locations'].widget.choices = self.fields['pickup_locations'].choices
         self.fields['pickup_locations'].help_text = _('Selecione as localizações onde o produto pode ser recolhido.')
         self.fields['image'].widget.attrs.setdefault('accept', 'image/png,image/jpeg,image/webp')
 
@@ -153,9 +154,8 @@ class LocationAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
 class DeliveryMethodAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
     string_placeholders = {
         'name': _('Nome do método'),
-        'description': _('Descrição curta do método'),
+        'estimated_delivery_time': _('Ex: 24h a 48h úteis'),
     }
-    textarea_fields = {'description': 3}
 
     class Meta:
         model = DeliveryMethod

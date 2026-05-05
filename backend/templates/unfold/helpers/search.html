@@ -1,5 +1,3 @@
-{% load i18n %}
-
 {% if sidebar_show_search %}
     {% if sidebar_command_search %}
         <div class="mb-2.5 mx-3 relative" x-on:click="$dispatch('opencommand')">
@@ -7,7 +5,7 @@
                 <span class="material-symbols-outlined md-18 text-base-400">manage_search</span>
 
                 <div class="grow font-medium min-w-0 overflow-hidden p-2 text-font-subtle-light truncate focus:outline-hidden dark:bg-base-900 dark:text-font-subtle-dark">
-                    {% trans 'Pesquisar aplicações e modelos...' %}
+                    Pesquisar aplicações e modelos...
                 </div>
 
                 {% if 'Macintosh' in request.META.HTTP_USER_AGENT %}
@@ -37,8 +35,8 @@
                        hx-trigger="keyup changed delay:500ms"
                        hx-target="#search-results"
                        class="grow font-medium min-w-0 overflow-hidden p-2 placeholder-font-subtle-light truncate focus:outline-hidden dark:bg-base-900 dark:placeholder-font-subtle-dark dark:text-font-default-dark"
-                       placeholder="{% trans 'Pesquisar aplicações e modelos...' %}"
-                       aria-label="{% trans 'Filtrar navegação' %}">
+                       placeholder="Pesquisar aplicações e modelos..."
+                       aria-label="Filtrar navegação">
 
                 {% include "unfold/helpers/shortcut.html" with shortcut="t" %}
             </div>

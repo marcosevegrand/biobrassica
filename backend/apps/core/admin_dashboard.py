@@ -167,7 +167,7 @@ def build_admin_dashboard(request, context):
     todays_pickup_items = [
         {
             'title': f'Encomenda #{order.pk}',
-            'meta': f'{order.name} · {Order.PickupLocation(order.pickup_location).label if order.pickup_location else "—"} · {Order.Status(order.status).label}',
+            'meta': f'{order.name} · {order.get_pickup_location_display() if order.pickup_location else "—"} · {Order.Status(order.status).label}',
             'badge': _('Hoje'),
             'link': reverse('admin:orders_order_change', args=[order.pk]),
         }

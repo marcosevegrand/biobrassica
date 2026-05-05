@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.validators import normalize_portuguese_phone
+from apps.catalog.models import Location
 from apps.core.limits import MAX_PURCHASE_QUANTITY
 from apps.core.translations import normalized_language
 
@@ -80,7 +81,7 @@ class Order(models.Model):
         choices=FulfillmentMethod.choices,
         default=FulfillmentMethod.PICKUP,
     )
-    pickup_location = models.CharField(_('local de levantamento'), max_length=20, choices=PickupLocation.choices, blank=True)
+    pickup_location = models.CharField(_('local de levantamento'), max_length=100, blank=True)
     shipping_address_line1 = models.CharField(_('morada'), max_length=255, blank=True)
     shipping_address_line2 = models.CharField(_('morada (cont.)'), max_length=255, blank=True)
     shipping_city = models.CharField(_('cidade'), max_length=100, blank=True)
@@ -204,6 +205,12 @@ class Order(models.Model):
     def shipping_address_display(self):
         parts = [self.shipping_address_line1, self.shipping_address_line2, self.shipping_postal_code, self.shipping_city]
         return ', '.join(part for part in parts if part)
+
+    def get_pickup_location_display(self):
+        if not self.pickup_location:
+            return ''
+        location = Location.objects.filter(pickup_location_code=self.pickup_location).only('name').first()
+        return location.name if location is not None else self.pickup_location
 
     @property
     def masked_contact(self):

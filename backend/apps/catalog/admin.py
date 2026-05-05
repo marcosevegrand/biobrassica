@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.contrib.admin import StackedInline
 from unfold.admin import ModelAdmin, TabularInline
 
 from apps.catalog.forms import (
@@ -24,7 +25,7 @@ from apps.catalog.models import (
 from apps.core.admin_helpers import EditLinkAdminMixin, render_image_preview
 
 
-class CategoryTranslationInline(TabularInline):
+class CategoryTranslationInline(StackedInline):
     model = CategoryTranslation
     form = CategoryTranslationInlineForm
     extra = 0
@@ -32,9 +33,12 @@ class CategoryTranslationInline(TabularInline):
     fields = ('language', 'name', 'featured_message')
     verbose_name = _('tradução')
     verbose_name_plural = _('Traduções EN/FR')
+    section_cta_label = _('Adicionar tradução EN/FR')
+    section_empty_title = _('Sem traduções EN/FR')
+    section_empty_body = _('Adicione Inglês e/ou Francês quando precisar de tradução adicional.')
 
 
-class ProductTranslationInline(TabularInline):
+class ProductTranslationInline(StackedInline):
     model = ProductTranslation
     form = ProductTranslationInlineForm
     extra = 0
@@ -42,6 +46,9 @@ class ProductTranslationInline(TabularInline):
     fields = ('language', 'name', 'description', 'allergens')
     verbose_name = _('tradução')
     verbose_name_plural = _('Traduções EN/FR')
+    section_cta_label = _('Adicionar tradução EN/FR')
+    section_empty_title = _('Sem traduções EN/FR')
+    section_empty_body = _('Adicione Inglês e/ou Francês quando precisar de tradução adicional.')
 
 
 @admin.register(Location)
@@ -68,10 +75,10 @@ class LocationPositionAdmin(EditLinkAdminMixin, ModelAdmin):
 @admin.register(DeliveryMethod)
 class DeliveryMethodAdmin(EditLinkAdminMixin, ModelAdmin):
     form = DeliveryMethodAdminForm
-    list_display = ('name', 'is_active', 'edit_link')
+    list_display = ('name', 'estimated_delivery_time', 'is_active', 'edit_link')
     list_filter = ('is_active',)
-    search_fields = ('name', 'description')
-    fields = ('name', 'description', 'is_active')
+    search_fields = ('name', 'estimated_delivery_time')
+    fields = ('name', 'estimated_delivery_time', 'is_active')
     list_filter_submit = True
     compressed_fields = True
 

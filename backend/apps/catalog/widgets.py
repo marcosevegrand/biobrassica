@@ -43,3 +43,20 @@ class PickupScheduleWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
         context = self.get_context(name, value, attrs)
         return mark_safe(render_to_string(self.template_name, context))
+
+
+class PickupLocationSelectWidget(forms.CheckboxSelectMultiple):
+    template_name = 'admin/widgets/pickup_locations.html'
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        choices = []
+        for group_name, group_options, group_index in context['widget']['optgroups']:
+            for option in group_options:
+                choices.append(option)
+        context['widget']['flat_choices'] = choices
+        return context
+
+    def render(self, name, value, attrs=None, renderer=None):
+        context = self.get_context(name, value, attrs)
+        return mark_safe(render_to_string(self.template_name, context))

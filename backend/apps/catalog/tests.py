@@ -164,7 +164,17 @@ class CatalogAdminTests(TestCase):
         self.assertContains(response, 'name="name"', html=False)
         self.assertContains(response, 'name="description"', html=False)
         self.assertContains(response, 'name="allergens"', html=False)
-        self.assertContains(response, 'id="id_pickup_locations"', html=False)
+        self.assertContains(response, self.location.name)
+        self.assertContains(response, 'Adicionar tradução EN/FR')
         self.assertNotContains(response, 'name="quantity_value"', html=False)
         self.assertNotContains(response, 'Imagens do produto')
         self.assertNotContains(response, 'Checklist de publicação')
+
+    def test_product_changelist_uses_portuguese_add_and_search_text(self):
+        response = self.client.get(reverse('admin:catalog_product_changelist'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Adicionar produto')
+        self.assertContains(response, 'Pesquisar')
+        self.assertNotContains(response, 'Add produto')
+        self.assertNotContains(response, 'Search apps and models...')

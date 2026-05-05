@@ -17,11 +17,6 @@ from apps.accounts.validators import normalize_portuguese_phone
 from apps.core.translations import DEFAULT_LANGUAGE, get_translated_attr, normalized_language
 
 
-PICKUP_LOCATION_CODE_CHOICES = [
-    ('braga', 'Braga'),
-    ('guimaraes', 'Guimarães'),
-]
-
 TRANSLATION_LANGUAGE_CHOICES = [
     ('en', 'Inglês'),
     ('fr', 'Francês'),
@@ -101,10 +96,9 @@ class Location(models.Model):
     name = models.CharField('nome', max_length=100, help_text='Ex: Loja Braga, Loja Guimarães')
     pickup_location_code = models.CharField(
         'código de levantamento',
-        max_length=20,
+        max_length=60,
         blank=True,
-        choices=PICKUP_LOCATION_CODE_CHOICES,
-        help_text='Liga a localização a uma opção fixa de levantamento usada no checkout.',
+        help_text='Identificador interno gerado automaticamente a partir do nome do local.',
     )
     address = models.TextField('morada', blank=True)
     image = models.ImageField('imagem', upload_to='locations/', blank=True)
@@ -151,13 +145,7 @@ class Location(models.Model):
 
         if not self.pickup_location_code and self.name:
             normalized_name = self.name.removeprefix('Loja ').strip()
-            self.pickup_location_code = slugify(normalized_name).replace('-', '_').replace('_', '')
-            if self.pickup_location_code == 'guimaraes':
-                self.pickup_location_code = 'guimaraes'
-            elif self.pickup_location_code == 'braga':
-                self.pickup_location_code = 'braga'
-            else:
-                self.pickup_location_code = slugify(normalized_name)
+            self.pickup_location_code = slugify(normalized_name)
 
         try:
             self.phone = normalize_portuguese_phone(self.phone)
@@ -254,7 +242,7 @@ class DeliveryMethod(models.Model):
     """CRUD-managed delivery / fulfillment methods."""
 
     name = models.CharField('nome', max_length=100, help_text='Ex: Levantamento na loja, Entrega ao domicílio')
-    description = models.TextField('descrição', blank=True)
+    estimated_delivery_time = models.CharField('tempo estimado de entrega', max_length=120, blank=True)
     is_active = models.BooleanField('ativo', default=True)
 
     def __init__(self, *args, **kwargs):
