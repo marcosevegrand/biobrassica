@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.checkout, name='checkout'),
     path('<int:order_id>/', views.checkout, name='checkout_order'),
     path('confirmar/', views.checkout_confirm, name='confirm'),
+    path('cancelar/<int:order_id>/', views.discard_checkout_order, name='discard'),
     path('pagamento/<int:order_id>/', views.payment_select, name='payment_select'),
     path('pagamento/<int:order_id>/estado/', views.payment_status, name='payment_status'),
     path('concluido/<int:order_id>/', views.order_complete, name='complete'),

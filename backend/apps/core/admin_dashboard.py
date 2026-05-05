@@ -26,22 +26,27 @@ def build_admin_dashboard(request, context):
         default_address_count=Count('addresses', filter=Q(addresses__is_default=True), distinct=True),
     ).filter(is_active=True).filter(Q(phone='') | Q(default_address_count=0)).distinct()
 
-    payment_pending_orders = Order.objects.filter(payment_state=Order.PaymentState.PENDING, status=Order.Status.PENDING)
-    paid_orders = Order.objects.filter(
-        status__in=[Order.Status.CONFIRMED, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED],
+    payment_pending_orders = Order.objects.filter(
+        payment_state=Order.PaymentState.PENDING,
+        status=Order.Status.PENDING,
+        payment__isnull=False,
+    )
+    paid_orders = Order.objects.filter(payment_state=Order.PaymentState.CONFIRMED).exclude(
+        status=Order.Status.CANCELLED,
     ).exclude(payment__status=Payment.Status.REFUNDED)
     today = timezone.localdate()
     todays_pickups = Order.objects.filter(
         fulfillment_method=Order.FulfillmentMethod.PICKUP,
-        status__in=[Order.Status.CONFIRMED, Order.Status.PREPARING, Order.Status.READY],
+        payment_state=Order.PaymentState.CONFIRMED,
+        status__in=[Order.Status.PENDING, Order.Status.PREPARING, Order.Status.READY],
         created_at__date=today,
     ).exclude(payment__status=Payment.Status.REFUNDED)
-    payments_requiring_attention = Payment.objects.filter(status__in=[Payment.Status.PENDING, Payment.Status.FAILED])
-    failed_payment_recovery = Payment.objects.filter(status__in=[Payment.Status.FAILED, Payment.Status.EXPIRED])
+    payments_requiring_attention = Payment.objects.filter(status=Payment.Status.PENDING)
+    failed_payment_recovery = Payment.objects.filter(status=Payment.Status.CANCELLED)
     draft_blog_posts = BlogPost.objects.filter(is_published=False)
     draft_recipes = Recipe.objects.filter(is_published=False)
     active_accounts = User.objects.filter(is_active=True)
-    paid_payments = Payment.objects.filter(status=Payment.Status.PAID)
+    paid_payments = Payment.objects.filter(status=Payment.Status.CONFIRMED)
 
     paid_orders_total = paid_orders.aggregate(gross_total=Sum('total'), average=Avg('total'))
     paid_payments_total = paid_payments.aggregate(
@@ -70,7 +75,7 @@ def build_admin_dashboard(request, context):
             'value': f"{paid_payments_total['total']:.2f}€",
             'context': _('Total confirmado em pagamentos pagos'),
             'icon': 'payments',
-            'link': reverse('admin:payments_payment_changelist') + f'?status__exact={Payment.Status.PAID}',
+            'link': reverse('admin:payments_payment_changelist') + f'?status__exact={Payment.Status.CONFIRMED}',
         },
         {
             'label': _('Ticket médio'),
@@ -248,10 +253,10 @@ def build_admin_dashboard(request, context):
         },
         {
             'title': _('Recuperação de pagamentos'),
-            'description': _('Cobranças expiradas ou falhadas a recuperar pelo suporte.'),
+            'description': _('Pagamentos cancelados que podem exigir acompanhamento do suporte.'),
             'items': failed_payment_items,
-            'empty': _('Sem pagamentos falhados para recuperar.'),
-            'link': reverse('admin:payments_payment_changelist') + f'?status__exact={Payment.Status.FAILED}',
+            'empty': _('Sem pagamentos cancelados para acompanhar.'),
+            'link': reverse('admin:payments_payment_changelist') + f'?status__exact={Payment.Status.CANCELLED}',
         },
         {
             'title': _('Conteúdo por publicar'),

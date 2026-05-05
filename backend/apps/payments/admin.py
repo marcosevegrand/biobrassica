@@ -20,13 +20,12 @@ from apps.core.admin_helpers import (
     render_summary_panel,
 )
 from apps.orders.models import Order
-from apps.orders.services import OrderWorkflowError, cancel_unpaid_order
+from apps.orders.services import OrderWorkflowError
 from apps.payments.models import Payment
 from apps.payments.services import (
+    cancel_payment,
     PaymentTransitionError,
     finalize_successful_payment,
-    mark_payment_failed,
-    schedule_manual_payment_rejection_notification,
     transition_payment_status,
 )
 
@@ -52,9 +51,8 @@ class PaymentAdminForm(forms.ModelForm):
         else:
             allowed_statuses = {
                 Payment.Status.PENDING,
-                Payment.Status.PAID,
-                Payment.Status.FAILED,
-                Payment.Status.EXPIRED,
+                Payment.Status.CONFIRMED,
+                Payment.Status.CANCELLED,
             }
             self.initial.setdefault('status', Payment.Status.PENDING)
 
@@ -72,18 +70,11 @@ class PaymentAdminForm(forms.ModelForm):
         if Payment.objects.filter(order=order).exclude(pk=self.instance.pk).exists():
             self.add_error('order', _('A encomenda selecionada já tem um pagamento associado.'))
 
-        if status == Payment.Status.PAID and order.status == Order.Status.CANCELLED:
-            self.add_error('status', _('Não pode registar um pagamento pago numa encomenda cancelada.'))
+        if order.status == Order.Status.CANCELLED and status != Payment.Status.CANCELLED:
+            self.add_error('order', _('A encomenda selecionada foi cancelada e já não aceita este estado de pagamento.'))
 
-        if status in {Payment.Status.PENDING, Payment.Status.FAILED, Payment.Status.EXPIRED} and order.status in {
-            Order.Status.CANCELLED,
-            Order.Status.CONFIRMED,
-            Order.Status.PREPARING,
-            Order.Status.READY,
-            Order.Status.IN_TRANSIT,
-            Order.Status.DELIVERED,
-        }:
-            self.add_error('order', _('Escolha uma encomenda ainda não fechada para este estado de pagamento.'))
+        if status == Payment.Status.CONFIRMED and order.status == Order.Status.CANCELLED:
+            self.add_error('status', _('Não pode confirmar um pagamento numa encomenda cancelada.'))
 
         return cleaned_data
 
@@ -171,22 +162,13 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 self._sync_order_payment_state(payment, Order.PaymentState.PENDING)
             return False
 
-        if target_status == Payment.Status.PAID:
+        if target_status == Payment.Status.CONFIRMED:
             self._sync_order_payment_state(payment, Order.PaymentState.CONFIRMED)
             return finalize_successful_payment(payment, source='admin_manual_update')
 
-        if target_status == Payment.Status.FAILED:
+        if target_status == Payment.Status.CANCELLED:
             self._sync_order_payment_state(payment, Order.PaymentState.CANCELLED)
-            return mark_payment_failed(payment, reason=reason or _('Pagamento marcado como falhado no backoffice.'))
-
-        if target_status == Payment.Status.EXPIRED:
-            self._sync_order_payment_state(payment, Order.PaymentState.CANCELLED)
-            return transition_payment_status(
-                payment,
-                Payment.Status.EXPIRED,
-                reason=reason or _('Pagamento marcado como expirado no backoffice.'),
-                source='admin_manual_update',
-            )
+            return cancel_payment(payment, reason=reason or _('Pagamento cancelado no backoffice.'), source='admin_manual_update')
 
         if target_status == Payment.Status.PENDING:
             changed = transition_payment_status(payment, Payment.Status.PENDING, source='admin_manual_update')
@@ -203,7 +185,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         success_count = 0
         skipped_count = 0
         error_count = 0
-        rejection_reason = 'Pagamento rejeitado no backoffice.'
+        rejection_reason = 'Pagamento cancelado no backoffice.'
 
         for payment in queryset.select_related('order'):
             try:
@@ -220,12 +202,10 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                             skipped_count += 1
                         continue
 
-                    if not mark_payment_failed(locked, reason=rejection_reason):
+                    if not cancel_payment(locked, reason=rejection_reason, source='admin_manual_rejection'):
                         skipped_count += 1
                         continue
 
-                    cancel_unpaid_order(locked.order)
-                    schedule_manual_payment_rejection_notification(locked, reason=rejection_reason)
                     success_count += 1
             except (OrderWorkflowError, PaymentTransitionError):
                 error_count += 1
@@ -277,14 +257,14 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             original_status = getattr(obj, '_original_status', obj.status)
             if desired_status != original_status:
                 obj.status = original_status
-                if original_status == Payment.Status.PAID and obj.paid_at is None:
+                if original_status == Payment.Status.CONFIRMED and obj.paid_at is None:
                     obj.paid_at = Payment.objects.only('paid_at').get(pk=obj.pk).paid_at
-                elif original_status != Payment.Status.PAID:
+                elif original_status != Payment.Status.CONFIRMED:
                     obj.paid_at = None
             super().save_model(request, obj, form, change)
             if desired_status != original_status:
                 self._apply_payment_status(obj, desired_status, reason=form.cleaned_data.get('last_error', ''))
-                if desired_status == Payment.Status.PAID and desired_paid_at is not None and obj.paid_at != desired_paid_at:
+                if desired_status == Payment.Status.CONFIRMED and desired_paid_at is not None and obj.paid_at != desired_paid_at:
                     obj.paid_at = desired_paid_at
                     obj.save(update_fields=['paid_at'])
             elif desired_status == Payment.Status.PENDING:
@@ -298,7 +278,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
         if desired_status != Payment.Status.PENDING:
             self._apply_payment_status(obj, desired_status, reason=form.cleaned_data.get('last_error', ''))
-            if desired_status == Payment.Status.PAID and desired_paid_at is not None and obj.paid_at != desired_paid_at:
+            if desired_status == Payment.Status.CONFIRMED and desired_paid_at is not None and obj.paid_at != desired_paid_at:
                 obj.paid_at = desired_paid_at
                 obj.save(update_fields=['paid_at'])
         else:
@@ -311,9 +291,8 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def status_badge(self, obj):
         tones = {
             Payment.Status.PENDING: 'warning',
-            Payment.Status.PAID: 'success',
-            Payment.Status.FAILED: 'danger',
-            Payment.Status.EXPIRED: 'neutral',
+            Payment.Status.CONFIRMED: 'success',
+            Payment.Status.CANCELLED: 'danger',
             Payment.Status.REFUNDED: 'info',
         }
         return render_status_badge(obj.get_status_display(), tones.get(obj.status, 'neutral'))
@@ -367,11 +346,10 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         actions = []
         if obj.status == Payment.Status.PENDING:
             actions.extend([
-                render_action_link(reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.PAID]), _('Pago'), tone='success'),
-                render_action_link(reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.FAILED]), _('Falhar'), tone='danger'),
-                render_action_link(reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.EXPIRED]), _('Expirar'), tone='warning'),
+                render_action_link(reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.CONFIRMED]), _('Confirmar'), tone='success'),
+                render_action_link(reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.CANCELLED]), _('Cancelar'), tone='danger'),
             ])
-        elif obj.status in {Payment.Status.FAILED, Payment.Status.EXPIRED}:
+        elif obj.status == Payment.Status.CANCELLED:
             actions.append(
                 render_action_link(
                     reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.PENDING]),
@@ -379,7 +357,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                     tone='info',
                 )
             )
-        elif obj.status == Payment.Status.PAID:
+        elif obj.status == Payment.Status.CONFIRMED:
             actions.append(
                 render_action_link(
                     reverse('admin:payments_payment_status', args=[obj.pk, Payment.Status.REFUNDED]),

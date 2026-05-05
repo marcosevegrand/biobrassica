@@ -20,10 +20,15 @@
     </div>
   </div>
 
-  {% if order.status == 'cancelled' or order.payment_state == 'cancelled' %}
+  {% if order.status == 'cancelled' %}
   <div class="border border-rose-200 bg-rose-50 text-rose-800 rounded-sm p-6 mb-8">
     <h3 class="font-serif text-lg italic mb-2">{% trans "Encomenda cancelada" %}</h3>
     <p class="text-sm">{% trans "Esta encomenda foi cancelada. Pode fazer uma nova encomenda se desejar." %}</p>
+  </div>
+  {% elif order.payment_state == 'cancelled' %}
+  <div class="border border-rose-200 bg-rose-50 text-rose-800 rounded-sm p-6 mb-8">
+    <h3 class="font-serif text-lg italic mb-2">{% trans "Pagamento cancelado" %}</h3>
+    <p class="text-sm">{% trans "O pagamento desta encomenda foi cancelado. Pode escolher um novo método de pagamento e tentar novamente." %}</p>
   </div>
   {% endif %}
 
@@ -85,7 +90,7 @@
   </div>
   {% endif %}
 
-  {% if order.status != 'cancelled' and order.payment_state != 'cancelled' %}
+  {% if order.status != 'cancelled' %}
   <div class="flex flex-col sm:flex-row gap-4">
     <a href="{% url 'orders:payment_status' order_id=order.pk %}"
        class="inline-block text-center text-xs uppercase tracking-widest border border-forest px-6 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">

@@ -25,7 +25,7 @@ from apps.core.admin_helpers import (
     render_summary_panel,
 )
 from apps.orders.models import Order, OrderItem
-from apps.orders.services import OrderWorkflowError, cancel_unpaid_order, transition_order_status
+from apps.orders.services import OrderWorkflowError, cancel_order, transition_order_status
 from apps.payments.models import Payment
 
 
@@ -46,13 +46,15 @@ class OrderAdminForm(forms.ModelForm):
         self.fields['total'].widget.attrs.setdefault('step', '0.01')
 
         if self.instance.pk:
-            allowed_statuses = {self.instance.status, *self.instance.valid_next_statuses()}
-        else:
-            allowed_statuses = {
-                Order.Status.PENDING,
-                Order.Status.CONFIRMED,
+            if self.instance.payment_state == Order.PaymentState.CONFIRMED or self.instance.status in {
                 Order.Status.CANCELLED,
-            }
+                Order.Status.DELIVERED,
+            }:
+                allowed_statuses = {self.instance.status, *self.instance.valid_next_statuses()}
+            else:
+                allowed_statuses = {self.instance.status}
+        else:
+            allowed_statuses = {Order.Status.PENDING}
             self.initial.setdefault('status', Order.Status.PENDING)
 
         self.fields['status'].choices = [
@@ -185,7 +187,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_filter_submit = True
     compressed_fields = True
     autocomplete_fields = ('user',)
-    actions = ('mark_preparing', 'mark_ready', 'mark_delivered', 'cancel_unpaid_orders')
+    actions = ('mark_preparing', 'mark_ready', 'mark_in_transit', 'mark_delivered', 'cancel_orders')
 
     add_fieldsets = (
         (None, {
@@ -251,9 +253,9 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     )
 
     transition_submit_actions = {
-        '_mark_confirmed': (Order.Status.CONFIRMED, _('Encomenda confirmada.')),
         '_mark_preparing': (Order.Status.PREPARING, _('Encomenda marcada como em preparação.')),
         '_mark_ready': (Order.Status.READY, _('Encomenda marcada como pronta para levantamento.')),
+        '_mark_in_transit': (Order.Status.IN_TRANSIT, _('Encomenda marcada como em trânsito.')),
         '_mark_delivered': (Order.Status.DELIVERED, _('Encomenda marcada como entregue.')),
     }
 
@@ -297,7 +299,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         link = format_html(
             '<a href="{}" style="margin-left:8px;font-size:13px;">{}</a>',
             reverse('admin:payments_payment_change', args=[payment.pk]),
-            _('Editar pagamento'),
+            _('Atualizar pagamento'),
         )
         return format_html('{}{}', badge, link)
 
@@ -308,9 +310,9 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def status_badge(self, obj):
         tones = {
             Order.Status.PENDING: 'neutral',
-            Order.Status.CONFIRMED: 'warning',
             Order.Status.PREPARING: 'info',
             Order.Status.READY: 'info',
+            Order.Status.IN_TRANSIT: 'info',
             Order.Status.DELIVERED: 'success',
             Order.Status.CANCELLED: 'danger',
         }
@@ -349,11 +351,16 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         self._sync_order_totals_and_stock(cast(Order, form.instance))
 
     def get_changeform_submit_actions(self, request, obj):
+        if obj is None:
+            return []
+        if obj.status == Order.Status.PENDING and obj.payment_state != Order.PaymentState.CONFIRMED:
+            return []
+
         actions = []
         transition_buttons = {
-            Order.Status.CONFIRMED: ('_mark_confirmed', _('Confirmar encomenda')),
             Order.Status.PREPARING: ('_mark_preparing', _('Marcar em preparação')),
             Order.Status.READY: ('_mark_ready', _('Marcar pronta')),
+            Order.Status.IN_TRANSIT: ('_mark_in_transit', _('Marcar em trânsito')),
             Order.Status.DELIVERED: ('_mark_delivered', _('Marcar entregue')),
         }
         for status, (action_name, description) in transition_buttons.items():
@@ -371,18 +378,16 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             return HttpResponseRedirect(reverse('admin:orders_order_changelist'))
 
         try:
-            changed = cancel_unpaid_order(order)
+            changed = cancel_order(order)
         except OrderWorkflowError as error:
             self.message_user(request, str(error), level=messages.WARNING)
         else:
             if changed:
-                self.message_user(request, _('Encomenda cancelada e stock reposto.'), level=messages.SUCCESS)
+                self.message_user(request, _('Encomenda cancelada.'), level=messages.SUCCESS)
         return HttpResponseRedirect(reverse('admin:orders_order_change', args=[order.pk]))
 
     def _can_cancel_from_change_form(self, obj):
-        if obj.payment_state == Order.PaymentState.CONFIRMED:
-            return False
-        return obj.status not in {Order.Status.CANCELLED, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED}
+        return obj.status not in {Order.Status.CANCELLED, Order.Status.DELIVERED}
 
     def _sync_order_totals_and_stock(self, order):
         original_items = getattr(order, '_admin_original_items_snapshot', [])
@@ -425,7 +430,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             order.save(update_fields=['subtotal', 'total', 'updated_at'])
 
         payment = Payment.objects.filter(order=order).first()
-        if payment is not None and payment.status != Payment.Status.PAID and payment.amount != order.total:
+        if payment is not None and payment.status != Payment.Status.CONFIRMED and payment.amount != order.total:
             payment.amount = order.total
             payment.save(update_fields=['amount'])
 
@@ -467,7 +472,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def quick_actions(self, obj):
         actions = []
         transition_labels = {
-            Order.Status.CONFIRMED: _('Confirmar'),
             Order.Status.PREPARING: _('Preparar'),
             Order.Status.READY: _('Pronta'),
             Order.Status.IN_TRANSIT: _('Em transporte'),
@@ -477,13 +481,11 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         next_statuses = []
         if obj.status == Order.Status.PENDING:
             if obj.payment_state == Order.PaymentState.CONFIRMED:
-                next_statuses = [Order.Status.CONFIRMED]
-        elif obj.status == Order.Status.CONFIRMED:
-            next_statuses = [Order.Status.PREPARING]
+                next_statuses = [Order.Status.PREPARING]
         elif obj.status == Order.Status.PREPARING:
-            next_statuses = [Order.Status.READY]
+            next_statuses = [Order.Status.IN_TRANSIT] if obj.is_shipping else [Order.Status.READY]
         elif obj.status == Order.Status.READY:
-            next_statuses = [Order.Status.IN_TRANSIT, Order.Status.DELIVERED]
+            next_statuses = [Order.Status.DELIVERED]
         elif obj.status == Order.Status.IN_TRANSIT:
             next_statuses = [Order.Status.DELIVERED]
 
@@ -511,10 +513,10 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def workflow_next_step(self, obj):
         if obj.payment_state == Order.PaymentState.PENDING and obj.status == Order.Status.PENDING:
             return _('Confirmar pagamento')
-        if obj.status == Order.Status.CONFIRMED:
+        if obj.status == Order.Status.PENDING and obj.payment_state == Order.PaymentState.CONFIRMED:
             return _('Iniciar preparação')
         if obj.status == Order.Status.PREPARING:
-            return _('Marcar pronta')
+            return _('Marcar em trânsito') if obj.is_shipping else _('Marcar pronta')
         if obj.status == Order.Status.READY:
             return _('Entregar')
         if obj.status in {Order.Status.DELIVERED, Order.Status.CANCELLED}:
@@ -544,9 +546,8 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
         tones = {
             payment.Status.PENDING: 'warning',
-            payment.Status.PAID: 'success',
-            payment.Status.FAILED: 'danger',
-            payment.Status.EXPIRED: 'neutral',
+            payment.Status.CONFIRMED: 'success',
+            payment.Status.CANCELLED: 'danger',
             payment.Status.REFUNDED: 'info',
         }
         return render_status_badge(payment.get_status_display(), tones.get(payment.status, 'neutral'))
@@ -570,7 +571,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 (_('ID no provedor'), payment.masked_provider_payment_id or '—'),
                 (_('Valor'), f'{payment.amount:.2f}€'),
             ],
-            footer=_('Os pagamentos confirmados libertam automaticamente as próximas ações do fluxo.'),
+            footer=_('Atualize o pagamento no editor próprio; o estado da encomenda avança separadamente.'),
         )
 
     @admin.display(description=_('Resumo operacional'))
@@ -638,18 +639,22 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def mark_ready(self, request, queryset):
         self._process_transition_action(request, queryset, Order.Status.READY)
 
+    @admin.action(description=_('Marcar como em trânsito'))
+    def mark_in_transit(self, request, queryset):
+        self._process_transition_action(request, queryset, Order.Status.IN_TRANSIT)
+
     @admin.action(description=_('Marcar como entregue'))
     def mark_delivered(self, request, queryset):
         self._process_transition_action(request, queryset, Order.Status.DELIVERED)
 
-    @admin.action(description=_('Cancelar encomendas não pagas'))
-    def cancel_unpaid_orders(self, request, queryset):
+    @admin.action(description=_('Cancelar encomendas'))
+    def cancel_orders(self, request, queryset):
         success_count = 0
         error_count = 0
 
         for order in queryset:
             try:
-                if cancel_unpaid_order(order):
+                if cancel_order(order):
                     success_count += 1
             except OrderWorkflowError:
                 error_count += 1

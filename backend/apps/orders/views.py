@@ -10,9 +10,14 @@ from django.views.decorators.http import require_http_methods
 from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items
 from apps.orders.forms import CheckoutForm, PaymentSelectionForm
 from apps.orders.models import Order
-from apps.orders.services import CartStateChangedError, StockValidationError, cancel_unpaid_order, create_order_from_cart
+from apps.orders.services import (
+    CartStateChangedError,
+    OrderWorkflowError,
+    StockValidationError,
+    create_order_from_cart,
+    discard_pending_order,
+)
 from apps.core.site_content import payments_are_enabled
-from apps.core.models import ShopSettings
 from apps.payments.models import Payment
 from apps.payments.services import (
     PaymentDisabledError,
@@ -48,6 +53,17 @@ def _get_order_payment(order):
         return order.payment
     except Payment.DoesNotExist:
         return None
+
+
+def _get_pending_checkout_order(user):
+    if not user.is_authenticated:
+        return None
+    return (
+        Order.objects.filter(user=user, status=Order.Status.PENDING, payment_state=Order.PaymentState.PENDING)
+        .filter(payment__isnull=True)
+        .order_by('-created_at')
+        .first()
+    )
 
 
 def _payment_select_context(order, form):
@@ -94,6 +110,9 @@ def checkout(request, order_id=None):
         return redirect(_order_url('orders:payment_select', order))
 
     cart = get_cart_for_request(request)
+    pending_checkout_order = _get_pending_checkout_order(request.user)
+    if pending_checkout_order is not None:
+        return redirect(_order_url('orders:payment_select', pending_checkout_order))
 
     if not cart or cart.item_count == 0:
         messages.warning(request, _('O seu carrinho está vazio.'))
@@ -154,9 +173,6 @@ def checkout_confirm(request):
 
     cleaned_data = form.cleaned_data
     lang = get_language() or 'pt'
-    order = None
-    payment = None
-    payment_service = get_payment_service()
 
     try:
         order = create_order_from_cart(
@@ -176,37 +192,7 @@ def checkout_confirm(request):
             notes=cleaned_data['notes'],
             clear_cart_items=False,
         )
-
-        settings_obj = ShopSettings.objects.filter(pk=1).first()
-        timeout_minutes = getattr(settings_obj, 'payment_timeout_minutes', 30) if settings_obj else 30
-        expires_at = None
-        if timeout_minutes > 0:
-            from django.utils import timezone
-
-            expires_at = timezone.now() + timezone.timedelta(minutes=timeout_minutes)
-
-        payment = Payment.objects.create(
-            order=order,
-            method=payment_service.method,
-            status=Payment.Status.PENDING,
-            amount=order.total,
-            expires_at=expires_at,
-        )
-
-        success_url = request.build_absolute_uri(
-            f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
-        )
-        status_url = request.build_absolute_uri(_order_url('orders:payment_status', order))
-        cancel_url = request.build_absolute_uri(_order_url('orders:checkout_order', order))
-        redirect_url = payment_service.initiate_payment(
-            order=order,
-            payment=payment,
-            success_url=success_url,
-            cancel_url=cancel_url,
-            status_url=status_url,
-        )
-        clear_cart(cart)
-        return redirect(redirect_url)
+        return redirect(_order_url('orders:payment_select', order))
     except CartStateChangedError:
         cart_items = list(get_cart_items_queryset(cart))
         if not cart_items:
@@ -224,36 +210,9 @@ def checkout_confirm(request):
         cart_items = list(get_cart_items_queryset(cart))
         cart_can_ship = _cart_allows_shipping(cart_items) if cart_items else False
         return render(request, 'orders/checkout.html', _checkout_context(request, cart, cart_items, cart_can_ship, form), status=200)
-    except PaymentDisabledError:
-        if order is not None:
-            try:
-                cancel_unpaid_order(order)
-            except Exception:
-                logger.exception('Failed to cancel order %s after payments were disabled', order.pk)
-        if payment is not None:
-            payment.delete()
-        return _handle_payments_disabled(request=request, redirect_to='orders:checkout')
-    except PaymentProcessingError as error:
-        if order is not None:
-            try:
-                cancel_unpaid_order(order)
-            except Exception:
-                logger.exception('Failed to cancel order %s after payment setup validation failed', order.pk)
-        if payment is not None:
-            payment.delete()
-        logger.warning('Payment setup rejected for order %s: %s', order.pk if order else 'new', error)
-        messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
-        return redirect('orders:checkout')
     except Exception:
-        if order is not None:
-            try:
-                cancel_unpaid_order(order)
-            except Exception:
-                logger.exception('Failed to cancel order %s after payment setup failure', order.pk)
-        if payment is not None:
-            payment.delete()
-        logger.exception('Failed to initiate payment for order %s', order.pk if order else 'new')
-        messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
+        logger.exception('Failed to create checkout order for user %s', request.user.pk)
+        messages.error(request, _('Não foi possível criar a encomenda. Tente novamente.'))
         return redirect('orders:checkout')
 
 
@@ -268,6 +227,11 @@ def payment_select(request, order_id):
 
     if order.payment_state == Order.PaymentState.CONFIRMED and current_payment:
         return redirect(_order_url('orders:complete', order))
+    if order.status == Order.Status.CANCELLED:
+        messages.error(request, _('Esta encomenda foi cancelada e já não aceita pagamentos.'))
+        if current_payment is not None:
+            return redirect(_order_url('orders:payment_status', order))
+        return redirect('orders:checkout')
 
     if request.method == 'GET':
         form = PaymentSelectionForm(initial={'payment_method': get_payment_service().method})
@@ -283,9 +247,10 @@ def payment_select(request, order_id):
     payment_method = form.cleaned_data['payment_method']
     payment_service = get_payment_service(payment_method)
     existing_payment = current_payment
-    if existing_payment and existing_payment.status == Payment.Status.PAID:
+    if existing_payment and existing_payment.status == Payment.Status.CONFIRMED:
         return redirect(_order_url('orders:complete', order))
 
+    payment = None
     try:
         if existing_payment and existing_payment.status == Payment.Status.PENDING and existing_payment.method == payment_method:
             if existing_payment.checkout_url:
@@ -306,17 +271,43 @@ def payment_select(request, order_id):
             cancel_url=cancel_url,
             status_url=status_url,
         )
+        cart = get_cart_for_request(request)
+        if cart is not None:
+            clear_cart(cart)
         return redirect(redirect_url)
     except PaymentDisabledError:
+        if payment is not None and payment.status == Payment.Status.PENDING:
+            payment.delete()
         messages.error(request, PAYMENTS_DISABLED_MESSAGE)
         return redirect(_order_url('orders:payment_select', order))
     except PaymentProcessingError as error:
+        if payment is not None and payment.status == Payment.Status.PENDING:
+            payment.delete()
         messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
         return redirect(_order_url('orders:payment_select', order))
     except Exception:
+        if payment is not None and payment.status == Payment.Status.PENDING:
+            payment.delete()
         logger.exception('Failed to initiate payment for order %s', order.pk)
         messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
         return redirect(_order_url('orders:payment_select', order))
+
+
+@require_http_methods(['POST'])
+def discard_checkout_order(request, order_id):
+    login_redirect = _require_authenticated_user(request)
+    if login_redirect is not None:
+        return login_redirect
+
+    order = _get_order_for_request(request, order_id)
+    try:
+        discard_pending_order(order)
+    except OrderWorkflowError as error:
+        messages.warning(request, str(error))
+        return redirect(_order_url('orders:payment_select', order))
+
+    messages.success(request, _('A encomenda pendente foi apagada e o stock foi reposto.'))
+    return redirect('orders:checkout')
 
 
 def payment_status(request, order_id):
@@ -349,12 +340,12 @@ def payment_status(request, order_id):
         except Exception:
             logger.exception('Failed to refresh payment state for payment %s', payment.pk)
         else:
-            if refresh_state == 'paid':
+            if refresh_state == 'confirmed':
                 messages.success(request, _('Pagamento confirmado com sucesso.'))
                 return redirect(_order_url('orders:complete', order))
-            if refresh_state == 'expired':
+            if refresh_state == 'cancelled':
                 payment.refresh_from_db()
-                messages.error(request, _('A sessão de pagamento expirou. Pode iniciar novamente.'))
+                messages.error(request, _('O pagamento foi cancelado. Pode iniciar novamente.'))
 
     timeout_minutes = None
     expires_at_iso = None

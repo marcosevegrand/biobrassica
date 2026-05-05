@@ -8,10 +8,9 @@ from django.utils.translation import gettext_lazy as _
 
 
 PAYMENT_STATUS_TRANSITIONS = {
-    'pending': {'paid', 'failed', 'expired'},
-    'failed': {'pending'},
-    'expired': {'pending'},
-    'paid': {'refunded'},
+    'pending': {'confirmed', 'cancelled'},
+    'confirmed': {'refunded'},
+    'cancelled': {'pending'},
     'refunded': set(),
 }
 
@@ -32,9 +31,8 @@ class Payment(models.Model):
 
     class Status(models.TextChoices):
         PENDING = 'pending', _('Pendente')
-        PAID = 'paid', _('Pago')
-        FAILED = 'failed', _('Falhado')
-        EXPIRED = 'expired', _('Expirado')
+        CONFIRMED = 'confirmed', _('Confirmado')
+        CANCELLED = 'cancelled', _('Cancelado')
         REFUNDED = 'refunded', _('Reembolsado')
 
     order = models.OneToOneField(
@@ -112,11 +110,11 @@ class Payment(models.Model):
         if original_status and self.status != original_status and not self.can_transition_to(self.status):
             errors['status'] = _('Transição de estado inválida para o pagamento.')
 
-        if self.status == self.Status.PAID and self.paid_at is None:
+        if self.status == self.Status.CONFIRMED and self.paid_at is None:
             self.paid_at = timezone.now()
 
-        if self.status != self.Status.PAID and self.paid_at is not None:
-            errors['paid_at'] = _('A data de pagamento só pode estar preenchida em pagamentos pagos.')
+        if self.status != self.Status.CONFIRMED and self.paid_at is not None:
+            errors['paid_at'] = _('A data de pagamento só pode estar preenchida em pagamentos confirmados.')
 
         if self.checkout_url and urlsplit(self.checkout_url).scheme != 'https':
             errors['checkout_url'] = _('Use um URL https:// válido para o checkout.')

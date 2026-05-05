@@ -77,7 +77,50 @@ def transition_payment_state(order, new_state):
     return True
 
 
-def cancel_unpaid_order(order):
+def cancel_order(order):
+    with transaction.atomic():
+        locked_order = Order.objects.select_for_update().get(pk=order.pk)
+
+        if locked_order.status == Order.Status.CANCELLED:
+            return False
+        if locked_order.status == Order.Status.DELIVERED:
+            raise OrderStateTransitionError('A encomenda já foi entregue e não pode ser cancelada.')
+
+        transition_order_status(locked_order, Order.Status.CANCELLED)
+        return True
+
+
+def cancel_order_for_expired_payment(order):
+    from apps.payments.models import Payment
+    from apps.payments.services import transition_payment_status
+
+    with transaction.atomic():
+        locked_order = (
+            Order.objects.select_for_update()
+            .prefetch_related('items__product')
+            .get(pk=order.pk)
+        )
+
+        payment = Payment.objects.select_for_update().filter(order_id=locked_order.pk).first()
+        if payment is None:
+            raise OrderStateTransitionError('A encomenda não tem pagamento associado para este cancelamento automático.')
+        if payment.status != Payment.Status.PENDING:
+            return False
+
+        transition_payment_status(
+            payment,
+            Payment.Status.CANCELLED,
+            reason='Pagamento cancelado por expiração.',
+            source='payment_timeout',
+        )
+        transition_payment_state(locked_order, Order.PaymentState.CANCELLED)
+        if locked_order.status != Order.Status.CANCELLED:
+            transition_order_status(locked_order, Order.Status.CANCELLED)
+
+        return True
+
+
+def discard_pending_order(order):
     from apps.payments.models import Payment
 
     with transaction.atomic():
@@ -87,29 +130,14 @@ def cancel_unpaid_order(order):
             .get(pk=order.pk)
         )
 
-        if locked_order.payment_state == locked_order.PaymentState.CONFIRMED:
-            raise OrderStateTransitionError('As encomendas com pagamento confirmado não podem ser canceladas por este fluxo.')
-
-        if locked_order.status in {Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED}:
-            raise OrderStateTransitionError('A encomenda já entrou em preparação e não pode ser cancelada aqui.')
-
-        if locked_order.status == Order.Status.CANCELLED:
-            return False
-
-        payment = Payment.objects.select_for_update().filter(order_id=locked_order.pk).first()
-        if payment is not None and payment.status == payment.Status.PENDING:
-            from apps.payments.services import transition_payment_status
-
-            transition_payment_status(payment, Payment.Status.EXPIRED, source='order_cancellation')
+        if Payment.objects.select_for_update().filter(order_id=locked_order.pk).exists():
+            raise OrderStateTransitionError('A encomenda já tem um pagamento associado e não pode ser apagada.')
 
         product_ids = [item.product.pk for item in locked_order.items.all() if item.product is not None]
         locked_products = {
             product.pk: product
             for product in Product.objects.select_for_update().filter(pk__in=product_ids)
         }
-
-        transition_order_status(locked_order, Order.Status.CANCELLED)
-        transition_payment_state(locked_order, Order.PaymentState.CANCELLED)
 
         for item in locked_order.items.all():
             if item.product is None:
@@ -120,6 +148,7 @@ def cancel_unpaid_order(order):
             product.stock += item.quantity
             product.save(update_fields=['stock', 'updated_at'])
 
+        locked_order.delete()
         return True
 
 

@@ -1,9 +1,15 @@
+from django.core.management import call_command
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from django.urls import reverse
 
-from apps.catalog.models import Category, Product
+from apps.cart.models import Cart, CartItem
+from apps.catalog.models import Category, Location, Product
+from apps.core.models import ShopSettings
 from apps.orders.models import Order, OrderItem
+from apps.payments.models import Payment
 
 
 @override_settings(ROOT_URLCONF='config.urls_admin')
@@ -62,29 +68,9 @@ class OrderAdminTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        print('DEBUG: Redirect chain:', getattr(response, 'redirect_chain', []))
         self.assertEqual(Order.objects.count(), 1)
 
         order = Order.objects.get()
-        print('DEBUG: Order PK:', order.pk)
-        print('DEBUG: Order status:', order.status)
-        print('DEBUG: Order payment_state:', order.payment_state)
-        print('DEBUG: Item count:', OrderItem.objects.filter(order=order).count())
-        if response.context:
-            for ctx in response.context:
-                title = ctx.get('title')
-                print(f'DEBUG: Context title: {title}')
-                adminform = ctx.get('adminform')
-                if adminform:
-                    print('DEBUG: Has adminform')
-                    for field in adminform:
-                        if field.field.errors:
-                            print(f'DEBUG: Error on {field.field.name}: {field.field.errors}')
-                    inlines = ctx.get('inline_admin_formsets', [])
-                    for inline in inlines:
-                        for form in inline:
-                            if form.form.errors:
-                                print(f'DEBUG: Inline error: {form.form.errors}')
         order_item = OrderItem.objects.get(order=order)
         self.product.refresh_from_db()
 
@@ -159,3 +145,130 @@ class OrderAdminTests(TestCase):
         self.assertEqual(item.quantity, 3)
         self.assertEqual(order.total, self.product.price * 3)
         self.assertEqual(self.product.stock, 7)
+
+
+@override_settings(ROOT_URLCONF='config.urls_shop')
+class CheckoutFlowTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(
+            email='cliente@example.com',
+            username='cliente',
+            password='testpass123',
+            phone='912345678',
+        )
+        self.client.defaults['HTTP_HOST'] = 'loja.lvh.me'
+        self.client.force_login(self.user)
+
+        settings_obj = ShopSettings.load()
+        settings_obj.mbway_enabled = True
+        settings_obj.mbway_number = '912345678'
+        settings_obj.payment_timeout_minutes = 30
+        settings_obj.save()
+
+        self.location = Location.objects.create(name='Loja Braga', is_active=True)
+        self.category = Category.objects.create(slug='mercearia-checkout-orders')
+        self.product = Product.objects.create(
+            category=self.category,
+            slug='cabaz-checkout',
+            name='Cabaz Checkout',
+            brand='Biobrassica',
+            bio_code='PT-BIO-03',
+            description='Cabaz semanal',
+            allergens='Nenhum',
+            price='5.00',
+            quantity='1 un',
+            stock=10,
+            is_active=True,
+            allow_pickup=True,
+            image=SimpleUploadedFile(
+                'product.gif',
+                b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;',
+                content_type='image/gif',
+            ),
+        )
+        self.product.pickup_locations.add(self.location)
+
+        self.cart = Cart.objects.create(user=self.user)
+        CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
+
+    def test_checkout_creates_order_without_payment_and_discard_restores_stock(self):
+        response = self.client.post(
+            reverse('orders:confirm'),
+            {
+                'name': 'Cliente Checkout',
+                'email': 'cliente@example.com',
+                'phone': '912345678',
+                'fulfillment_method': Order.FulfillmentMethod.PICKUP,
+                'pickup_location': self.location.pickup_location_code,
+                'shipping_address_line1': '',
+                'shipping_address_line2': '',
+                'shipping_postal_code': '',
+                'shipping_city': '',
+                'notes': '',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(Payment.objects.count(), 0)
+
+        order = Order.objects.get()
+        self.assertEqual(response['Location'], reverse('orders:payment_select', args=[order.pk]))
+        self.assertEqual(order.status, Order.Status.PENDING)
+        self.assertEqual(order.payment_state, Order.PaymentState.PENDING)
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 8)
+        self.assertEqual(self.cart.items.count(), 1)
+
+        discard_response = self.client.post(reverse('orders:discard', args=[order.pk]))
+
+        self.assertEqual(discard_response.status_code, 302)
+        self.assertFalse(Order.objects.exists())
+        self.assertEqual(Payment.objects.count(), 0)
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 10)
+
+    def test_timeout_cancels_payment_and_order_without_restoring_stock(self):
+        order = Order.objects.create(
+            user=self.user,
+            name='Cliente Timeout',
+            email='cliente@example.com',
+            phone='912345678',
+            language=Order.Language.PT,
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=self.location.pickup_location_code,
+            subtotal='10.00',
+            total='10.00',
+            status=Order.Status.PENDING,
+            payment_state=Order.PaymentState.PENDING,
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            product_name='Cabaz Checkout',
+            price='5.00',
+            quantity=2,
+        )
+        self.product.stock = 8
+        self.product.save(update_fields=['stock'])
+        payment = Payment.objects.create(
+            order=order,
+            method=Payment.Method.MBWAY_MANUAL,
+            status=Payment.Status.PENDING,
+            amount='10.00',
+            expires_at=timezone.now() - timezone.timedelta(minutes=5),
+        )
+
+        call_command('cancel_expired_payments')
+
+        order.refresh_from_db()
+        payment.refresh_from_db()
+        self.product.refresh_from_db()
+
+        self.assertEqual(payment.status, Payment.Status.CANCELLED)
+        self.assertEqual(order.payment_state, Order.PaymentState.CANCELLED)
+        self.assertEqual(order.status, Order.Status.CANCELLED)
+        self.assertEqual(self.product.stock, 8)

@@ -12,7 +12,6 @@ from apps.orders.models import Order
 # Status columns to display on the Painel operacional.
 CALENDARIO_COLUMNS = (
     Order.Status.PENDING,
-    Order.Status.CONFIRMED,
     Order.Status.PREPARING,
     Order.Status.READY,
     Order.Status.IN_TRANSIT,

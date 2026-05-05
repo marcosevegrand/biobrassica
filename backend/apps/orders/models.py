@@ -22,11 +22,10 @@ PT_POSTAL_CODE_RE = re.compile(r'^\d{4}-\d{3}$')
 
 
 ORDER_STATUS_TRANSITIONS = {
-    'pending': {'confirmed', 'cancelled'},
-    'confirmed': {'preparing', 'cancelled'},
-    'preparing': {'ready'},
-    'ready': {'in_transit', 'delivered'},
-    'in_transit': {'delivered'},
+    'pending': {'preparing', 'cancelled'},
+    'preparing': {'ready', 'in_transit', 'cancelled'},
+    'ready': {'in_transit', 'delivered', 'cancelled'},
+    'in_transit': {'delivered', 'cancelled'},
     'delivered': set(),
     'cancelled': set(),
 }
@@ -46,10 +45,9 @@ class Order(models.Model):
 
     class Status(models.TextChoices):
         PENDING = 'pending', _('Pendente')
-        CONFIRMED = 'confirmed', _('Confirmada')
         PREPARING = 'preparing', _('Em Preparação')
-        READY = 'ready', _('Pronta')
-        IN_TRANSIT = 'in_transit', _('Em Transporte')
+        READY = 'ready', _('Pronta para levantamento')
+        IN_TRANSIT = 'in_transit', _('Em trânsito')
         DELIVERED = 'delivered', _('Entregue')
         CANCELLED = 'cancelled', _('Cancelada')
 
@@ -150,7 +148,15 @@ class Order(models.Model):
         return super().clean_fields(exclude=exclude)
 
     def valid_next_statuses(self):
-        return ORDER_STATUS_TRANSITIONS.get(self.status, set())
+        next_statuses = set(ORDER_STATUS_TRANSITIONS.get(self.status, set()))
+        if self.status == self.Status.PREPARING:
+            if self.fulfillment_method == self.FulfillmentMethod.SHIPPING:
+                next_statuses.discard(self.Status.READY)
+            else:
+                next_statuses.discard(self.Status.IN_TRANSIT)
+        elif self.status == self.Status.READY and self.fulfillment_method != self.FulfillmentMethod.SHIPPING:
+            next_statuses.discard(self.Status.IN_TRANSIT)
+        return next_statuses
 
     def can_transition_to(self, new_status):
         return new_status == self.status or new_status in self.valid_next_statuses()
@@ -196,12 +202,15 @@ class Order(models.Model):
             if postal_code and not PT_POSTAL_CODE_RE.match(postal_code):
                 errors['shipping_postal_code'] = _('Use o formato 1234-123.')
 
-        if self.status in {self.Status.PREPARING, self.Status.READY, self.Status.IN_TRANSIT, self.Status.DELIVERED}:
+        status_changed = original_status is None or self.status != original_status
+        if status_changed and self.status in {
+            self.Status.PREPARING,
+            self.Status.READY,
+            self.Status.IN_TRANSIT,
+            self.Status.DELIVERED,
+        }:
             if self.payment_state != self.PaymentState.CONFIRMED:
                 errors['status'] = _('A encomenda só pode avançar após pagamento confirmado.')
-
-        if self.status == self.Status.CANCELLED and self.payment_state == self.PaymentState.CONFIRMED:
-            errors['status'] = _('As encomendas com pagamento confirmado não podem ser canceladas por este fluxo.')
 
         if errors:
             raise ValidationError(errors)
@@ -210,7 +219,6 @@ class Order(models.Model):
     def status_display_class(self):
         status_classes = {
             self.Status.PENDING: 'bg-stone-100 text-stone-700',
-            self.Status.CONFIRMED: 'bg-amber-100 text-amber-800',
             self.Status.PREPARING: 'bg-sky-100 text-sky-800',
             self.Status.READY: 'bg-blue-100 text-blue-800',
             self.Status.IN_TRANSIT: 'bg-indigo-100 text-indigo-800',

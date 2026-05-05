@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.orders.models import Order
-from apps.orders.services import cancel_unpaid_order
+from apps.orders.services import cancel_order_for_expired_payment
 from apps.payments.models import Payment
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 if order.status in {Order.Status.CANCELLED, Order.Status.DELIVERED}:
                     continue
 
-                cancel_unpaid_order(order)
+                cancel_order_for_expired_payment(order)
                 count += 1
                 self.stdout.write(self.style.SUCCESS(f'Cancelled order #{order.pk} (payment #{payment.pk})'))
             except Exception:

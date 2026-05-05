@@ -52,10 +52,13 @@
   </div>
 
   <div class="mt-8 text-center">
-    <a href="{% url 'orders:checkout' %}"
-       class="text-xs uppercase tracking-widest text-muted hover:text-forest transition-colors">
-      {% trans "Voltar ao checkout" %}
-    </a>
+    <form method="post" action="{% url 'orders:discard' order_id=order.pk %}">
+      {% csrf_token %}
+      <button type="submit"
+              class="text-xs uppercase tracking-widest text-muted hover:text-forest transition-colors">
+        {% trans "Cancelar checkout" %}
+      </button>
+    </form>
   </div>
 </section>
 {% endblock %}

@@ -224,14 +224,14 @@ class AdminDashboardTests(TestCase):
 			pickup_location=Order.PickupLocation.BRAGA,
 			subtotal='12.00',
 			total='12.00',
-			status=Order.Status.CONFIRMED,
+			status=Order.Status.PREPARING,
 			payment_state=Order.PaymentState.CONFIRMED,
 		)
 		self.order = Order.objects.get(email=self.customer.email)
 		Payment.objects.create(
 			order=self.order,
 			method=Payment.Method.MBWAY_MANUAL,
-			status=Payment.Status.PAID,
+			status=Payment.Status.CONFIRMED,
 			amount='12.00',
 			paid_at=timezone.now(),
 		)

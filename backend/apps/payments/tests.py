@@ -18,7 +18,7 @@ class PaymentAdminTests(TestCase):
         self.client.defaults['HTTP_HOST'] = 'admin.lvh.me'
         self.client.force_login(self.admin_user)
 
-    def test_admin_can_create_manual_paid_payment_and_sync_order_status(self):
+    def test_admin_can_create_manual_confirmed_payment_without_changing_order_status(self):
         order = Order.objects.create(
             name='Cliente Pagamento',
             email='cliente@example.com',
@@ -36,7 +36,7 @@ class PaymentAdminTests(TestCase):
             {
                 'order': str(order.pk),
                 'method': Payment.Method.MBWAY_MANUAL,
-                'status': Payment.Status.PAID,
+                'status': Payment.Status.CONFIRMED,
                 'amount': '12.00',
                 'provider_reference': 'REF-123',
                 'provider_payment_id': 'PAY-123',
@@ -56,11 +56,12 @@ class PaymentAdminTests(TestCase):
         payment = Payment.objects.get()
         order.refresh_from_db()
 
-        self.assertEqual(payment.status, Payment.Status.PAID)
+        self.assertEqual(payment.status, Payment.Status.CONFIRMED)
         self.assertEqual(order.payment_state, Order.PaymentState.CONFIRMED)
+        self.assertEqual(order.status, Order.Status.PENDING)
         self.assertIsNotNone(payment.paid_at)
 
-    def test_admin_can_reopen_failed_payment_and_reset_order_payment_state(self):
+    def test_admin_can_reopen_cancelled_payment_and_reset_order_payment_state(self):
         order = Order.objects.create(
             name='Cliente Pagamento',
             email='cliente@example.com',
@@ -76,9 +77,9 @@ class PaymentAdminTests(TestCase):
         payment = Payment.objects.create(
             order=order,
             method=Payment.Method.MBWAY_MANUAL,
-            status=Payment.Status.FAILED,
+            status=Payment.Status.CANCELLED,
             amount='12.00',
-            last_error='Falhou',
+            last_error='Cancelado',
         )
 
         response = self.client.get(
@@ -94,3 +95,37 @@ class PaymentAdminTests(TestCase):
         self.assertEqual(payment.status, Payment.Status.PENDING)
         self.assertEqual(payment.last_error, '')
         self.assertEqual(order.payment_state, Order.PaymentState.PENDING)
+
+    def test_admin_can_cancel_pending_payment_without_cancelling_order(self):
+        order = Order.objects.create(
+            name='Cliente Pagamento',
+            email='cliente@example.com',
+            phone='912 345 678',
+            language=Order.Language.PT,
+            fulfillment_method=Order.FulfillmentMethod.PICKUP,
+            pickup_location=Order.PickupLocation.BRAGA,
+            subtotal='12.00',
+            total='12.00',
+            status=Order.Status.PENDING,
+            payment_state=Order.PaymentState.PENDING,
+        )
+        payment = Payment.objects.create(
+            order=order,
+            method=Payment.Method.MBWAY_MANUAL,
+            status=Payment.Status.PENDING,
+            amount='12.00',
+        )
+
+        response = self.client.get(
+            reverse('admin:payments_payment_status', args=[payment.pk, Payment.Status.CANCELLED]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        payment.refresh_from_db()
+        order.refresh_from_db()
+
+        self.assertEqual(payment.status, Payment.Status.CANCELLED)
+        self.assertEqual(order.payment_state, Order.PaymentState.CANCELLED)
+        self.assertEqual(order.status, Order.Status.PENDING)

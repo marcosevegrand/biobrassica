@@ -13,7 +13,6 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.orders.models import Order
-from apps.orders.services import transition_order_status
 from apps.payments.models import Payment
 from apps.core.site_content import get_manual_mbway_details, payments_are_enabled
 
@@ -153,7 +152,7 @@ def schedule_payment_notifications(payment) -> None:
     def _send_notifications():
         try:
             refreshed_payment = payment.__class__.objects.select_related('order').get(pk=payment_id)
-            if refreshed_payment.status == Payment.Status.PAID:
+            if refreshed_payment.status == Payment.Status.CONFIRMED:
                 send_payment_notifications(refreshed_payment)
         finally:
             scheduled.discard(payment_id)
@@ -207,7 +206,7 @@ def schedule_manual_payment_rejection_notification(payment, *, reason='') -> Non
 
     def _send_notification():
         refreshed_payment = payment.__class__.objects.select_related('order').get(pk=payment_id)
-        if refreshed_payment.status == Payment.Status.FAILED and refreshed_payment.order.status == Order.Status.CANCELLED:
+        if refreshed_payment.status == Payment.Status.CANCELLED and refreshed_payment.order.status == Order.Status.CANCELLED:
             send_manual_payment_rejection_notification(refreshed_payment, reason=safe_reason)
 
     transaction.on_commit(_send_notification)
@@ -285,7 +284,7 @@ def transition_payment_status(payment, new_status, *, reason='', source=''):
 
     payment.status = new_status
 
-    if new_status == Payment.Status.PAID:
+    if new_status == Payment.Status.CONFIRMED:
         payment.paid_at = timezone.now()
         payment.last_error = ''
     elif new_status == Payment.Status.PENDING:
@@ -306,32 +305,32 @@ def transition_payment_status(payment, new_status, *, reason='', source=''):
     return True
 
 
-def mark_payment_paid(payment, *, source: str) -> bool:
-    if payment.status == payment.Status.PAID:
+def mark_payment_confirmed(payment, *, source: str) -> bool:
+    if payment.status == payment.Status.CONFIRMED:
         return False
-    transition_payment_status(payment, payment.Status.PAID, source=source)
+    transition_payment_status(payment, payment.Status.CONFIRMED, source=source)
     if payment.order.payment_state != Order.PaymentState.CONFIRMED:
         from apps.orders.services import transition_payment_state
 
         transition_payment_state(payment.order, Order.PaymentState.CONFIRMED)
-    logger.info('Payment %s marked as paid via %s', payment.pk, source)
+    logger.info('Payment %s marked as confirmed via %s', payment.pk, source)
     return True
 
 
 def finalize_successful_payment(payment, *, source: str) -> bool:
-    changed = mark_payment_paid(payment, source=source)
+    changed = mark_payment_confirmed(payment, source=source)
     if changed:
         schedule_payment_notifications(payment)
     return changed
 
 
-def mark_payment_failed(payment, *, reason: str) -> bool:
-    changed = transition_payment_status(payment, payment.Status.FAILED, reason=reason, source='payment_failure')
-    if payment.order.payment_state == Order.PaymentState.PENDING:
+def cancel_payment(payment, *, reason: str, source: str = 'payment_cancellation') -> bool:
+    changed = transition_payment_status(payment, payment.Status.CANCELLED, reason=reason, source=source)
+    if payment.order.payment_state != Order.PaymentState.CANCELLED:
         from apps.orders.services import transition_payment_state
 
         transition_payment_state(payment.order, Order.PaymentState.CANCELLED)
-    logger.warning('Payment %s marked as failed: %s', payment.pk, reason)
+    logger.warning('Payment %s cancelled: %s', payment.pk, reason)
     return changed
 
 
@@ -340,6 +339,9 @@ def reset_payment(order, method):
 
     with transaction.atomic():
         locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        if locked_order.status == Order.Status.CANCELLED:
+            raise PaymentTransitionError(_('A encomenda foi cancelada e já não aceita pagamentos.'))
+
         payment, _ = Payment.objects.select_for_update().get_or_create(
             order=locked_order,
             defaults={'method': method, 'amount': locked_order.total},
@@ -373,9 +375,6 @@ def reset_payment(order, method):
 
         if locked_order.payment_state != Order.PaymentState.PENDING:
             transition_payment_state(locked_order, Order.PaymentState.PENDING)
-
-        if locked_order.status == Order.Status.CANCELLED:
-            transition_order_status(locked_order, Order.Status.PENDING)
 
         return payment
 
@@ -414,7 +413,7 @@ class BasePaymentService:
     def initiate_payment(self, *, order, payment, success_url: str, cancel_url: str, status_url: str) -> str:
         raise NotImplementedError
 
-    def refresh_pending_payment(self, payment) -> Literal['pending', 'paid', 'expired']:
+    def refresh_pending_payment(self, payment) -> Literal['pending', 'confirmed', 'cancelled']:
         return 'pending'
 
 
@@ -439,9 +438,12 @@ class ManualMbWayService(BasePaymentService):
         mbway_number = provider_data.get('mbway_number') or manual_mbway.get('number') or '—'
         order_reference = provider_data.get('order_reference') or f'#{payment.order.pk:07d}'
 
-        if payment.status == Payment.Status.FAILED or payment.order.status == Order.Status.CANCELLED:
+        if payment.order.status == Order.Status.CANCELLED:
             description = _('O pagamento MB WAY não foi validado e a encomenda foi cancelada.')
             state_label = _('Pagamento rejeitado')
+        elif payment.status == Payment.Status.CANCELLED:
+            description = _('O pagamento MB WAY foi cancelado. Pode voltar a escolher um método de pagamento para esta encomenda.')
+            state_label = _('Pagamento cancelado')
         else:
             description = _(
                 f'Transfira o valor por MB WAY para o número abaixo, indicando na descrição "Encomenda {order_reference}". '
@@ -517,9 +519,12 @@ class ManualBankTransferService(BasePaymentService):
         bic = provider_data.get('bic') or bank['bic']
         order_reference = provider_data.get('order_reference') or f'#{payment.order.pk:07d}'
 
-        if payment.status == Payment.Status.FAILED or payment.order.status == Order.Status.CANCELLED:
+        if payment.order.status == Order.Status.CANCELLED:
             description = _('A transferência não foi validada e a encomenda foi cancelada.')
             state_label = _('Pagamento rejeitado')
+        elif payment.status == Payment.Status.CANCELLED:
+            description = _('A transferência foi cancelada. Pode voltar a escolher um método de pagamento para esta encomenda.')
+            state_label = _('Pagamento cancelado')
         else:
             description = _(
                 f'Faça a transferência para os dados abaixo, indicando na descrição "Encomenda {order_reference}". '

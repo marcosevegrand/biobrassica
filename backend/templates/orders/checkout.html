@@ -156,7 +156,7 @@
         <button type="submit"
                 class="mt-8 w-full text-xs uppercase tracking-widest bg-forest text-paper px-8 py-4 rounded-sm hover:bg-terracotta transition-colors {% if not payments_enabled %}opacity-50 cursor-not-allowed{% endif %}"
                 {% if not payments_enabled %}disabled{% endif %}>
-          {% if payments_enabled %}{{ payment_provider.submit_label }}{% else %}{% trans "Pagamentos temporariamente indisponíveis" %}{% endif %}
+          {% if payments_enabled %}{% trans "Continuar para pagamento" %}{% else %}{% trans "Pagamentos temporariamente indisponíveis" %}{% endif %}
         </button>
       </form>
     </div>
