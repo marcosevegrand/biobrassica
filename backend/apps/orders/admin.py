@@ -50,13 +50,27 @@ class OrderAdminForm(forms.ModelForm):
         else:
             allowed_statuses = {
                 Order.Status.PENDING,
-                Order.Status.PAYMENT_PENDING,
+                Order.Status.CONFIRMED,
                 Order.Status.CANCELLED,
             }
             self.initial.setdefault('status', Order.Status.PENDING)
 
         self.fields['status'].choices = [
             choice for choice in Order.Status.choices if choice[0] in allowed_statuses
+        ]
+
+        if self.instance.pk:
+            allowed_payment_states = {self.instance.payment_state, *self.instance.valid_next_payment_states()}
+        else:
+            allowed_payment_states = {
+                Order.PaymentState.PENDING,
+                Order.PaymentState.CONFIRMED,
+                Order.PaymentState.CANCELLED,
+            }
+            self.initial.setdefault('payment_state', Order.PaymentState.PENDING)
+
+        self.fields['payment_state'].choices = [
+            choice for choice in Order.PaymentState.choices if choice[0] in allowed_payment_states
         ]
 
     def save(self, commit=True):
@@ -195,6 +209,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 'email',
                 'phone',
                 'status',
+                'payment_state',
                 'fulfillment_method',
                 'pickup_location',
                 'shipping_address_line1',
@@ -217,6 +232,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 'email',
                 'phone',
                 'status',
+                'payment_state',
                 'fulfillment_method',
                 'pickup_location',
                 'shipping_address_line1',
@@ -232,6 +248,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     )
 
     transition_submit_actions = {
+        '_mark_confirmed': (Order.Status.CONFIRMED, _('Encomenda confirmada.')),
         '_mark_preparing': (Order.Status.PREPARING, _('Encomenda marcada como em preparação.')),
         '_mark_ready': (Order.Status.READY, _('Encomenda marcada como pronta para levantamento.')),
         '_mark_delivered': (Order.Status.DELIVERED, _('Encomenda marcada como entregue.')),
@@ -243,6 +260,11 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 '<int:object_id>/transition/<slug:target_status>/',
                 self.admin_site.admin_view(self.transition_view),
                 name='orders_order_transition',
+            ),
+            path(
+                '<int:object_id>/payment-state/<slug:target_state>/',
+                self.admin_site.admin_view(self.payment_state_view),
+                name='orders_order_payment_state',
             ),
             path(
                 '<int:object_id>/cancel-unpaid/',
@@ -265,8 +287,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def status_badge(self, obj):
         tones = {
             Order.Status.PENDING: 'neutral',
-            Order.Status.PAYMENT_PENDING: 'warning',
-            Order.Status.PAID: 'success',
+            Order.Status.CONFIRMED: 'warning',
             Order.Status.PREPARING: 'info',
             Order.Status.READY: 'info',
             Order.Status.DELIVERED: 'success',
@@ -309,6 +330,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def get_changeform_submit_actions(self, request, obj):
         actions = []
         transition_buttons = {
+            Order.Status.CONFIRMED: ('_mark_confirmed', _('Confirmar encomenda')),
             Order.Status.PREPARING: ('_mark_preparing', _('Marcar em preparação')),
             Order.Status.READY: ('_mark_ready', _('Marcar pronta')),
             Order.Status.DELIVERED: ('_mark_delivered', _('Marcar entregue')),
@@ -336,9 +358,52 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 self.message_user(request, _('Encomenda cancelada e stock reposto.'), level=messages.SUCCESS)
         return HttpResponseRedirect(reverse('admin:orders_order_change', args=[order.pk]))
 
+    def payment_state_view(self, request, object_id, target_state):
+        order = self.get_object(request, object_id)
+        if order is None:
+            self.message_user(request, _('Encomenda não encontrada.'), level=messages.ERROR)
+            return HttpResponseRedirect(reverse('admin:orders_order_changelist'))
+
+        try:
+            state_label = Order.PaymentState(target_state).label
+        except ValueError:
+            self.message_user(request, _('Estado de pagamento inválido.'), level=messages.ERROR)
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:orders_order_changelist'))
+
+        try:
+            with transaction.atomic():
+                locked_order = Order.objects.select_for_update().get(pk=order.pk)
+                if target_state == Order.PaymentState.CONFIRMED:
+                    from apps.payments.services import finalize_successful_payment
+
+                    payment = Payment.objects.filter(order=locked_order).first()
+                    if payment and payment.status != Payment.Status.PAID:
+                        finalize_successful_payment(payment, source='admin_order_payment_state')
+                    else:
+                        from apps.orders.services import transition_payment_state
+
+                        transition_payment_state(locked_order, Order.PaymentState.CONFIRMED)
+                elif target_state == Order.PaymentState.CANCELLED:
+                    from apps.orders.services import transition_payment_state
+
+                    transition_payment_state(locked_order, Order.PaymentState.CANCELLED)
+                    payment = Payment.objects.filter(order=locked_order).first()
+                    if payment and payment.status == Payment.Status.PENDING:
+                        from apps.payments.services import transition_payment_status
+
+                        transition_payment_status(payment, Payment.Status.EXPIRED, source='admin_order_payment_cancel')
+        except OrderWorkflowError as error:
+            self.message_user(request, str(error), level=messages.WARNING)
+        else:
+            self.message_user(
+                request,
+                _('Pagamento da encomenda atualizado para %(state)s.') % {'state': state_label},
+                level=messages.SUCCESS,
+            )
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:orders_order_change', args=[order.pk]))
+
     def _can_cancel_from_change_form(self, obj):
-        payment = getattr(obj, 'payment', None)
-        if payment is not None and payment.status == payment.Status.PAID:
+        if obj.payment_state == Order.PaymentState.CONFIRMED:
             return False
         return obj.status not in {Order.Status.CANCELLED, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED}
 
@@ -425,8 +490,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def quick_actions(self, obj):
         actions = []
         transition_labels = {
-            Order.Status.PAYMENT_PENDING: _('Cobrança'),
-            Order.Status.PAID: _('Pago'),
+            Order.Status.CONFIRMED: _('Confirmar'),
             Order.Status.PREPARING: _('Preparar'),
             Order.Status.READY: _('Pronta'),
             Order.Status.IN_TRANSIT: _('Em transporte'),
@@ -435,12 +499,9 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
         next_statuses = []
         if obj.status == Order.Status.PENDING:
-            next_statuses = [Order.Status.PAYMENT_PENDING]
-        elif obj.status == Order.Status.PAYMENT_PENDING:
-            payment = getattr(obj, 'payment', None)
-            if payment is not None and payment.status == Payment.Status.PAID:
-                next_statuses = [Order.Status.PAID]
-        elif obj.status == Order.Status.PAID:
+            if obj.payment_state == Order.PaymentState.CONFIRMED:
+                next_statuses = [Order.Status.CONFIRMED]
+        elif obj.status == Order.Status.CONFIRMED:
             next_statuses = [Order.Status.PREPARING]
         elif obj.status == Order.Status.PREPARING:
             next_statuses = [Order.Status.READY]
@@ -458,6 +519,23 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 )
             )
 
+        payment_actions = []
+        if obj.payment_state == Order.PaymentState.PENDING:
+            payment_actions.append(
+                render_action_link(
+                    reverse('admin:orders_order_payment_state', args=[obj.pk, Order.PaymentState.CONFIRMED]),
+                    _('Confirmar pagamento'),
+                    tone='success',
+                )
+            )
+            payment_actions.append(
+                render_action_link(
+                    reverse('admin:orders_order_payment_state', args=[obj.pk, Order.PaymentState.CANCELLED]),
+                    _('Cancelar pagamento'),
+                    tone='danger',
+                )
+            )
+
         if self._can_cancel_from_change_form(obj):
             actions.append(
                 render_action_link(
@@ -467,18 +545,18 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 )
             )
 
-        return render_action_group(actions)
+        return render_action_group(actions) + render_action_group(payment_actions)
 
     @admin.display(description=_('Próxima ação'))
     def workflow_next_step(self, obj):
-        if obj.status == Order.Status.PAID:
+        if obj.payment_state == Order.PaymentState.PENDING and obj.status == Order.Status.PENDING:
+            return _('Confirmar pagamento')
+        if obj.status == Order.Status.CONFIRMED:
             return _('Iniciar preparação')
         if obj.status == Order.Status.PREPARING:
             return _('Marcar pronta')
         if obj.status == Order.Status.READY:
             return _('Entregar')
-        if obj.status == Order.Status.PAYMENT_PENDING:
-            return _('Confirmar pagamento')
         if obj.status in {Order.Status.DELIVERED, Order.Status.CANCELLED}:
             return _('Fluxo concluído')
         return _('Validar dados')
@@ -512,6 +590,15 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             payment.Status.REFUNDED: 'info',
         }
         return render_status_badge(payment.get_status_display(), tones.get(payment.status, 'neutral'))
+
+    @admin.display(description=_('Estado do pagamento'))
+    def payment_state_badge(self, obj):
+        tones = {
+            Order.PaymentState.PENDING: 'warning',
+            Order.PaymentState.CONFIRMED: 'success',
+            Order.PaymentState.CANCELLED: 'danger',
+        }
+        return render_status_badge(obj.get_payment_state_display(), tones.get(obj.payment_state, 'neutral'))
 
     @admin.display(ordering='payment__method', description=_('Método pag.'))
     def payment_method_display(self, obj):

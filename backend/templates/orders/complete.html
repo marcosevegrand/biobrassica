@@ -16,21 +16,25 @@
     {% trans "O pagamento da sua encomenda" %} <strong>#{{ order.pk }}</strong> {% trans "foi confirmado." %}
   </p>
 
-  {% if order.payment %}
+  {% if payment %}
   <div class="border border-stone/30 rounded-sm p-8 text-left mb-8">
     <h3 class="font-serif text-lg italic mb-4">{% trans "Pagamento" %}</h3>
     <div class="space-y-2 text-sm">
       <div class="flex justify-between">
+        <span class="text-muted">{% trans "Estado" %}</span>
+        <span class="font-medium">{{ payment.status_label }}</span>
+      </div>
+      <div class="flex justify-between">
         <span class="text-muted">{% trans "Método" %}</span>
-        <span class="font-medium">{{ order.payment.method_label }}</span>
+        <span class="font-medium">{{ payment.method_label }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-muted">{% trans "Referência" %}</span>
-        <span class="font-mono font-medium">{{ order.payment.masked_provider_identifier|default:'—' }}</span>
+        <span class="font-mono font-medium">{{ payment.masked_provider_identifier|default:'—' }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-muted">{% trans "Valor" %}</span>
-        <span class="font-medium">{{ order.payment.amount|floatformat:2 }}€</span>
+        <span class="font-medium">{{ payment.amount|floatformat:2 }}€</span>
       </div>
     </div>
   </div>
@@ -40,8 +44,12 @@
     <h3 class="font-serif text-lg italic mb-4">{% trans "Detalhes da encomenda" %}</h3>
     <div class="space-y-2 text-sm">
       <div class="flex justify-between">
-        <span class="text-muted">{% trans "Estado" %}</span>
+        <span class="text-muted">{% trans "Estado da encomenda" %}</span>
         <span>{{ order.get_status_display }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-muted">{% trans "Estado do pagamento" %}</span>
+        <span>{{ order.get_payment_state_display }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-muted">{{ order.get_fulfillment_method_display }}</span>

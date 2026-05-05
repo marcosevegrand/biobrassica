@@ -26,14 +26,14 @@ def build_admin_dashboard(request, context):
         default_address_count=Count('addresses', filter=Q(addresses__is_default=True), distinct=True),
     ).filter(is_active=True).filter(Q(phone='') | Q(default_address_count=0)).distinct()
 
-    payment_pending_orders = Order.objects.filter(status=Order.Status.PAYMENT_PENDING)
+    payment_pending_orders = Order.objects.filter(payment_state=Order.PaymentState.PENDING, status=Order.Status.PENDING)
     paid_orders = Order.objects.filter(
-        status__in=[Order.Status.PAID, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED],
+        status__in=[Order.Status.CONFIRMED, Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED],
     ).exclude(payment__status=Payment.Status.REFUNDED)
     today = timezone.localdate()
     todays_pickups = Order.objects.filter(
         fulfillment_method=Order.FulfillmentMethod.PICKUP,
-        status__in=[Order.Status.PAID, Order.Status.PREPARING, Order.Status.READY],
+        status__in=[Order.Status.CONFIRMED, Order.Status.PREPARING, Order.Status.READY],
         created_at__date=today,
     ).exclude(payment__status=Payment.Status.REFUNDED)
     payments_requiring_attention = Payment.objects.filter(status__in=[Payment.Status.PENDING, Payment.Status.FAILED])
@@ -63,7 +63,7 @@ def build_admin_dashboard(request, context):
             'value': paid_orders.count(),
             'context': _('Pedidos já convertidos em receita'),
             'icon': 'receipt_long',
-            'link': reverse('admin:orders_order_changelist') + f'?status__exact={Order.Status.PAID}',
+            'link': reverse('admin:orders_order_changelist') + f'?payment_state__exact={Order.PaymentState.CONFIRMED}',
         },
         {
             'label': _('Volume transacionado'),
@@ -84,7 +84,7 @@ def build_admin_dashboard(request, context):
             'value': payment_pending_orders.count(),
             'context': _('Encomendas à espera de pagamento confirmado'),
             'icon': 'shopping_bag',
-            'link': reverse('admin:orders_order_changelist') + f'?status__exact={Order.Status.PAYMENT_PENDING}',
+            'link': reverse('admin:orders_order_changelist') + f'?payment_state__exact={Order.PaymentState.PENDING}',
         },
         {
             'label': _('Conteúdo em rascunho'),

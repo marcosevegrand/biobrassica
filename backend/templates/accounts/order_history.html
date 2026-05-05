@@ -31,6 +31,9 @@
           <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.status_display_class }}">
             {{ order.get_status_display }}
           </span>
+          <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.payment_state_display_class }}">
+            {% trans "Pag.:" %} {{ order.get_payment_state_display }}
+          </span>
           <span class="font-serif text-lg italic">{{ order.total|floatformat:2 }}€</span>
         </div>
       </div>

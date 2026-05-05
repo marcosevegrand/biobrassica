@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from apps.orders.models import Order
-from apps.orders.services import cancel_unpaid_order, transition_order_status
+from apps.orders.services import transition_order_status
 from apps.payments.models import Payment
 from apps.core.site_content import get_manual_mbway_details, payments_are_enabled
 
@@ -310,8 +310,10 @@ def mark_payment_paid(payment, *, source: str) -> bool:
     if payment.status == payment.Status.PAID:
         return False
     transition_payment_status(payment, payment.Status.PAID, source=source)
-    if payment.order.status != Order.Status.PAID:
-        transition_order_status(payment.order, Order.Status.PAID)
+    if payment.order.payment_state != Order.PaymentState.CONFIRMED:
+        from apps.orders.services import transition_payment_state
+
+        transition_payment_state(payment.order, Order.PaymentState.CONFIRMED)
     logger.info('Payment %s marked as paid via %s', payment.pk, source)
     return True
 
@@ -325,13 +327,17 @@ def finalize_successful_payment(payment, *, source: str) -> bool:
 
 def mark_payment_failed(payment, *, reason: str) -> bool:
     changed = transition_payment_status(payment, payment.Status.FAILED, reason=reason, source='payment_failure')
-    if payment.order.status == Order.Status.PAYMENT_PENDING:
-        transition_order_status(payment.order, Order.Status.PENDING)
+    if payment.order.payment_state == Order.PaymentState.PENDING:
+        from apps.orders.services import transition_payment_state
+
+        transition_payment_state(payment.order, Order.PaymentState.CANCELLED)
     logger.warning('Payment %s marked as failed: %s', payment.pk, reason)
     return changed
 
 
 def reset_payment(order, method):
+    from apps.orders.services import transition_payment_state
+
     with transaction.atomic():
         locked_order = Order.objects.select_for_update().get(pk=order.pk)
         payment, _ = Payment.objects.select_for_update().get_or_create(
@@ -351,14 +357,25 @@ def reset_payment(order, method):
         payment.last_error = ''
         payment.paid_at = None
         payment.expires_at = None
+
+        from apps.core.models import ShopSettings
+
+        settings_obj = ShopSettings.objects.filter(pk=1).first()
+        timeout_minutes = getattr(settings_obj, 'payment_timeout_minutes', 30) if settings_obj else 30
+        if timeout_minutes > 0:
+            payment.expires_at = timezone.now() + timezone.timedelta(minutes=timeout_minutes)
+
         try:
             payment.full_clean()
         except ValidationError as error:
             _raise_payment_validation_error(error)
         payment.save()
 
-        if locked_order.status != Order.Status.PAYMENT_PENDING:
-            transition_order_status(locked_order, Order.Status.PAYMENT_PENDING)
+        if locked_order.payment_state != Order.PaymentState.PENDING:
+            transition_payment_state(locked_order, Order.PaymentState.PENDING)
+
+        if locked_order.status == Order.Status.CANCELLED:
+            transition_order_status(locked_order, Order.Status.PENDING)
 
         return payment
 

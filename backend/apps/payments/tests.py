@@ -57,10 +57,10 @@ class PaymentAdminTests(TestCase):
         order.refresh_from_db()
 
         self.assertEqual(payment.status, Payment.Status.PAID)
-        self.assertEqual(order.status, Order.Status.PAID)
+        self.assertEqual(order.payment_state, Order.PaymentState.CONFIRMED)
         self.assertIsNotNone(payment.paid_at)
 
-    def test_admin_can_reopen_failed_payment_and_move_order_back_to_payment_pending(self):
+    def test_admin_can_reopen_failed_payment_and_reset_order_payment_state(self):
         order = Order.objects.create(
             name='Cliente Pagamento',
             email='cliente@example.com',
@@ -71,6 +71,7 @@ class PaymentAdminTests(TestCase):
             subtotal='12.00',
             total='12.00',
             status=Order.Status.PENDING,
+            payment_state=Order.PaymentState.PENDING,
         )
         payment = Payment.objects.create(
             order=order,
@@ -92,4 +93,4 @@ class PaymentAdminTests(TestCase):
 
         self.assertEqual(payment.status, Payment.Status.PENDING)
         self.assertEqual(payment.last_error, '')
-        self.assertEqual(order.status, Order.Status.PAYMENT_PENDING)
+        self.assertEqual(order.payment_state, Order.PaymentState.PENDING)

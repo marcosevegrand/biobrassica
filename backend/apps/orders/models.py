@@ -1,6 +1,5 @@
 import uuid
 import re
-from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -23,14 +22,19 @@ PT_POSTAL_CODE_RE = re.compile(r'^\d{4}-\d{3}$')
 
 
 ORDER_STATUS_TRANSITIONS = {
-    'pending': {'payment_pending', 'cancelled'},
-    'payment_pending': {'pending', 'paid', 'cancelled'},
-    'paid': {'preparing', 'cancelled'},
+    'pending': {'confirmed', 'cancelled'},
+    'confirmed': {'preparing', 'cancelled'},
     'preparing': {'ready'},
     'ready': {'in_transit', 'delivered'},
     'in_transit': {'delivered'},
     'delivered': set(),
     'cancelled': set(),
+}
+
+PAYMENT_STATE_TRANSITIONS = {
+    'pending': {'confirmed', 'cancelled'},
+    'confirmed': set(),
+    'cancelled': {'pending'},
 }
 
 
@@ -41,12 +45,16 @@ class Order(models.Model):
 
     class Status(models.TextChoices):
         PENDING = 'pending', _('Pendente')
-        PAYMENT_PENDING = 'payment_pending', _('Aguarda Pagamento')
-        PAID = 'paid', _('Pago')
+        CONFIRMED = 'confirmed', _('Confirmada')
         PREPARING = 'preparing', _('Em Preparação')
         READY = 'ready', _('Pronta')
         IN_TRANSIT = 'in_transit', _('Em Transporte')
         DELIVERED = 'delivered', _('Entregue')
+        CANCELLED = 'cancelled', _('Cancelada')
+
+    class PaymentState(models.TextChoices):
+        PENDING = 'pending', _('Pendente')
+        CONFIRMED = 'confirmed', _('Confirmado')
         CANCELLED = 'cancelled', _('Cancelado')
 
     class PickupLocation(models.TextChoices):
@@ -75,6 +83,12 @@ class Order(models.Model):
     phone = models.CharField(_('telefone'), max_length=20, blank=True)
     name = models.CharField(_('nome'), max_length=255)
     status = models.CharField(_('estado'), max_length=20, choices=Status.choices, default=Status.PENDING)
+    payment_state = models.CharField(
+        _('estado do pagamento'),
+        max_length=20,
+        choices=PaymentState.choices,
+        default=PaymentState.PENDING,
+    )
     fulfillment_method = models.CharField(
         _('método de entrega'),
         max_length=20,
@@ -101,11 +115,13 @@ class Order(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._original_status = None if self._state.adding else self.status
+        self._original_payment_state = None if self._state.adding else self.payment_state
 
     @classmethod
     def from_db(cls, db, field_names, values):
         instance = super().from_db(db, field_names, values)
         instance._original_status = instance.status
+        instance._original_payment_state = instance.payment_state
         return instance
 
     def __str__(self):
@@ -115,6 +131,7 @@ class Order(models.Model):
         self.full_clean()
         result = super().save(*args, **kwargs)
         self._original_status = self.status
+        self._original_payment_state = self.payment_state
         return result
 
     def clean_fields(self, exclude=None):
@@ -136,11 +153,18 @@ class Order(models.Model):
     def can_transition_to(self, new_status):
         return new_status == self.status or new_status in self.valid_next_statuses()
 
+    def valid_next_payment_states(self):
+        return PAYMENT_STATE_TRANSITIONS.get(self.payment_state, set())
+
+    def can_payment_transition_to(self, new_state):
+        return new_state == self.payment_state or new_state in self.valid_next_payment_states()
+
     def clean(self):
         super().clean()
 
         errors = {}
         original_status = getattr(self, '_original_status', None)
+        original_payment_state = getattr(self, '_original_payment_state', None)
         self.language = normalized_language(self.language, fallback=self.Language.PT).lower()
 
         if self.language not in self.Language.values:
@@ -153,6 +177,9 @@ class Order(models.Model):
 
         if original_status and self.status != original_status and not self.can_transition_to(self.status):
             errors['status'] = _('Transição de estado inválida para a encomenda.')
+
+        if original_payment_state and self.payment_state != original_payment_state and not self.can_payment_transition_to(self.payment_state):
+            errors['payment_state'] = _('Transição de estado de pagamento inválida.')
 
         if self.fulfillment_method == self.FulfillmentMethod.PICKUP:
             if not self.pickup_location:
@@ -167,18 +194,12 @@ class Order(models.Model):
             if postal_code and not PT_POSTAL_CODE_RE.match(postal_code):
                 errors['shipping_postal_code'] = _('Use o formato 1234-123.')
 
-        payment = None
-        try:
-            payment = self.payment
-        except Exception:
-            payment = None
-
         if self.status in {self.Status.PREPARING, self.Status.READY, self.Status.IN_TRANSIT, self.Status.DELIVERED}:
-            if payment is None or payment.status not in {payment.Status.PAID, payment.Status.REFUNDED}:
+            if self.payment_state != self.PaymentState.CONFIRMED:
                 errors['status'] = _('A encomenda só pode avançar após pagamento confirmado.')
 
-        if self.status == self.Status.CANCELLED and payment is not None and payment.status == payment.Status.PAID:
-            errors['status'] = _('As encomendas pagas não podem ser canceladas por este fluxo.')
+        if self.status == self.Status.CANCELLED and self.payment_state == self.PaymentState.CONFIRMED:
+            errors['status'] = _('As encomendas com pagamento confirmado não podem ser canceladas por este fluxo.')
 
         if errors:
             raise ValidationError(errors)
@@ -187,8 +208,7 @@ class Order(models.Model):
     def status_display_class(self):
         status_classes = {
             self.Status.PENDING: 'bg-stone-100 text-stone-700',
-            self.Status.PAYMENT_PENDING: 'bg-amber-100 text-amber-800',
-            self.Status.PAID: 'bg-emerald-100 text-emerald-800',
+            self.Status.CONFIRMED: 'bg-amber-100 text-amber-800',
             self.Status.PREPARING: 'bg-sky-100 text-sky-800',
             self.Status.READY: 'bg-blue-100 text-blue-800',
             self.Status.IN_TRANSIT: 'bg-indigo-100 text-indigo-800',
@@ -196,6 +216,15 @@ class Order(models.Model):
             self.Status.CANCELLED: 'bg-rose-100 text-rose-800',
         }
         return status_classes.get(self.status, 'bg-stone-100 text-stone-700')
+
+    @property
+    def payment_state_display_class(self):
+        state_classes = {
+            self.PaymentState.PENDING: 'bg-amber-100 text-amber-800',
+            self.PaymentState.CONFIRMED: 'bg-emerald-100 text-emerald-800',
+            self.PaymentState.CANCELLED: 'bg-rose-100 text-rose-800',
+        }
+        return state_classes.get(self.payment_state, 'bg-stone-100 text-stone-700')
 
     @property
     def is_shipping(self):

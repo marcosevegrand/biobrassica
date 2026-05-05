@@ -2,7 +2,6 @@ import logging
 
 from django.contrib.auth.views import redirect_to_login
 from django.contrib import messages
-from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.translation import get_language, gettext as _
@@ -11,8 +10,9 @@ from django.views.decorators.http import require_http_methods
 from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items
 from apps.orders.forms import CheckoutForm, PaymentSelectionForm
 from apps.orders.models import Order
-from apps.orders.services import CartStateChangedError, StockValidationError, cancel_unpaid_order, create_order_from_cart, transition_order_status
+from apps.orders.services import CartStateChangedError, StockValidationError, cancel_unpaid_order, create_order_from_cart
 from apps.core.site_content import payments_are_enabled
+from apps.core.models import ShopSettings
 from apps.payments.models import Payment
 from apps.payments.services import (
     PaymentDisabledError,
@@ -87,7 +87,7 @@ def checkout(request, order_id=None):
         order = _get_order_for_request(request, order_id)
 
         payment = _get_order_payment(order)
-        if order.status == Order.Status.PAID and payment:
+        if order.payment_state == Order.PaymentState.CONFIRMED and payment:
             return redirect(_order_url('orders:complete', order))
         if payment is not None:
             return redirect(_order_url('orders:payment_status', order))
@@ -177,14 +177,21 @@ def checkout_confirm(request):
             clear_cart_items=False,
         )
 
+        settings_obj = ShopSettings.objects.filter(pk=1).first()
+        timeout_minutes = getattr(settings_obj, 'payment_timeout_minutes', 30) if settings_obj else 30
+        expires_at = None
+        if timeout_minutes > 0:
+            from django.utils import timezone
+
+            expires_at = timezone.now() + timezone.timedelta(minutes=timeout_minutes)
+
         payment = Payment.objects.create(
             order=order,
             method=payment_service.method,
             status=Payment.Status.PENDING,
             amount=order.total,
+            expires_at=expires_at,
         )
-
-        transition_order_status(order, Order.Status.PAYMENT_PENDING)
 
         success_url = request.build_absolute_uri(
             f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
@@ -259,7 +266,7 @@ def payment_select(request, order_id):
     order = _get_order_for_request(request, order_id)
     current_payment = _get_order_payment(order)
 
-    if order.status == Order.Status.PAID and current_payment:
+    if order.payment_state == Order.PaymentState.CONFIRMED and current_payment:
         return redirect(_order_url('orders:complete', order))
 
     if request.method == 'GET':
@@ -324,8 +331,15 @@ def payment_status(request, order_id):
         messages.error(request, _('Ainda não existe um pagamento associado a esta encomenda.'))
         return redirect(_order_url('orders:payment_select', order))
 
-    if payment.status == Payment.Status.PAID or order.status == Order.Status.PAID:
+    if order.payment_state == Order.PaymentState.CONFIRMED:
         return redirect(_order_url('orders:complete', order))
+
+    if order.status == Order.Status.CANCELLED:
+        return render(request, 'orders/payment_status.html', {
+            'order': order,
+            'payment': payment,
+            'payment_provider': get_payment_service(payment.method).payment_status_context(payment),
+        })
 
     payment_service = get_payment_service(payment.method)
 
@@ -342,10 +356,22 @@ def payment_status(request, order_id):
                 payment.refresh_from_db()
                 messages.error(request, _('A sessão de pagamento expirou. Pode iniciar novamente.'))
 
+    timeout_minutes = None
+    expires_at_iso = None
+    if payment.expires_at and payment.status == Payment.Status.PENDING:
+        from django.utils import timezone
+
+        remaining = payment.expires_at - timezone.now()
+        timeout_minutes = max(int(remaining.total_seconds() // 60), 0)
+        if remaining.total_seconds() > 0:
+            expires_at_iso = payment.expires_at.isoformat()
+
     return render(request, 'orders/payment_status.html', {
         'order': order,
         'payment': payment,
         'payment_provider': payment_service.payment_status_context(payment),
+        'payment_timeout_minutes': timeout_minutes,
+        'expires_at_iso': expires_at_iso,
     })
 
 
@@ -357,9 +383,10 @@ def order_complete(request, order_id):
     order = _get_order_for_request(request, order_id)
     payment = _get_order_payment(order)
 
-    if not payment or order.status != Order.Status.PAID or payment.status != Payment.Status.PAID:
+    if order.payment_state != Order.PaymentState.CONFIRMED:
         return redirect(_order_url('orders:payment_status', order))
 
     return render(request, 'orders/complete.html', {
         'order': order,
+        'payment': payment,
     })

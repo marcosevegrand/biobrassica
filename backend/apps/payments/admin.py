@@ -77,7 +77,7 @@ class PaymentAdminForm(forms.ModelForm):
 
         if status in {Payment.Status.PENDING, Payment.Status.FAILED, Payment.Status.EXPIRED} and order.status in {
             Order.Status.CANCELLED,
-            Order.Status.PAID,
+            Order.Status.CONFIRMED,
             Order.Status.PREPARING,
             Order.Status.READY,
             Order.Status.IN_TRANSIT,
@@ -158,17 +158,16 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
     def _ensure_order_ready_for_paid_payment(self, payment):
         order = payment.order
-        if order.status == Order.Status.PENDING:
-            transition_payment_status(payment, Payment.Status.PENDING, source='admin_prepare_payment')
-            from apps.orders.services import transition_order_status
+        if order.payment_state == Order.PaymentState.PENDING:
+            from apps.orders.services import transition_payment_state
 
-            transition_order_status(order, Order.Status.PAYMENT_PENDING)
+            transition_payment_state(order, Order.PaymentState.CONFIRMED)
 
     def _sync_order_for_pending_payment(self, payment):
-        if payment.order.status == Order.Status.PENDING:
-            from apps.orders.services import transition_order_status
+        if payment.order.payment_state == Order.PaymentState.CANCELLED:
+            from apps.orders.services import transition_payment_state
 
-            transition_order_status(payment.order, Order.Status.PAYMENT_PENDING)
+            transition_payment_state(payment.order, Order.PaymentState.PENDING)
 
     def _apply_payment_status(self, payment, target_status, *, reason=''):
         if payment.status == target_status:
@@ -190,10 +189,10 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 reason=reason or _('Pagamento marcado como expirado no backoffice.'),
                 source='admin_manual_update',
             )
-            if payment.order.status == Order.Status.PAYMENT_PENDING:
-                from apps.orders.services import transition_order_status
+            if payment.order.payment_state == Order.PaymentState.PENDING:
+                from apps.orders.services import transition_payment_state
 
-                transition_order_status(payment.order, Order.Status.PENDING)
+                transition_payment_state(payment.order, Order.PaymentState.CANCELLED)
             return changed
 
         if target_status == Payment.Status.PENDING:

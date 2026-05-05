@@ -10,10 +10,55 @@
       <h1 class="font-serif text-4xl italic mb-2">{% trans "Estado do Pagamento" %}</h1>
       <p class="text-muted">{% trans "Encomenda" %} #{{ order.pk }} — {{ order.total|floatformat:2 }}€</p>
     </div>
-    <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.status_display_class }}">
-      {{ order.get_status_display }}
-    </span>
+    <div class="flex items-center gap-3">
+      <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.status_display_class }}">
+        {{ order.get_status_display }}
+      </span>
+      <span class="text-xs uppercase tracking-widest px-3 py-1 rounded-sm {{ order.payment_state_display_class }}">
+        {% trans "Pagamento:" %} {{ order.get_payment_state_display }}
+      </span>
+    </div>
   </div>
+
+  {% if order.status == 'cancelled' or order.payment_state == 'cancelled' %}
+  <div class="border border-rose-200 bg-rose-50 text-rose-800 rounded-sm p-6 mb-8">
+    <h3 class="font-serif text-lg italic mb-2">{% trans "Encomenda cancelada" %}</h3>
+    <p class="text-sm">{% trans "Esta encomenda foi cancelada. Pode fazer uma nova encomenda se desejar." %}</p>
+  </div>
+  {% endif %}
+
+  {% if payment_timeout_minutes and expires_at_iso %}
+  <div class="border border-amber-200 bg-amber-50 text-amber-800 rounded-sm p-6 mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="font-serif text-lg italic">{% trans "Tempo restante para pagamento" %}</h3>
+    </div>
+    <p class="text-sm mb-3">{% trans "Complete o pagamento antes que o tempo expire, caso contrário a encomenda será cancelada automaticamente." %}</p>
+    <div class="font-mono text-2xl font-bold" id="payment-timer">{{ payment_timeout_minutes }}:00</div>
+    <script>
+      (function() {
+        var expiresAt = new Date('{{ expires_at_iso }}');
+        var timerEl = document.getElementById('payment-timer');
+        function updateTimer() {
+          var now = new Date();
+          var diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
+          var mins = Math.floor(diff / 60);
+          var secs = diff % 60;
+          if (timerEl) {
+            timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+          }
+          if (diff <= 0) {
+            window.location.reload();
+          }
+        }
+        updateTimer();
+        setInterval(updateTimer, 1000);
+      })();
+    </script>
+  </div>
+  {% endif %}
 
   <div class="border border-stone/30 rounded-sm p-8 mb-8 bg-white/70">
     <h2 class="font-serif text-2xl italic mb-4">{{ payment_provider.title }}</h2>
@@ -40,17 +85,22 @@
   </div>
   {% endif %}
 
+  {% if order.status != 'cancelled' and order.payment_state != 'cancelled' %}
   <div class="flex flex-col sm:flex-row gap-4">
     <a href="{% url 'orders:payment_status' order_id=order.pk %}"
        class="inline-block text-center text-xs uppercase tracking-widest border border-forest px-6 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">
       {% trans "Atualizar estado" %}
     </a>
-    {% if order.status != 'cancelled' %}
     <a href="{% url 'orders:payment_select' order_id=order.pk %}"
        class="inline-block text-center text-xs uppercase tracking-widest border border-stone/30 px-6 py-3 rounded-sm hover:border-forest hover:text-forest transition-colors">
       {% trans "Reiniciar pagamento" %}
     </a>
-    {% endif %}
   </div>
+  {% else %}
+  <a href="{% url 'catalog:product_list' %}"
+     class="inline-block text-xs uppercase tracking-widest border border-forest px-6 py-3 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+    {% trans "Voltar à loja" %}
+  </a>
+  {% endif %}
 </section>
 {% endblock %}

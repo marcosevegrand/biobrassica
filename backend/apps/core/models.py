@@ -36,6 +36,12 @@ class ShopSettings(models.Model):
         help_text=_('Telemóvel mostrado ao cliente para pagar manualmente por MB WAY.'),
     )
 
+    payment_timeout_minutes = models.PositiveIntegerField(
+        _('tempo limite para pagamento (minutos)'),
+        default=30,
+        help_text=_('Após este tempo, o pagamento e a encomenda são cancelados automaticamente. Defina 0 para desativar.'),
+    )
+
     bank_transfer_enabled = models.BooleanField(_('aceitar transferência bancária'), default=False)
     bank_beneficiary = models.CharField(_('nome do beneficiário'), max_length=120, blank=True)
     bank_iban = models.CharField(_('IBAN'), max_length=34, blank=True)

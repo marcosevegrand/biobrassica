@@ -65,6 +65,24 @@ def transition_order_status(order, new_status):
     return True
 
 
+def transition_payment_state(order, new_state):
+    if order.payment_state == new_state:
+        return False
+
+    if not order.can_payment_transition_to(new_state):
+        raise OrderStateTransitionError('Transição de estado de pagamento inválida.')
+
+    order.payment_state = new_state
+    order.save(update_fields=['payment_state', 'updated_at'])
+
+    if new_state == order.PaymentState.CONFIRMED and order.status == order.Status.PENDING:
+        transition_order_status(order, order.Status.CONFIRMED)
+    elif new_state == order.PaymentState.CANCELLED and order.status in {order.Status.PENDING, order.Status.CONFIRMED}:
+        transition_order_status(order, order.Status.CANCELLED)
+
+    return True
+
+
 def cancel_unpaid_order(order):
     from apps.payments.models import Payment
 
@@ -75,15 +93,20 @@ def cancel_unpaid_order(order):
             .get(pk=order.pk)
         )
 
-        payment = Payment.objects.select_for_update().filter(order_id=locked_order.pk).first()
-        if payment is not None and payment.status == payment.Status.PAID:
-            raise OrderStateTransitionError('As encomendas pagas não podem ser canceladas por este fluxo.')
+        if locked_order.payment_state == locked_order.PaymentState.CONFIRMED:
+            raise OrderStateTransitionError('As encomendas com pagamento confirmado não podem ser canceladas por este fluxo.')
 
         if locked_order.status in {Order.Status.PREPARING, Order.Status.READY, Order.Status.DELIVERED}:
             raise OrderStateTransitionError('A encomenda já entrou em preparação e não pode ser cancelada aqui.')
 
         if locked_order.status == Order.Status.CANCELLED:
             return False
+
+        payment = Payment.objects.select_for_update().filter(order_id=locked_order.pk).first()
+        if payment is not None and payment.status == payment.Status.PENDING:
+            from apps.payments.services import transition_payment_status
+
+            transition_payment_status(payment, Payment.Status.EXPIRED, source='order_cancellation')
 
         product_ids = [item.product.pk for item in locked_order.items.all() if item.product is not None]
         locked_products = {
@@ -92,6 +115,7 @@ def cancel_unpaid_order(order):
         }
 
         transition_order_status(locked_order, Order.Status.CANCELLED)
+        transition_payment_state(locked_order, Order.PaymentState.CANCELLED)
 
         for item in locked_order.items.all():
             if item.product is None:
@@ -173,6 +197,7 @@ def create_order_from_cart(
             subtotal=total,
             total=total,
             status=Order.Status.PENDING,
+            payment_state=Order.PaymentState.PENDING,
         )
         try:
             order.full_clean()

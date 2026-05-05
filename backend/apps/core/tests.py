@@ -224,7 +224,8 @@ class AdminDashboardTests(TestCase):
 			pickup_location=Order.PickupLocation.BRAGA,
 			subtotal='12.00',
 			total='12.00',
-			status=Order.Status.PAID,
+			status=Order.Status.CONFIRMED,
+			payment_state=Order.PaymentState.CONFIRMED,
 		)
 		self.order = Order.objects.get(email=self.customer.email)
 		Payment.objects.create(

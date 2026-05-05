@@ -35,6 +35,7 @@ class OrderAdminTests(TestCase):
             reverse('admin:orders_order_add'),
             {
                 'status': Order.Status.PENDING,
+                'payment_state': Order.PaymentState.PENDING,
                 'user': '',
                 'name': 'Cliente Backoffice',
                 'email': 'cliente@example.com',
@@ -68,6 +69,7 @@ class OrderAdminTests(TestCase):
         self.product.refresh_from_db()
 
         self.assertEqual(order.status, Order.Status.PENDING)
+        self.assertEqual(order.payment_state, Order.PaymentState.PENDING)
         self.assertEqual(order.subtotal, self.product.price * 2)
         self.assertEqual(order.total, self.product.price * 2)
         self.assertEqual(order_item.quantity, 2)
@@ -85,6 +87,7 @@ class OrderAdminTests(TestCase):
             subtotal='4.50',
             total='4.50',
             status=Order.Status.PENDING,
+            payment_state=Order.PaymentState.PENDING,
         )
         item = OrderItem.objects.create(
             order=order,
@@ -100,6 +103,7 @@ class OrderAdminTests(TestCase):
             reverse('admin:orders_order_change', args=[order.pk]),
             {
                 'status': Order.Status.PENDING,
+                'payment_state': Order.PaymentState.PENDING,
                 'user': '',
                 'name': order.name,
                 'email': order.email,
