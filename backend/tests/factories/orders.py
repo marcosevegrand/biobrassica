@@ -16,7 +16,8 @@ class OrderFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: f'Cliente {n}')
     email = factory.Sequence(lambda n: f'cliente{n}@example.com')
     phone = '912345678'
-    status = Order.Status.PAYMENT_PENDING
+    status = Order.Status.PENDING
+    payment_state = Order.PaymentState.PENDING
     fulfillment_method = Order.FulfillmentMethod.PICKUP
     pickup_location = Order.PickupLocation.BRAGA
     shipping_address_line1 = ''

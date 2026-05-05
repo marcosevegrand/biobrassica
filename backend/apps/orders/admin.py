@@ -181,6 +181,11 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     search_fields = ('=pk', 'email', 'name', 'phone')
     search_help_text = _('Pesquise por número de encomenda, email, nome ou telefone.')
     readonly_fields = ('payment_state_display',)
+    inlines = [OrderItemInline]
+    list_filter_submit = True
+    compressed_fields = True
+    autocomplete_fields = ('user',)
+    actions = ('mark_preparing', 'mark_ready', 'mark_delivered', 'cancel_unpaid_orders')
 
     add_fieldsets = (
         (None, {
