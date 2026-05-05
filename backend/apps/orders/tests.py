@@ -45,6 +45,7 @@ class OrderAdminTests(TestCase):
                 'name': 'Cliente Backoffice',
                 'email': 'cliente@example.com',
                 'phone': '912 345 678',
+                'nif': '123456789',
                 'language': Order.Language.PT,
                 'fulfillment_method': Order.FulfillmentMethod.PICKUP,
                 'pickup_location': Order.PickupLocation.BRAGA,
@@ -113,6 +114,7 @@ class OrderAdminTests(TestCase):
                 'name': order.name,
                 'email': order.email,
                 'phone': order.phone,
+                'nif': '',
                 'language': order.language,
                 'fulfillment_method': order.fulfillment_method,
                 'pickup_location': order.pickup_location,
@@ -199,6 +201,7 @@ class CheckoutFlowTests(TestCase):
                 'name': 'Cliente Checkout',
                 'email': 'cliente@example.com',
                 'phone': '912345678',
+                'nif': '501964843',
                 'fulfillment_method': Order.FulfillmentMethod.PICKUP,
                 'pickup_location': self.location.pickup_location_code,
                 'shipping_address_line1': '',
@@ -218,6 +221,7 @@ class CheckoutFlowTests(TestCase):
         self.assertTrue(response['Location'].endswith(reverse('orders:payment_status', args=[order.pk])))
         self.assertEqual(order.status, Order.Status.PENDING)
         self.assertEqual(order.payment_state, Order.PaymentState.PENDING)
+        self.assertEqual(order.nif, '501964843')
         self.assertEqual(payment.status, Payment.Status.PENDING)
 
         self.product.refresh_from_db()

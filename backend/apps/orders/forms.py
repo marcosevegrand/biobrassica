@@ -3,7 +3,12 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 from typing import Any, cast
 
-from apps.accounts.validators import normalize_portuguese_mobile_phone, normalize_portuguese_phone
+from apps.accounts.validators import (
+    normalize_portuguese_mobile_phone,
+    normalize_portuguese_nif,
+    normalize_portuguese_phone,
+    validate_portuguese_nif,
+)
 from apps.catalog.models import Location
 from apps.orders.models import Order, PT_POSTAL_CODE_RE
 from apps.payments.models import Payment
@@ -14,6 +19,7 @@ class CheckoutForm(forms.Form):
     name = forms.CharField(max_length=255)
     email = forms.EmailField()
     phone = forms.CharField(max_length=20, required=False)
+    nif = forms.CharField(max_length=9, required=False)
     fulfillment_method = forms.ChoiceField(
         choices=Order.FulfillmentMethod.choices,
         required=False,
@@ -91,6 +97,14 @@ class CheckoutForm(forms.Form):
             return normalize_portuguese_phone(phone)
         except DjangoValidationError as error:
             raise forms.ValidationError(error.messages) from error
+
+    def clean_nif(self):
+        nif = normalize_portuguese_nif(self.cleaned_data['nif'])
+        try:
+            validate_portuguese_nif(nif)
+        except DjangoValidationError as error:
+            raise forms.ValidationError(error.messages) from error
+        return nif
 
     def clean_shipping_address_line1(self):
         return self.cleaned_data['shipping_address_line1'].strip()

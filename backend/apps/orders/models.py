@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from apps.accounts.validators import normalize_portuguese_phone
+from apps.accounts.validators import normalize_portuguese_nif, normalize_portuguese_phone, validate_portuguese_nif
 from apps.catalog.models import Location
 from apps.core.limits import MAX_PURCHASE_QUANTITY
 from apps.core.translations import normalized_language
@@ -81,6 +81,7 @@ class Order(models.Model):
     access_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     email = models.EmailField(_('email'))
     phone = models.CharField(_('telefone'), max_length=20, blank=True)
+    nif = models.CharField(_('NIF'), max_length=9, blank=True)
     name = models.CharField(_('nome'), max_length=255)
     status = models.CharField(_('estado'), max_length=20, choices=Status.choices, default=Status.PENDING)
     payment_state = models.CharField(
@@ -138,6 +139,7 @@ class Order(models.Model):
         self.name = str(self.name or '').strip()
         self.email = str(self.email or '').strip().lower()
         self.phone = str(self.phone or '').strip()
+        self.nif = str(self.nif or '').strip()
         self.pickup_location = str(self.pickup_location or '').strip()
         self.shipping_address_line1 = str(self.shipping_address_line1 or '').strip()
         self.shipping_address_line2 = str(self.shipping_address_line2 or '').strip()
@@ -182,6 +184,12 @@ class Order(models.Model):
             self.phone = normalize_portuguese_phone(self.phone)
         except ValidationError as error:
             errors['phone'] = error.messages
+
+        self.nif = normalize_portuguese_nif(self.nif)
+        try:
+            validate_portuguese_nif(self.nif)
+        except ValidationError as error:
+            errors['nif'] = error.messages
 
         if original_status and self.status != original_status and not self.can_transition_to(self.status):
             errors['status'] = _('Transição de estado inválida para a encomenda.')

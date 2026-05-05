@@ -245,6 +245,7 @@ def checkout_confirm(request):
             name=cleaned_data['name'],
             email=cleaned_data['email'],
             phone=cleaned_data['phone'],
+            nif=cleaned_data['nif'],
             fulfillment_method=cleaned_data['fulfillment_method'],
             pickup_location=cleaned_data['pickup_location'],
             shipping_address_line1=cleaned_data['shipping_address_line1'],
