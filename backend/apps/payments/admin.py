@@ -156,51 +156,45 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def _is_pending_manual(self, payment):
         return payment.status == Payment.Status.PENDING and payment.method in {Payment.Method.MBWAY_MANUAL, Payment.Method.BANK_TRANSFER}
 
-    def _ensure_order_ready_for_paid_payment(self, payment):
-        order = payment.order
-        if order.payment_state == Order.PaymentState.PENDING:
+    def _sync_order_payment_state(self, payment, target_payment_state):
+        if payment.order.payment_state != target_payment_state:
             from apps.orders.services import transition_payment_state
 
-            transition_payment_state(order, Order.PaymentState.CONFIRMED)
-
-    def _sync_order_for_pending_payment(self, payment):
-        if payment.order.payment_state == Order.PaymentState.CANCELLED:
-            from apps.orders.services import transition_payment_state
-
-            transition_payment_state(payment.order, Order.PaymentState.PENDING)
+            try:
+                transition_payment_state(payment.order, target_payment_state)
+            except Exception:
+                pass
 
     def _apply_payment_status(self, payment, target_status, *, reason=''):
         if payment.status == target_status:
             if target_status == Payment.Status.PENDING:
-                self._sync_order_for_pending_payment(payment)
+                self._sync_order_payment_state(payment, Order.PaymentState.PENDING)
             return False
 
         if target_status == Payment.Status.PAID:
-            self._ensure_order_ready_for_paid_payment(payment)
+            self._sync_order_payment_state(payment, Order.PaymentState.CONFIRMED)
             return finalize_successful_payment(payment, source='admin_manual_update')
 
         if target_status == Payment.Status.FAILED:
+            self._sync_order_payment_state(payment, Order.PaymentState.CANCELLED)
             return mark_payment_failed(payment, reason=reason or _('Pagamento marcado como falhado no backoffice.'))
 
         if target_status == Payment.Status.EXPIRED:
-            changed = transition_payment_status(
+            self._sync_order_payment_state(payment, Order.PaymentState.CANCELLED)
+            return transition_payment_status(
                 payment,
                 Payment.Status.EXPIRED,
                 reason=reason or _('Pagamento marcado como expirado no backoffice.'),
                 source='admin_manual_update',
             )
-            if payment.order.payment_state == Order.PaymentState.PENDING:
-                from apps.orders.services import transition_payment_state
-
-                transition_payment_state(payment.order, Order.PaymentState.CANCELLED)
-            return changed
 
         if target_status == Payment.Status.PENDING:
             changed = transition_payment_status(payment, Payment.Status.PENDING, source='admin_manual_update')
-            self._sync_order_for_pending_payment(payment)
+            self._sync_order_payment_state(payment, Order.PaymentState.PENDING)
             return changed
 
         if target_status == Payment.Status.REFUNDED:
+            self._sync_order_payment_state(payment, Order.PaymentState.REFUNDED)
             return transition_payment_status(payment, Payment.Status.REFUNDED, source='admin_manual_update')
 
         raise PaymentTransitionError(_('Estado de pagamento inválido.'))
@@ -294,7 +288,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                     obj.paid_at = desired_paid_at
                     obj.save(update_fields=['paid_at'])
             elif desired_status == Payment.Status.PENDING:
-                self._sync_order_for_pending_payment(obj)
+                self._sync_order_payment_state(obj, Order.PaymentState.PENDING)
             return
 
         if desired_status != Payment.Status.PENDING:
@@ -308,7 +302,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 obj.paid_at = desired_paid_at
                 obj.save(update_fields=['paid_at'])
         else:
-            self._sync_order_for_pending_payment(obj)
+            self._sync_order_payment_state(obj, Order.PaymentState.PENDING)
 
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context=extra_context)

@@ -32,7 +32,7 @@ from apps.payments.models import Payment
 class OrderAdminForm(forms.ModelForm):
     class Meta:
         model = Order
-        exclude = ('access_token', 'created_at', 'updated_at')
+        exclude = ('access_token', 'created_at', 'updated_at', 'payment_state')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,20 +57,6 @@ class OrderAdminForm(forms.ModelForm):
 
         self.fields['status'].choices = [
             choice for choice in Order.Status.choices if choice[0] in allowed_statuses
-        ]
-
-        if self.instance.pk:
-            allowed_payment_states = {self.instance.payment_state, *self.instance.valid_next_payment_states()}
-        else:
-            allowed_payment_states = {
-                Order.PaymentState.PENDING,
-                Order.PaymentState.CONFIRMED,
-                Order.PaymentState.CANCELLED,
-            }
-            self.initial.setdefault('payment_state', Order.PaymentState.PENDING)
-
-        self.fields['payment_state'].choices = [
-            choice for choice in Order.PaymentState.choices if choice[0] in allowed_payment_states
         ]
 
     def save(self, commit=True):
@@ -194,12 +180,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     list_filter = ('status', 'payment__status', 'fulfillment_method', 'pickup_location', 'created_at')
     search_fields = ('=pk', 'email', 'name', 'phone')
     search_help_text = _('Pesquise por número de encomenda, email, nome ou telefone.')
-    readonly_fields = ()
-    inlines = [OrderItemInline]
-    list_filter_submit = True
-    compressed_fields = True
-    autocomplete_fields = ('user',)
-    actions = ('mark_preparing', 'mark_ready', 'mark_delivered', 'cancel_unpaid_orders')
+    readonly_fields = ('payment_state_display',)
 
     add_fieldsets = (
         (None, {
@@ -209,7 +190,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 'email',
                 'phone',
                 'status',
-                'payment_state',
                 'fulfillment_method',
                 'pickup_location',
                 'shipping_address_line1',
@@ -224,7 +204,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         }),
     )
 
-    fieldsets = (
+    pickup_fieldsets = (
         (None, {
             'fields': (
                 'user',
@@ -232,9 +212,27 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 'email',
                 'phone',
                 'status',
-                'payment_state',
+                'payment_state_display',
                 'fulfillment_method',
                 'pickup_location',
+                'language',
+                'notes',
+                'subtotal',
+                'total',
+            ),
+        }),
+    )
+
+    shipping_fieldsets = (
+        (None, {
+            'fields': (
+                'user',
+                'name',
+                'email',
+                'phone',
+                'status',
+                'payment_state_display',
+                'fulfillment_method',
                 'shipping_address_line1',
                 'shipping_address_line2',
                 'shipping_postal_code',
@@ -262,11 +260,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 name='orders_order_transition',
             ),
             path(
-                '<int:object_id>/payment-state/<slug:target_state>/',
-                self.admin_site.admin_view(self.payment_state_view),
-                name='orders_order_payment_state',
-            ),
-            path(
                 '<int:object_id>/cancel-unpaid/',
                 self.admin_site.admin_view(self.cancel_unpaid_view),
                 name='orders_order_cancel_unpaid',
@@ -275,10 +268,33 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
         return custom_urls + super().get_urls()
 
     def get_fieldsets(self, request, obj=None):
-        return self.add_fieldsets if obj is None else self.fieldsets
+        if obj is None:
+            return self.add_fieldsets
+        if obj.fulfillment_method == Order.FulfillmentMethod.SHIPPING:
+            return self.shipping_fieldsets
+        return self.pickup_fieldsets
 
     def get_readonly_fields(self, request, obj=None):
-        return ()
+        return ('payment_state_display',)
+
+    @admin.display(description=_('Estado do pagamento'))
+    def payment_state_display(self, obj):
+        payment = getattr(obj, 'payment', None)
+        if payment is None:
+            return _('Sem pagamento associado.')
+        tones = {
+            Order.PaymentState.PENDING: 'warning',
+            Order.PaymentState.CONFIRMED: 'success',
+            Order.PaymentState.CANCELLED: 'danger',
+            Order.PaymentState.REFUNDED: 'info',
+        }
+        badge = render_status_badge(payment.status_label, tones.get(obj.payment_state, 'neutral'))
+        link = format_html(
+            '<a href="{}" style="margin-left:8px;font-size:13px;">{}</a>',
+            reverse('admin:payments_payment_change', args=[payment.pk]),
+            _('Editar pagamento'),
+        )
+        return format_html('{}{}', badge, link)
 
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context=extra_context)
@@ -357,50 +373,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             if changed:
                 self.message_user(request, _('Encomenda cancelada e stock reposto.'), level=messages.SUCCESS)
         return HttpResponseRedirect(reverse('admin:orders_order_change', args=[order.pk]))
-
-    def payment_state_view(self, request, object_id, target_state):
-        order = self.get_object(request, object_id)
-        if order is None:
-            self.message_user(request, _('Encomenda não encontrada.'), level=messages.ERROR)
-            return HttpResponseRedirect(reverse('admin:orders_order_changelist'))
-
-        try:
-            state_label = Order.PaymentState(target_state).label
-        except ValueError:
-            self.message_user(request, _('Estado de pagamento inválido.'), level=messages.ERROR)
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:orders_order_changelist'))
-
-        try:
-            with transaction.atomic():
-                locked_order = Order.objects.select_for_update().get(pk=order.pk)
-                if target_state == Order.PaymentState.CONFIRMED:
-                    from apps.payments.services import finalize_successful_payment
-
-                    payment = Payment.objects.filter(order=locked_order).first()
-                    if payment and payment.status != Payment.Status.PAID:
-                        finalize_successful_payment(payment, source='admin_order_payment_state')
-                    else:
-                        from apps.orders.services import transition_payment_state
-
-                        transition_payment_state(locked_order, Order.PaymentState.CONFIRMED)
-                elif target_state == Order.PaymentState.CANCELLED:
-                    from apps.orders.services import transition_payment_state
-
-                    transition_payment_state(locked_order, Order.PaymentState.CANCELLED)
-                    payment = Payment.objects.filter(order=locked_order).first()
-                    if payment and payment.status == Payment.Status.PENDING:
-                        from apps.payments.services import transition_payment_status
-
-                        transition_payment_status(payment, Payment.Status.EXPIRED, source='admin_order_payment_cancel')
-        except OrderWorkflowError as error:
-            self.message_user(request, str(error), level=messages.WARNING)
-        else:
-            self.message_user(
-                request,
-                _('Pagamento da encomenda atualizado para %(state)s.') % {'state': state_label},
-                level=messages.SUCCESS,
-            )
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('admin:orders_order_change', args=[order.pk]))
 
     def _can_cancel_from_change_form(self, obj):
         if obj.payment_state == Order.PaymentState.CONFIRMED:
@@ -519,23 +491,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 )
             )
 
-        payment_actions = []
-        if obj.payment_state == Order.PaymentState.PENDING:
-            payment_actions.append(
-                render_action_link(
-                    reverse('admin:orders_order_payment_state', args=[obj.pk, Order.PaymentState.CONFIRMED]),
-                    _('Confirmar pagamento'),
-                    tone='success',
-                )
-            )
-            payment_actions.append(
-                render_action_link(
-                    reverse('admin:orders_order_payment_state', args=[obj.pk, Order.PaymentState.CANCELLED]),
-                    _('Cancelar pagamento'),
-                    tone='danger',
-                )
-            )
-
         if self._can_cancel_from_change_form(obj):
             actions.append(
                 render_action_link(
@@ -545,7 +500,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
                 )
             )
 
-        return render_action_group(actions) + render_action_group(payment_actions)
+        return render_action_group(actions)
 
     @admin.display(description=_('Próxima ação'))
     def workflow_next_step(self, obj):
@@ -590,15 +545,6 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             payment.Status.REFUNDED: 'info',
         }
         return render_status_badge(payment.get_status_display(), tones.get(payment.status, 'neutral'))
-
-    @admin.display(description=_('Estado do pagamento'))
-    def payment_state_badge(self, obj):
-        tones = {
-            Order.PaymentState.PENDING: 'warning',
-            Order.PaymentState.CONFIRMED: 'success',
-            Order.PaymentState.CANCELLED: 'danger',
-        }
-        return render_status_badge(obj.get_payment_state_display(), tones.get(obj.payment_state, 'neutral'))
 
     @admin.display(ordering='payment__method', description=_('Método pag.'))
     def payment_method_display(self, obj):

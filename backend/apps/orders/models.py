@@ -33,8 +33,9 @@ ORDER_STATUS_TRANSITIONS = {
 
 PAYMENT_STATE_TRANSITIONS = {
     'pending': {'confirmed', 'cancelled'},
-    'confirmed': set(),
-    'cancelled': {'pending'},
+    'confirmed': {'refunded'},
+    'cancelled': set(),
+    'refunded': set(),
 }
 
 
@@ -56,6 +57,7 @@ class Order(models.Model):
         PENDING = 'pending', _('Pendente')
         CONFIRMED = 'confirmed', _('Confirmado')
         CANCELLED = 'cancelled', _('Cancelado')
+        REFUNDED = 'refunded', _('Reembolsado')
 
     class PickupLocation(models.TextChoices):
         BRAGA = 'braga', _('Loja Braga')
@@ -223,6 +225,7 @@ class Order(models.Model):
             self.PaymentState.PENDING: 'bg-amber-100 text-amber-800',
             self.PaymentState.CONFIRMED: 'bg-emerald-100 text-emerald-800',
             self.PaymentState.CANCELLED: 'bg-rose-100 text-rose-800',
+            self.PaymentState.REFUNDED: 'bg-sky-100 text-sky-800',
         }
         return state_classes.get(self.payment_state, 'bg-stone-100 text-stone-700')
 

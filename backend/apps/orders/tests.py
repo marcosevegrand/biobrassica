@@ -35,7 +35,6 @@ class OrderAdminTests(TestCase):
             reverse('admin:orders_order_add'),
             {
                 'status': Order.Status.PENDING,
-                'payment_state': Order.PaymentState.PENDING,
                 'user': '',
                 'name': 'Cliente Backoffice',
                 'email': 'cliente@example.com',
@@ -56,15 +55,36 @@ class OrderAdminTests(TestCase):
                 'items-0-product_name': '',
                 'items-0-price': '',
                 'items-0-quantity': '2',
+                'items-0-id': '',
                 '_save': 'Guardar',
             },
             follow=True,
         )
 
         self.assertEqual(response.status_code, 200)
+        print('DEBUG: Redirect chain:', getattr(response, 'redirect_chain', []))
         self.assertEqual(Order.objects.count(), 1)
 
         order = Order.objects.get()
+        print('DEBUG: Order PK:', order.pk)
+        print('DEBUG: Order status:', order.status)
+        print('DEBUG: Order payment_state:', order.payment_state)
+        print('DEBUG: Item count:', OrderItem.objects.filter(order=order).count())
+        if response.context:
+            for ctx in response.context:
+                title = ctx.get('title')
+                print(f'DEBUG: Context title: {title}')
+                adminform = ctx.get('adminform')
+                if adminform:
+                    print('DEBUG: Has adminform')
+                    for field in adminform:
+                        if field.field.errors:
+                            print(f'DEBUG: Error on {field.field.name}: {field.field.errors}')
+                    inlines = ctx.get('inline_admin_formsets', [])
+                    for inline in inlines:
+                        for form in inline:
+                            if form.form.errors:
+                                print(f'DEBUG: Inline error: {form.form.errors}')
         order_item = OrderItem.objects.get(order=order)
         self.product.refresh_from_db()
 
@@ -103,7 +123,6 @@ class OrderAdminTests(TestCase):
             reverse('admin:orders_order_change', args=[order.pk]),
             {
                 'status': Order.Status.PENDING,
-                'payment_state': Order.PaymentState.PENDING,
                 'user': '',
                 'name': order.name,
                 'email': order.email,

@@ -443,7 +443,10 @@ class ManualMbWayService(BasePaymentService):
             description = _('O pagamento MB WAY não foi validado e a encomenda foi cancelada.')
             state_label = _('Pagamento rejeitado')
         else:
-            description = _('Transfira o valor por MB WAY para o número abaixo. A encomenda fica em espera até validarmos o pagamento.')
+            description = _(
+                f'Transfira o valor por MB WAY para o número abaixo, indicando na descrição "Encomenda {order_reference}". '
+                'A encomenda fica em espera até validarmos o pagamento.'
+            )
             state_label = _('A aguardar validação manual')
 
         return {
@@ -518,7 +521,10 @@ class ManualBankTransferService(BasePaymentService):
             description = _('A transferência não foi validada e a encomenda foi cancelada.')
             state_label = _('Pagamento rejeitado')
         else:
-            description = _('Faça a transferência para os dados abaixo, indicando a referência da encomenda. A encomenda fica em espera até validarmos a receção.')
+            description = _(
+                f'Faça a transferência para os dados abaixo, indicando na descrição "Encomenda {order_reference}". '
+                'A encomenda fica em espera até validarmos a receção.'
+            )
             state_label = _('A aguardar receção da transferência')
 
         rows = [

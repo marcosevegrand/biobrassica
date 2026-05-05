@@ -74,12 +74,6 @@ def transition_payment_state(order, new_state):
 
     order.payment_state = new_state
     order.save(update_fields=['payment_state', 'updated_at'])
-
-    if new_state == order.PaymentState.CONFIRMED and order.status == order.Status.PENDING:
-        transition_order_status(order, order.Status.CONFIRMED)
-    elif new_state == order.PaymentState.CANCELLED and order.status in {order.Status.PENDING, order.Status.CONFIRMED}:
-        transition_order_status(order, order.Status.CANCELLED)
-
     return True
 
 
