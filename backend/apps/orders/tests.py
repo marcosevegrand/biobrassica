@@ -192,7 +192,7 @@ class CheckoutFlowTests(TestCase):
         self.cart = Cart.objects.create(user=self.user)
         CartItem.objects.create(cart=self.cart, product=self.product, quantity=2)
 
-    def test_checkout_creates_order_without_payment_and_discard_restores_stock(self):
+    def test_checkout_starts_payment_without_intermediate_step(self):
         response = self.client.post(
             reverse('orders:confirm'),
             {
@@ -211,25 +211,18 @@ class CheckoutFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Order.objects.count(), 1)
-        self.assertEqual(Payment.objects.count(), 0)
+        self.assertEqual(Payment.objects.count(), 1)
 
         order = Order.objects.get()
-        self.assertEqual(response['Location'], reverse('orders:payment_select', args=[order.pk]))
+        payment = Payment.objects.get(order=order)
+        self.assertTrue(response['Location'].endswith(reverse('orders:payment_status', args=[order.pk])))
         self.assertEqual(order.status, Order.Status.PENDING)
         self.assertEqual(order.payment_state, Order.PaymentState.PENDING)
+        self.assertEqual(payment.status, Payment.Status.PENDING)
 
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 8)
-        self.assertEqual(self.cart.items.count(), 1)
-
-        discard_response = self.client.post(reverse('orders:discard', args=[order.pk]))
-
-        self.assertEqual(discard_response.status_code, 302)
-        self.assertFalse(Order.objects.exists())
-        self.assertEqual(Payment.objects.count(), 0)
-
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 10)
+        self.assertEqual(self.cart.items.count(), 0)
 
     def test_timeout_cancels_payment_and_order_without_restoring_stock(self):
         order = Order.objects.create(

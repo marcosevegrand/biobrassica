@@ -8,7 +8,7 @@ from django.utils.translation import get_language, gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items
-from apps.orders.forms import CheckoutForm, PaymentSelectionForm
+from apps.orders.forms import CheckoutForm
 from apps.orders.models import Order
 from apps.orders.services import (
     CartStateChangedError,
@@ -74,6 +74,68 @@ def _payment_select_context(order, form):
         'payments_enabled': payments_are_enabled(),
         'payment_provider': payment_service.checkout_option(),
     }
+
+
+def _start_order_payment(request, order, *, payment_method=None):
+    current_payment = _get_order_payment(order)
+
+    if order.payment_state == Order.PaymentState.CONFIRMED and current_payment:
+        return redirect(_order_url('orders:complete', order))
+    if order.status == Order.Status.CANCELLED:
+        messages.error(request, _('Esta encomenda foi cancelada e já não aceita pagamentos.'))
+        if current_payment is not None:
+            return redirect(_order_url('orders:payment_status', order))
+        return redirect('orders:checkout')
+    if not payments_are_enabled():
+        return _handle_payments_disabled(request=request, redirect_to='orders:checkout')
+
+    payment = None
+    payment_service = get_payment_service(payment_method)
+    payment_method = payment_service.method
+
+    try:
+        if current_payment and current_payment.status == Payment.Status.CONFIRMED:
+            return redirect(_order_url('orders:complete', order))
+
+        if current_payment and current_payment.status == Payment.Status.PENDING and current_payment.method == payment_method:
+            if current_payment.checkout_url:
+                return redirect(current_payment.checkout_url)
+            if payment_method in {Payment.Method.MBWAY_MANUAL, Payment.Method.BANK_TRANSFER}:
+                return redirect(_order_url('orders:payment_status', order))
+
+        payment = reset_payment(order, payment_method)
+        success_url = request.build_absolute_uri(
+            f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
+        )
+        status_url = request.build_absolute_uri(_order_url('orders:payment_status', order))
+        cancel_url = request.build_absolute_uri(_order_url('orders:checkout_order', order))
+        redirect_url = payment_service.initiate_payment(
+            order=order,
+            payment=payment,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            status_url=status_url,
+        )
+        cart = get_cart_for_request(request)
+        if cart is not None:
+            clear_cart(cart)
+        return redirect(redirect_url)
+    except PaymentDisabledError:
+        if payment is not None and payment.status == Payment.Status.PENDING:
+            payment.delete()
+        messages.error(request, PAYMENTS_DISABLED_MESSAGE)
+        return redirect('orders:checkout')
+    except PaymentProcessingError as error:
+        if payment is not None and payment.status == Payment.Status.PENDING:
+            payment.delete()
+        messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
+        return redirect(_order_url('orders:checkout_order', order))
+    except Exception:
+        if payment is not None and payment.status == Payment.Status.PENDING:
+            payment.delete()
+        logger.exception('Failed to initiate payment for order %s', order.pk)
+        messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
+        return redirect(_order_url('orders:checkout_order', order))
 
 
 def _checkout_context(request, cart, items, cart_can_ship, form):
@@ -192,7 +254,7 @@ def checkout_confirm(request):
             notes=cleaned_data['notes'],
             clear_cart_items=False,
         )
-        return redirect(_order_url('orders:payment_select', order))
+        return _start_order_payment(request, order)
     except CartStateChangedError:
         cart_items = list(get_cart_items_queryset(cart))
         if not cart_items:
@@ -223,74 +285,7 @@ def payment_select(request, order_id):
         return login_redirect
 
     order = _get_order_for_request(request, order_id)
-    current_payment = _get_order_payment(order)
-
-    if order.payment_state == Order.PaymentState.CONFIRMED and current_payment:
-        return redirect(_order_url('orders:complete', order))
-    if order.status == Order.Status.CANCELLED:
-        messages.error(request, _('Esta encomenda foi cancelada e já não aceita pagamentos.'))
-        if current_payment is not None:
-            return redirect(_order_url('orders:payment_status', order))
-        return redirect('orders:checkout')
-
-    if request.method == 'GET':
-        form = PaymentSelectionForm(initial={'payment_method': get_payment_service().method})
-        return render(request, 'orders/payment_select.html', _payment_select_context(order, form))
-
-    if not payments_are_enabled():
-        return _handle_payments_disabled(request=request, redirect_to=_order_url('orders:payment_select', order))
-
-    form = PaymentSelectionForm(request.POST)
-    if not form.is_valid():
-        return render(request, 'orders/payment_select.html', _payment_select_context(order, form), status=200)
-
-    payment_method = form.cleaned_data['payment_method']
-    payment_service = get_payment_service(payment_method)
-    existing_payment = current_payment
-    if existing_payment and existing_payment.status == Payment.Status.CONFIRMED:
-        return redirect(_order_url('orders:complete', order))
-
-    payment = None
-    try:
-        if existing_payment and existing_payment.status == Payment.Status.PENDING and existing_payment.method == payment_method:
-            if existing_payment.checkout_url:
-                return redirect(existing_payment.checkout_url)
-            if payment_method in {Payment.Method.MBWAY_MANUAL, Payment.Method.BANK_TRANSFER}:
-                return redirect(_order_url('orders:payment_status', order))
-
-        payment = reset_payment(order, payment_method)
-        success_url = request.build_absolute_uri(
-            f"{_order_url('orders:payment_status', order)}?session_id={{CHECKOUT_SESSION_ID}}"
-        )
-        status_url = request.build_absolute_uri(_order_url('orders:payment_status', order))
-        cancel_url = request.build_absolute_uri(_order_url('orders:payment_select', order))
-        redirect_url = payment_service.initiate_payment(
-            order=order,
-            payment=payment,
-            success_url=success_url,
-            cancel_url=cancel_url,
-            status_url=status_url,
-        )
-        cart = get_cart_for_request(request)
-        if cart is not None:
-            clear_cart(cart)
-        return redirect(redirect_url)
-    except PaymentDisabledError:
-        if payment is not None and payment.status == Payment.Status.PENDING:
-            payment.delete()
-        messages.error(request, PAYMENTS_DISABLED_MESSAGE)
-        return redirect(_order_url('orders:payment_select', order))
-    except PaymentProcessingError as error:
-        if payment is not None and payment.status == Payment.Status.PENDING:
-            payment.delete()
-        messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
-        return redirect(_order_url('orders:payment_select', order))
-    except Exception:
-        if payment is not None and payment.status == Payment.Status.PENDING:
-            payment.delete()
-        logger.exception('Failed to initiate payment for order %s', order.pk)
-        messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
-        return redirect(_order_url('orders:payment_select', order))
+    return _start_order_payment(request, order)
 
 
 @require_http_methods(['POST'])
@@ -320,7 +315,7 @@ def payment_status(request, order_id):
 
     if not payment:
         messages.error(request, _('Ainda não existe um pagamento associado a esta encomenda.'))
-        return redirect(_order_url('orders:payment_select', order))
+        return _start_order_payment(request, order)
 
     if order.payment_state == Order.PaymentState.CONFIRMED:
         return redirect(_order_url('orders:complete', order))
