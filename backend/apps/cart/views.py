@@ -1,11 +1,12 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django.utils.translation import get_language
 from django.views.decorators.http import require_POST
+from django.urls import reverse
+from urllib.parse import urlsplit
 
 from apps.cart.forms import AddToCartForm, UpdateCartItemForm
 from apps.cart.models import CartItem
@@ -131,8 +132,20 @@ def cart_detail(request):
 
 
 @require_POST
-@login_required(login_url='accounts:login')
 def add_to_cart(request, product_id):
+    if not request.user.is_authenticated:
+        next_url = request.headers.get('HX-Current-URL') or request.META.get('HTTP_REFERER') or reverse('catalog:product_list')
+        parsed_next = urlsplit(next_url)
+        next_url = parsed_next.path or reverse('catalog:product_list')
+        if parsed_next.query:
+            next_url = f'{next_url}?{parsed_next.query}'
+        login_url = f"{reverse('accounts:login')}?next={next_url}"
+        if request.htmx:
+            response = HttpResponse(status=204)
+            response['HX-Redirect'] = login_url
+            return response
+        return redirect(login_url)
+
     product = get_object_or_404(Product, pk=product_id, is_active=True)
     cart = get_or_create_cart_for_request(request)
     form = AddToCartForm(request.POST)

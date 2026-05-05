@@ -88,7 +88,10 @@
 
                             {% if inline_admin_formset.formset.can_delete and inline_admin_formset.has_delete_permission and inline_admin_form.original %}
                                 <span class="delete flex gap-2 items-center ml-auto">
-                                    {{ inline_admin_form.deletion_field.field|add_css_class:form_classes.checkbox }} {{ inline_admin_form.deletion_field.label_tag }}
+                                    {{ inline_admin_form.deletion_field.field|add_css_class:'sr-only peer' }}
+                                    <label for="{{ inline_admin_form.deletion_field.id_for_label }}" class="cursor-pointer rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30">
+                                        Eliminar
+                                    </label>
                                 </span>
                             {% endif %}
                         </h3>
@@ -113,12 +116,9 @@
             {% endfor %}
 
                 {% if inline_admin_formset.has_add_permission %}
-                    <div class="form-actions px-3 py-3 border-t border-base-200 dark:border-base-800">
+                    <div class="form-actions hidden px-3 py-3 border-t border-base-200 dark:border-base-800">
                         <div class="add-row {% if inline_admin_formset.formset.total_form_count >= inline_admin_formset.formset.max_num %}hidden{% endif %}">
-                            <a href="#" class="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white">
-                                <span aria-hidden="true">+</span>
-                                <span>{{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}</span>
-                            </a>
+                            {{ inline_admin_formset.opts|safe_attr:'section_cta_label'|default:'Adicionar registo' }}
                         </div>
                     </div>
                 {% endif %}

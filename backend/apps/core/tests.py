@@ -164,6 +164,17 @@ class WebsiteRoutingTests(TestCase):
 		self.assertNotContains(response, '.hidden { display: none !important; }')
 		self.assertNotContains(response, '.block { display: block !important; }')
 
+	def test_website_contacts_uses_hardcoded_public_store_locations(self):
+		from apps.catalog.models import Location
+
+		Location.objects.create(name='Pickup Temporário', address='Rua Temporária', is_active=True, order=1)
+		response = self.client.get(reverse('website:contacts'), HTTP_HOST='lvh.me')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Loja Braga')
+		self.assertContains(response, 'Loja Guimarães')
+		self.assertNotContains(response, 'Pickup Temporário')
+
 
 @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
 class ContactLocationsCacheTests(TestCase):

@@ -13,11 +13,14 @@ def display_category_queryset(*, lang=None):
 
 
 def active_product_queryset(*, lang=None):
-    return Product.objects.filter(is_active=True).select_related('category').prefetch_related(
+    queryset = Product.objects.filter(is_active=True).select_related('category').prefetch_related(
         translation_prefetch(ProductTranslation, lang=lang),
         translation_prefetch(CategoryTranslation, related_name='category__translations', lang=lang),
         'pickup_locations',
     )
+    if lang and lang != 'pt':
+        queryset = queryset.filter(translations__language=lang)
+    return queryset
 
 
 def display_product_queryset(*, lang=None):

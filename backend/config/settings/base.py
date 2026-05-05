@@ -255,6 +255,7 @@ UNFOLD = {
     ],
     'SCRIPTS': [
         lambda request: '/static/js/admin/required_fields.js',
+        lambda request: '/static/js/admin/product_editor.js',
     ],
     'SITE_FAVICONS': [
         {'rel': 'icon', 'sizes': '32x32', 'href': '/static/images/brand/favicon_green.png'},

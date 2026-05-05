@@ -29,6 +29,29 @@ DEFAULT_LOCATION_CONTENT = {
     },
 }
 
+PUBLIC_STORE_LOCATIONS = [
+    {
+        'name': 'Loja Braga',
+        'address_lines': ['Avenida Doutor António Palha', 'Braga'],
+        'phone': DEFAULT_LOCATION_CONTENT['braga']['phone'],
+        'email': DEFAULT_LOCATION_CONTENT['braga']['email'],
+        'opening_hours': [line.strip() for line in DEFAULT_LOCATION_CONTENT['braga']['opening_hours'].splitlines() if line.strip()],
+        'map_embed_url': DEFAULT_LOCATION_CONTENT['braga']['map_embed_url'],
+        'static_image': DEFAULT_LOCATION_CONTENT['braga']['image'],
+        'image': None,
+    },
+    {
+        'name': 'Loja Guimarães',
+        'address_lines': ['Rua Calouste Gulbenkian', 'Guimarães'],
+        'phone': DEFAULT_LOCATION_CONTENT['guimaraes']['phone'],
+        'email': DEFAULT_LOCATION_CONTENT['guimaraes']['email'],
+        'opening_hours': [line.strip() for line in DEFAULT_LOCATION_CONTENT['guimaraes']['opening_hours'].splitlines() if line.strip()],
+        'map_embed_url': DEFAULT_LOCATION_CONTENT['guimaraes']['map_embed_url'],
+        'static_image': DEFAULT_LOCATION_CONTENT['guimaraes']['image'],
+        'image': None,
+    },
+]
+
 DEFAULT_COMPANY_LEGAL_NAME = 'Biobrassica, Lda.'
 DEFAULT_COMPANY_ADDRESS = 'R. dos Capelistas 121, 4700-215 Braga'
 DEFAULT_SUPPORT_EMAIL = 'geral@biobrassica.pt'
@@ -118,9 +141,9 @@ def get_pickup_locations_label(*, lang=None, contact_locations=None):
     with override(normalized_language(lang)):
         if contact_locations is None:
             names = [
-                _display_location_name(location.name)
-                for location in Location.objects.filter(is_active=True).select_related('sort_order').order_by('sort_order__position', 'name', 'pk')
-                if _display_location_name(location.name)
+                _display_location_name(location['name'])
+                for location in PUBLIC_STORE_LOCATIONS
+                if _display_location_name(location['name'])
             ]
         else:
             names = [
@@ -301,6 +324,10 @@ def _build_contact_locations():
         })
 
     return locations
+
+
+def get_public_store_locations():
+    return [dict(location) for location in PUBLIC_STORE_LOCATIONS]
 
 
 def get_contact_locations():

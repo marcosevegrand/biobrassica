@@ -9,6 +9,7 @@ from django import forms
 from apps.accounts.models import User
 from apps.catalog.forms import ProductAdminForm
 from apps.catalog.models import Category, CategoryPosition, CategoryTranslation, Location, Product, ProductTranslation
+from apps.catalog.querysets import display_product_queryset
 
 
 GIF_BYTES = (
@@ -34,7 +35,7 @@ class CatalogModelTests(TestCase):
         self.assertEqual(category.order, 3)
         self.assertTrue(CategoryPosition.objects.filter(category=category, position=3).exists())
 
-    def test_product_translation_falls_back_to_pt_fields(self):
+    def test_product_queryset_hides_products_without_translation_in_requested_language(self):
         category = Category.objects.create(name='Mercearia')
         product = Product.objects.create(
             category=category,
@@ -58,9 +59,8 @@ class CatalogModelTests(TestCase):
             allergens='No declared allergens.',
         )
 
-        self.assertEqual(product.get_name('en'), 'Organic Olive Oil')
-        self.assertEqual(product.get_name('fr'), 'Azeite Bio')
-        self.assertEqual(product.get_description('fr'), 'Azeite virgem extra biológico.')
+        self.assertEqual(list(display_product_queryset(lang='en').values_list('pk', flat=True)), [product.pk])
+        self.assertFalse(display_product_queryset(lang='fr').filter(pk=product.pk).exists())
 
     def test_active_product_requires_image(self):
         category = Category.objects.create(name='Mercearia')
@@ -178,3 +178,33 @@ class CatalogAdminTests(TestCase):
         self.assertContains(response, 'Pesquisar')
         self.assertNotContains(response, 'Add produto')
         self.assertNotContains(response, 'Search apps and models...')
+
+
+@override_settings(ROOT_URLCONF='config.urls_shop')
+class CatalogAnonymousCartTests(TestCase):
+    def test_htmx_add_to_cart_redirects_anonymous_user_to_login(self):
+        category = Category.objects.create(name='Mercearia')
+        product = Product.objects.create(
+            category=category,
+            name='Azeite Bio',
+            brand='Biobrassica',
+            bio_code='PT-BIO-03',
+            description='Azeite virgem extra biológico.',
+            allergens='Sem alergénios declarados.',
+            price=Decimal('9.50'),
+            quantity='750 ml',
+            stock=5,
+            is_active=True,
+            allow_shipping=True,
+            image=make_image('anonymous-azeite.gif'),
+        )
+        response = self.client.post(
+            reverse('cart:add', args=[product.pk]),
+            {'quantity': '1'},
+            HTTP_HOST='loja.lvh.me',
+            HTTP_HX_REQUEST='true',
+            HTTP_HX_CURRENT_URL='http://loja.lvh.me/pt/produtos/',
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response['HX-Redirect'], f"{reverse('accounts:login')}?next=/pt/produtos/")

@@ -1,13 +1,13 @@
 from django.utils.translation import get_language
 
-from apps.core.site_content import get_contact_locations, get_website_defaults
+from apps.core.site_content import get_public_store_locations, get_website_defaults
 
 
 def contact_locations(request):
     if getattr(request, 'subdomain', None) == 'admin':
         return {}
 
-    locations = get_contact_locations()
+    locations = get_public_store_locations()
 
     return {
         'contact_locations': locations,
