@@ -20,6 +20,7 @@ class CheckoutForm(forms.Form):
     email = forms.EmailField()
     phone = forms.CharField(max_length=20, required=False)
     nif = forms.CharField(max_length=9, required=False)
+    payment_method = forms.ChoiceField(required=False)
     fulfillment_method = forms.ChoiceField(
         choices=Order.FulfillmentMethod.choices,
         required=False,
@@ -36,13 +37,37 @@ class CheckoutForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.cart_can_ship = cart_can_ship
         self.cart_items = list(cart_items or [])
-        phone_field = cast(forms.CharField, self.fields['phone'])
-        # MB WAY (manual) requires a Portuguese mobile number to identify the request.
-        services = {service.method: service for service in available_payment_services()}
-        phone_field.required = Payment.Method.MBWAY_MANUAL in services
+        services = available_payment_services()
+        self.available_payment_methods = [service.method for service in services]
+        method_labels = dict(Payment.Method.choices)
+        cast(forms.ChoiceField, self.fields['payment_method']).choices = [
+            (service.method, method_labels.get(service.method, service.method))
+            for service in services
+        ]
+        if len(self.available_payment_methods) == 1:
+            self.initial.setdefault('payment_method', self.available_payment_methods[0])
+
+        self.pickup_only_items = [item for item in self.cart_items if item.product.allow_pickup and not item.product.allow_shipping]
+        self.shipping_only_items = [item for item in self.cart_items if item.product.allow_shipping and not item.product.allow_pickup]
         self.allowed_pickup_locations = self._allowed_pickup_locations()
         self.pickup_choices = self._build_pickup_choices()
         cast(forms.ChoiceField, self.fields['pickup_location']).choices = self.pickup_choices
+
+        self.pickup_available = bool(self.pickup_choices) and all(item.product.allow_pickup for item in self.cart_items)
+        self.shipping_available = bool(self.cart_items) and all(item.product.allow_shipping for item in self.cart_items)
+
+        self.fulfillment_blocker = ''
+        if self.pickup_only_items and self.shipping_only_items:
+            self.fulfillment_blocker = _('Este carrinho mistura produtos apenas para levantamento com produtos apenas para envio. O produto de envio deve ser encomendado à parte.')
+        elif self.pickup_available and not self.shipping_available:
+            self.initial.setdefault('fulfillment_method', Order.FulfillmentMethod.PICKUP)
+        elif self.shipping_available and not self.pickup_available:
+            self.initial.setdefault('fulfillment_method', Order.FulfillmentMethod.SHIPPING)
+        elif not self.pickup_available and not self.shipping_available and self.cart_items:
+            self.fulfillment_blocker = _('Os produtos deste carrinho não têm um modo de entrega compatível em conjunto. Devem ser encomendados à parte.')
+
+        phone_field = cast(forms.CharField, self.fields['phone'])
+        phone_field.required = len(self.available_payment_methods) == 1 and self.available_payment_methods[0] == Payment.Method.MBWAY_MANUAL
 
     def _build_pickup_choices(self):
         queryset = (
@@ -91,8 +116,9 @@ class CheckoutForm(forms.Form):
 
     def clean_phone(self):
         phone = self.cleaned_data['phone'].strip()
+        payment_method = self.data.get(self.add_prefix('payment_method'), '') or self.initial.get('payment_method', '')
         try:
-            if cast(forms.CharField, self.fields['phone']).required:
+            if cast(forms.CharField, self.fields['phone']).required or payment_method == Payment.Method.MBWAY_MANUAL:
                 return normalize_portuguese_mobile_phone(phone)
             return normalize_portuguese_phone(phone)
         except DjangoValidationError as error:
@@ -120,9 +146,28 @@ class CheckoutForm(forms.Form):
 
     def clean(self):
         cleaned_data: dict[str, Any] = super().clean() or {}
-        fulfillment_method = cleaned_data.get('fulfillment_method') or Order.FulfillmentMethod.PICKUP
+        if not self.available_payment_methods:
+            raise forms.ValidationError(_('Não existem métodos de pagamento disponíveis neste momento.'))
+
+        payment_method = cleaned_data.get('payment_method') or self.initial.get('payment_method')
+        if payment_method not in self.available_payment_methods:
+            self.add_error('payment_method', _('Selecione um método de pagamento válido.'))
+        cleaned_data['payment_method'] = payment_method
+
+        if payment_method == Payment.Method.MBWAY_MANUAL and not cleaned_data.get('phone'):
+            self.add_error('phone', _('Indique um telemóvel para receber o pedido MB WAY.'))
+
+        if self.fulfillment_blocker:
+            raise forms.ValidationError(self.fulfillment_blocker)
+
+        fulfillment_method = cleaned_data.get('fulfillment_method') or self.initial.get('fulfillment_method') or Order.FulfillmentMethod.PICKUP
         cleaned_data['fulfillment_method'] = fulfillment_method
         raw_pickup_location = str(self.data.get(self.add_prefix('pickup_location'), '') or '')
+
+        if fulfillment_method == Order.FulfillmentMethod.PICKUP and not self.pickup_available:
+            self.add_error('fulfillment_method', _('Levantamento não está disponível para esta encomenda.'))
+        if fulfillment_method == Order.FulfillmentMethod.SHIPPING and not self.shipping_available:
+            self.add_error('fulfillment_method', _('Envio ao domicílio não está disponível para esta encomenda.'))
 
         if fulfillment_method == Order.FulfillmentMethod.SHIPPING:
             if not self.cart_can_ship:
@@ -145,7 +190,7 @@ class CheckoutForm(forms.Form):
             cleaned_data['pickup_location'] = ''
         elif self.allowed_pickup_locations == set():
             self.errors.pop('pickup_location', None)
-            self.add_error('pickup_location', _('Os produtos deste carrinho não estão disponíveis para levantamento nas lojas configuradas.'))
+            self.add_error('pickup_location', _('Os produtos deste carrinho não têm uma loja de levantamento em comum.'))
         elif not self.pickup_choices:
             raise forms.ValidationError(_('Não existem locais de levantamento configurados neste momento.'))
         elif not cleaned_data.get('pickup_location') and not raw_pickup_location:
@@ -155,9 +200,6 @@ class CheckoutForm(forms.Form):
             if pickup_location not in self.allowed_pickup_locations:
                 self.errors.pop('pickup_location', None)
                 self.add_error('pickup_location', _('Este local não está disponível para todos os produtos do carrinho.'))
-
-        if cast(forms.CharField, self.fields['phone']).required and not cleaned_data.get('phone'):
-            self.add_error('phone', _('Indique um telemóvel para receber o pedido MB WAY.'))
 
         return cleaned_data
 

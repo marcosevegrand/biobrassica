@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 from unfold.admin import ModelAdmin
 
 from apps.core.admin_helpers import (
@@ -306,6 +307,7 @@ class PaymentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return bool(request.user.is_superuser)
 
+    @require_http_methods(['POST'])
     def status_view(self, request, object_id, target_status):
         payment = self.get_object(request, object_id)
         if payment is None:

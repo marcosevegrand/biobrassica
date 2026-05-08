@@ -3,8 +3,10 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 
 from apps.cart.services import clear_cart
+from apps.cart.models import CartItem
 from apps.catalog.models import Product
 from apps.orders.models import Order, OrderItem
 
@@ -77,9 +79,33 @@ def transition_payment_state(order, new_state):
     return True
 
 
+def _restore_stock_from_order_items(locked_order):
+    product_ids = [item.product_id for item in locked_order.items.all() if item.product_id]
+    if not product_ids:
+        return
+
+    locked_products = {
+        product.pk: product
+        for product in Product.objects.select_for_update().filter(pk__in=product_ids)
+    }
+
+    for item in locked_order.items.all():
+        if item.product_id is None:
+            continue
+        product = locked_products.get(item.product_id)
+        if product is None:
+            continue
+        product.stock += item.quantity
+        product.save(update_fields=['stock', 'updated_at'])
+
+
 def cancel_order(order):
     with transaction.atomic():
-        locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        locked_order = (
+            Order.objects.select_for_update()
+            .prefetch_related('items__product')
+            .get(pk=order.pk)
+        )
 
         if locked_order.status == Order.Status.CANCELLED:
             return False
@@ -87,6 +113,7 @@ def cancel_order(order):
             raise OrderStateTransitionError('A encomenda já foi entregue e não pode ser cancelada.')
 
         transition_order_status(locked_order, Order.Status.CANCELLED)
+        _restore_stock_from_order_items(locked_order)
         return True
 
 
@@ -95,11 +122,7 @@ def cancel_order_for_expired_payment(order):
     from apps.payments.services import transition_payment_status
 
     with transaction.atomic():
-        locked_order = (
-            Order.objects.select_for_update()
-            .prefetch_related('items__product')
-            .get(pk=order.pk)
-        )
+        locked_order = Order.objects.select_for_update().get(pk=order.pk)
 
         payment = Payment.objects.select_for_update().filter(order_id=locked_order.pk).first()
         if payment is None:
@@ -114,8 +137,6 @@ def cancel_order_for_expired_payment(order):
             source='payment_timeout',
         )
         transition_payment_state(locked_order, Order.PaymentState.CANCELLED)
-        if locked_order.status != Order.Status.CANCELLED:
-            transition_order_status(locked_order, Order.Status.CANCELLED)
 
         return True
 
@@ -185,21 +206,32 @@ def create_order_from_cart(
             raise CartStateChangedError('O carrinho foi atualizado durante o checkout.')
 
         cart_items = locked_cart_items
+        reservation_active = (
+            cart.reserved_until is not None
+            and cart.reserved_until > timezone.now()
+        )
 
         product_ids = [cart_item.product_id for cart_item in cart_items if cart_item.product_id]
         locked_products = {
             product.pk: product
             for product in Product.objects.select_for_update().filter(pk__in=product_ids)
         }
-        stock_errors = []
 
-        for cart_item in cart_items:
-            product = locked_products.get(cart_item.product_id)
-            if product is None or not product.is_purchasable or product.stock < cart_item.quantity:
-                stock_errors.append(cart_item.product.get_name(language))
-
-        if stock_errors:
-            raise StockValidationError(stock_errors)
+        if reservation_active:
+            stock_errors = []
+            for cart_item in cart_items:
+                if cart_item.reserved_quantity != cart_item.quantity:
+                    stock_errors.append(cart_item.product.get_name(language))
+            if stock_errors:
+                raise StockValidationError(stock_errors)
+        else:
+            stock_errors = []
+            for cart_item in cart_items:
+                product = locked_products.get(cart_item.product_id)
+                if product is None or not product.is_purchasable or product.stock < cart_item.quantity:
+                    stock_errors.append(cart_item.product.get_name(language))
+            if stock_errors:
+                raise StockValidationError(stock_errors)
 
         total = sum(
             (cart_item.product.price * cart_item.quantity for cart_item in cart_items),
@@ -230,10 +262,11 @@ def create_order_from_cart(
             _raise_validation_error(error)
         order.save()
 
-        for cart_item in cart_items:
-            product = locked_products[cart_item.product_id]
-            product.stock -= cart_item.quantity
-            product.save(update_fields=['stock', 'updated_at'])
+        if not reservation_active:
+            for cart_item in cart_items:
+                product = locked_products[cart_item.product_id]
+                product.stock -= cart_item.quantity
+                product.save(update_fields=['stock', 'updated_at'])
 
         OrderItem.objects.bulk_create([
             OrderItem(
@@ -245,6 +278,13 @@ def create_order_from_cart(
             )
             for cart_item in cart_items
         ])
+
+        for cart_item in cart_items:
+            cart_item.reserved_quantity = 0
+        CartItem.objects.bulk_update(cart_items, ['reserved_quantity'])
+
+        cart.reserved_until = None
+        cart.save(update_fields=['reserved_until'])
 
         if clear_cart_items:
             clear_cart(cart)

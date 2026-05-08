@@ -116,6 +116,9 @@ class Payment(models.Model):
         if self.status != self.Status.CONFIRMED and self.paid_at is not None:
             errors['paid_at'] = _('A data de pagamento só pode estar preenchida em pagamentos confirmados.')
 
+        if self.status == self.Status.CONFIRMED and self.amount != self.order.total:
+            errors['amount'] = _('O valor do pagamento não corresponde ao total da encomenda.')
+
         if self.checkout_url and urlsplit(self.checkout_url).scheme != 'https':
             errors['checkout_url'] = _('Use um URL https:// válido para o checkout.')
 

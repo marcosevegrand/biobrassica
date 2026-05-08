@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.translation import get_language, gettext as _
 from django.views.decorators.http import require_http_methods
 
-from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items
+from apps.cart.services import adjust_cart_items_for_stock, clear_cart, get_cart_for_request, get_cart_items_queryset, remove_inactive_cart_items, reserve_cart_stock
 from apps.orders.forms import CheckoutForm
 from apps.orders.models import Order
 from apps.orders.services import (
@@ -20,6 +20,7 @@ from apps.orders.services import (
 from apps.core.site_content import payments_are_enabled
 from apps.payments.models import Payment
 from apps.payments.services import (
+    available_payment_services,
     PaymentDisabledError,
     PaymentProcessingError,
     get_payment_service,
@@ -64,16 +65,6 @@ def _get_pending_checkout_order(user):
         .order_by('-created_at')
         .first()
     )
-
-
-def _payment_select_context(order, form):
-    payment_service = get_payment_service()
-    return {
-        'order': order,
-        'form': form,
-        'payments_enabled': payments_are_enabled(),
-        'payment_provider': payment_service.checkout_option(),
-    }
 
 
 def _start_order_payment(request, order, *, payment_method=None):
@@ -121,25 +112,19 @@ def _start_order_payment(request, order, *, payment_method=None):
             clear_cart(cart)
         return redirect(redirect_url)
     except PaymentDisabledError:
-        if payment is not None and payment.status == Payment.Status.PENDING:
-            payment.delete()
         messages.error(request, PAYMENTS_DISABLED_MESSAGE)
         return redirect('orders:checkout')
     except PaymentProcessingError as error:
-        if payment is not None and payment.status == Payment.Status.PENDING:
-            payment.delete()
         messages.error(request, str(error) or _('Não foi possível iniciar o pagamento. Tente novamente.'))
         return redirect(_order_url('orders:checkout_order', order))
     except Exception:
-        if payment is not None and payment.status == Payment.Status.PENDING:
-            payment.delete()
         logger.exception('Failed to initiate payment for order %s', order.pk)
         messages.error(request, _('Não foi possível iniciar o pagamento. Tente novamente.'))
         return redirect(_order_url('orders:checkout_order', order))
 
 
 def _checkout_context(request, cart, items, cart_can_ship, form):
-    payment_service = get_payment_service()
+    payment_services = available_payment_services()
     return {
         'cart': cart,
         'items': items,
@@ -147,7 +132,9 @@ def _checkout_context(request, cart, items, cart_can_ship, form):
         'pickup_locations': list(form.fields['pickup_location'].choices),
         'cart_can_ship': cart_can_ship,
         'payments_enabled': payments_are_enabled(),
-        'payment_provider': payment_service.checkout_option(),
+        'payment_options': [service.checkout_option() for service in payment_services],
+        'pickup_available': getattr(form, 'pickup_available', False),
+        'shipping_available': getattr(form, 'shipping_available', False),
     }
 
 
@@ -199,6 +186,8 @@ def checkout(request, order_id=None):
         })
 
     form = CheckoutForm(cart_can_ship=cart_can_ship, cart_items=items, initial=initial)
+
+    reserve_cart_stock(cart)
 
     return render(request, 'orders/checkout.html', _checkout_context(request, cart, items, cart_can_ship, form))
 
@@ -255,7 +244,7 @@ def checkout_confirm(request):
             notes=cleaned_data['notes'],
             clear_cart_items=False,
         )
-        return _start_order_payment(request, order)
+        return _start_order_payment(request, order, payment_method=cleaned_data['payment_method'])
     except CartStateChangedError:
         cart_items = list(get_cart_items_queryset(cart))
         if not cart_items:

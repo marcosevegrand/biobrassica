@@ -76,17 +76,47 @@
           </div>
 
           <div>
+            <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Método de pagamento" %} *</label>
+            {% for error in form.payment_method.errors %}
+            <p class="mb-2 text-sm text-red-700">{{ error }}</p>
+            {% endfor %}
+            {% if payment_options|length > 1 %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {% for option in payment_options %}
+              <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer">
+                <input type="radio" name="payment_method" value="{{ option.method }}" class="sr-only" {% if form.payment_method.value == option.method or form.payment_method.value|default:'' == '' and forloop.first %}checked{% endif %}>
+                <span class="block text-xs uppercase tracking-widest mb-1">{{ option.title }}</span>
+                <span class="text-sm text-muted">{{ option.description }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            {% elif payment_options|length == 1 %}
+            <input type="hidden" name="payment_method" value="{{ payment_options.0.method }}">
+            <div class="border border-stone/30 rounded-sm px-4 py-3 bg-stone-50">
+              <span class="block text-xs uppercase tracking-widest mb-1">{{ payment_options.0.title }}</span>
+              <span class="text-sm text-muted">{{ payment_options.0.description }}</span>
+            </div>
+            {% else %}
+            <div class="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 rounded-sm">
+              {% trans "Não existem métodos de pagamento disponíveis neste momento." %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div>
             <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Método de entrega" %} *</label>
             {% for error in form.fulfillment_method.errors %}
             <p class="mb-2 text-sm text-red-700">{{ error }}</p>
             {% endfor %}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {% if pickup_available %}
               <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer" :class="fulfillmentMethod === 'pickup' ? 'border-forest text-forest' : ''">
                 <input type="radio" name="fulfillment_method" value="pickup" x-model="fulfillmentMethod" class="sr-only" {% if form.fulfillment_method.value|default:'pickup' == 'pickup' %}checked{% endif %}>
                 <span class="block text-xs uppercase tracking-widest mb-1">{% trans "Levantamento" %}</span>
                 <span class="text-sm text-muted">{% trans "Recolha numa das lojas disponíveis." %}</span>
               </label>
-              {% if cart_can_ship %}
+              {% endif %}
+              {% if shipping_available %}
               <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer" :class="fulfillmentMethod === 'shipping' ? 'border-forest text-forest' : ''">
                 <input type="radio" name="fulfillment_method" value="shipping" x-model="fulfillmentMethod" class="sr-only" {% if form.fulfillment_method.value == 'shipping' %}checked{% endif %}>
                 <span class="block text-xs uppercase tracking-widest mb-1">{% trans "Envio" %}</span>
@@ -94,11 +124,14 @@
               </label>
               {% endif %}
             </div>
-            {% if not cart_can_ship %}
+            {% if pickup_available and not shipping_available %}
             <p class="text-xs text-muted mt-2">{% trans "Este carrinho contém produtos disponíveis apenas para levantamento em loja." %}</p>
+            {% elif shipping_available and not pickup_available %}
+            <p class="text-xs text-muted mt-2">{% trans "Este carrinho contém produtos disponíveis apenas para envio ao domicílio." %}</p>
             {% endif %}
           </div>
 
+          {% if pickup_available %}
           <div x-show="fulfillmentMethod === 'pickup'" x-cloak>
             <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Local de levantamento" %} *</label>
             <select name="pickup_location" x-bind:required="fulfillmentMethod === 'pickup'"
@@ -112,8 +145,9 @@
             <p class="mt-2 text-sm text-red-700">{{ error }}</p>
             {% endfor %}
           </div>
+          {% endif %}
 
-          {% if cart_can_ship %}
+          {% if shipping_available %}
           <div x-show="fulfillmentMethod === 'shipping'" x-cloak class="space-y-6">
             <div>
               <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Morada" %} *</label>
@@ -192,24 +226,18 @@
           <span class="font-serif text-xl italic">{{ cart.total|floatformat:2 }}€</span>
         </div>
 
-        <!-- Active Payment Provider -->
+        <!-- Payment Options -->
         <div class="mt-8 pt-6 border-t border-stone/30">
-          <div class="flex gap-2 items-center">
-            <svg class="w-5 h-5 text-forest shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-            </svg>
+          <p class="text-xs font-medium text-forest mb-3">{% trans "Métodos de pagamento disponíveis" %}</p>
+          <div class="space-y-3 text-sm text-muted">
+            {% for option in payment_options %}
             <div>
-              {% if payment_provider.method == 'stripe' %}
-              <p class="text-xs font-medium text-forest">{% trans "Pagamento Seguro" %}</p>
-              <p class="text-xs text-muted">{% trans "Processado por Stripe" %}</p>
-              {% elif payment_provider.method == 'ifthenpay_mbway' %}
-              <p class="text-xs font-medium text-forest">{% trans "Pedido MB WAY" %}</p>
-              <p class="text-xs text-muted">{% trans "Será enviado para o telemóvel indicado no checkout." %}</p>
-              {% else %}
-              <p class="text-xs font-medium text-forest">{% trans "Pagamento manual MB WAY" %}</p>
-              <p class="text-xs text-muted">{% trans "Depois de confirmar a encomenda verá as instruções de pagamento e o estado ficará em validação manual." %}</p>
-              {% endif %}
+              <p class="font-medium text-forest">{{ option.title }}</p>
+              <p>{{ option.description }}</p>
             </div>
+            {% empty %}
+            <p>{% trans "Não existem métodos de pagamento disponíveis neste momento." %}</p>
+            {% endfor %}
           </div>
         </div>
       </div>

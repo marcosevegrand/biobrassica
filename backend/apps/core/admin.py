@@ -15,6 +15,8 @@ class ShopSettingsAdmin(ModelAdmin):
     fields = (
         'is_shop_active',
         'min_order_total',
+        'payment_timeout_minutes',
+        'checkout_reservation_minutes',
         'mbway_enabled',
         'mbway_number',
         'bank_transfer_enabled',

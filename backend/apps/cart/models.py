@@ -23,6 +23,7 @@ class Cart(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    reserved_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = _('carrinho')
@@ -51,6 +52,7 @@ class CartItem(models.Model):
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(MAX_PURCHASE_QUANTITY)],
     )
+    reserved_quantity = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _('item do carrinho')

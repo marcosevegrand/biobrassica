@@ -33,7 +33,7 @@ ORDER_STATUS_TRANSITIONS = {
 PAYMENT_STATE_TRANSITIONS = {
     'pending': {'confirmed', 'cancelled'},
     'confirmed': {'refunded'},
-    'cancelled': set(),
+    'cancelled': {'pending'},
     'refunded': set(),
 }
 

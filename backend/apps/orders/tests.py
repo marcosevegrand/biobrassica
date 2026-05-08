@@ -165,7 +165,11 @@ class CheckoutFlowTests(TestCase):
         settings_obj = ShopSettings.load()
         settings_obj.mbway_enabled = True
         settings_obj.mbway_number = '912345678'
+        settings_obj.bank_transfer_enabled = False
         settings_obj.payment_timeout_minutes = 30
+        settings_obj.bank_beneficiary = ''
+        settings_obj.bank_iban = ''
+        settings_obj.bank_bic = ''
         settings_obj.save()
 
         self.location = Location.objects.create(name='Loja Braga', is_active=True)
@@ -228,7 +232,7 @@ class CheckoutFlowTests(TestCase):
         self.assertEqual(self.product.stock, 8)
         self.assertEqual(self.cart.items.count(), 0)
 
-    def test_timeout_cancels_payment_and_order_without_restoring_stock(self):
+    def test_timeout_cancels_payment_but_not_order(self):
         order = Order.objects.create(
             user=self.user,
             name='Cliente Timeout',
@@ -267,5 +271,122 @@ class CheckoutFlowTests(TestCase):
 
         self.assertEqual(payment.status, Payment.Status.CANCELLED)
         self.assertEqual(order.payment_state, Order.PaymentState.CANCELLED)
-        self.assertEqual(order.status, Order.Status.CANCELLED)
+        self.assertEqual(order.status, Order.Status.PENDING)
         self.assertEqual(self.product.stock, 8)
+
+    def test_checkout_shows_both_payment_methods_when_both_are_enabled(self):
+        settings_obj = ShopSettings.load()
+        settings_obj.bank_transfer_enabled = True
+        settings_obj.bank_beneficiary = 'Biobrassica Lda'
+        settings_obj.bank_iban = 'PT50000201231234567890154'
+        settings_obj.bank_bic = 'BBBBPTPL'
+        settings_obj.save()
+
+        response = self.client.get(reverse('orders:checkout'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'MB WAY')
+        self.assertContains(response, 'Transferência bancária')
+        self.assertContains(response, 'name="payment_method"', count=2, html=False)
+
+    def test_checkout_can_start_bank_transfer_without_mobile_requirement(self):
+        settings_obj = ShopSettings.load()
+        settings_obj.bank_transfer_enabled = True
+        settings_obj.bank_beneficiary = 'Biobrassica Lda'
+        settings_obj.bank_iban = 'PT50000201231234567890154'
+        settings_obj.bank_bic = 'BBBBPTPL'
+        settings_obj.save()
+
+        response = self.client.post(
+            reverse('orders:confirm'),
+            {
+                'name': 'Cliente Checkout',
+                'email': 'cliente@example.com',
+                'phone': '',
+                'payment_method': Payment.Method.BANK_TRANSFER,
+                'fulfillment_method': Order.FulfillmentMethod.PICKUP,
+                'pickup_location': self.location.pickup_location_code,
+                'shipping_address_line1': '',
+                'shipping_address_line2': '',
+                'shipping_postal_code': '',
+                'shipping_city': '',
+                'notes': '',
+                'nif': '',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        payment = Payment.objects.get()
+        self.assertEqual(payment.method, Payment.Method.BANK_TRANSFER)
+
+    def test_checkout_hides_shipping_when_cart_requires_pickup(self):
+        self.product.allow_shipping = False
+        self.product.save(update_fields=['allow_shipping'])
+
+        response = self.client.get(reverse('orders:checkout'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Levantamento')
+        self.assertNotContains(response, 'Entrega ao domicílio em Portugal continental.')
+
+    def test_checkout_blocks_cart_with_pickup_only_and_shipping_only_products(self):
+        shipping_only = Product.objects.create(
+            category=self.category,
+            slug='envio-apenas',
+            name='Envio Apenas',
+            brand='Biobrassica',
+            bio_code='PT-BIO-04',
+            description='Produto só para envio',
+            allergens='Nenhum',
+            price='6.00',
+            quantity='1 un',
+            stock=5,
+            is_active=True,
+            allow_shipping=True,
+            allow_pickup=False,
+            image=SimpleUploadedFile(
+                'shipping.gif',
+                b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;',
+                content_type='image/gif',
+            ),
+        )
+        self.product.allow_shipping = False
+        self.product.save(update_fields=['allow_shipping'])
+        CartItem.objects.create(cart=self.cart, product=shipping_only, quantity=1)
+
+        response = self.client.post(
+            reverse('orders:confirm'),
+            {
+                'name': 'Cliente Checkout',
+                'email': 'cliente@example.com',
+                'phone': '912345678',
+                'payment_method': Payment.Method.MBWAY_MANUAL,
+                'fulfillment_method': Order.FulfillmentMethod.PICKUP,
+                'pickup_location': self.location.pickup_location_code,
+                'shipping_address_line1': '',
+                'shipping_address_line2': '',
+                'shipping_postal_code': '',
+                'shipping_city': '',
+                'notes': '',
+                'nif': '',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'deve ser encomendado à parte')
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_checkout_blocks_when_no_payment_methods_are_enabled(self):
+        settings_obj = ShopSettings.load()
+        settings_obj.mbway_enabled = False
+        settings_obj.mbway_number = ''
+        settings_obj.bank_transfer_enabled = False
+        settings_obj.bank_beneficiary = ''
+        settings_obj.bank_iban = ''
+        settings_obj.bank_bic = ''
+        settings_obj.save()
+
+        response = self.client.get(reverse('orders:checkout'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Não existem métodos de pagamento disponíveis neste momento.')

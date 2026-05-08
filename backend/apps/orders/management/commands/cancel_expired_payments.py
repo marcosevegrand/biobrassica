@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Cancel orders with expired payments.'
+    help = 'Cancel payments that have exceeded their expiration time.'
 
     def handle(self, *args, **options):
         now = timezone.now()
@@ -30,8 +30,8 @@ class Command(BaseCommand):
 
                 cancel_order_for_expired_payment(order)
                 count += 1
-                self.stdout.write(self.style.SUCCESS(f'Cancelled order #{order.pk} (payment #{payment.pk})'))
+                self.stdout.write(self.style.SUCCESS(f'Cancelled payment #{payment.pk} (order #{order.pk})'))
             except Exception:
-                logger.exception('Failed to cancel order %s with expired payment %s', payment.order_id, payment.pk)
+                logger.exception('Failed to cancel payment %s for order %s', payment.pk, payment.order_id)
 
-        self.stdout.write(self.style.SUCCESS(f'Done. Cancelled {count} order(s).'))
+        self.stdout.write(self.style.SUCCESS(f'Done. Cancelled {count} payment(s).'))

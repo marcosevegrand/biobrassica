@@ -4,8 +4,10 @@ from decimal import Decimal
 from django.db import transaction
 from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from apps.cart.models import Cart, CartItem
+from apps.catalog.models import Product
 from apps.core.limits import MAX_PURCHASE_QUANTITY
 
 
@@ -162,3 +164,104 @@ def adjust_cart_items_for_stock(cart_items: Iterable, *, lang=None):
         cart_item.delete()
 
     return bool(out_of_stock_items), out_of_stock_items
+
+
+def reserve_cart_stock(cart, *, timeout_minutes=None):
+    if timeout_minutes is None:
+        from apps.core.models import ShopSettings
+
+        settings_obj = ShopSettings.objects.filter(pk=1).only('checkout_reservation_minutes').first()
+        timeout_minutes = getattr(settings_obj, 'checkout_reservation_minutes', 30) if settings_obj else 30
+
+    if timeout_minutes <= 0:
+        return False
+    with transaction.atomic():
+        locked_items = list(
+            cart.items.select_for_update()
+            .select_related('product')
+            .filter(product__is_active=True, product__is_preview=False)
+        )
+
+        if not locked_items:
+            return False
+
+        product_ids = [item.product_id for item in locked_items]
+        locked_products = {
+            p.pk: p
+            for p in Product.objects.select_for_update().filter(pk__in=product_ids)
+        }
+
+        for item in locked_items:
+            if item.reserved_quantity > 0:
+                product = locked_products.get(item.product_id)
+                if product is not None:
+                    product.stock += item.reserved_quantity
+                    product.save(update_fields=['stock', 'updated_at'])
+                item.reserved_quantity = 0
+
+        for item in locked_items:
+            product = locked_products.get(item.product_id)
+            if product is None or not product.is_purchasable or product.stock < item.quantity:
+                for prev_item in locked_items:
+                    prev_item.reserved_quantity = 0
+                CartItem.objects.bulk_update(locked_items, ['reserved_quantity'])
+                return False
+
+        for item in locked_items:
+            product = locked_products[item.product_id]
+            product.stock -= item.quantity
+            product.save(update_fields=['stock', 'updated_at'])
+            item.reserved_quantity = item.quantity
+
+        CartItem.objects.bulk_update(locked_items, ['reserved_quantity'])
+
+        cart.reserved_until = timezone.now() + timezone.timedelta(minutes=timeout_minutes)
+        cart.save(update_fields=['reserved_until'])
+        return True
+
+
+def release_cart_reservation(cart):
+    with transaction.atomic():
+        locked_items = list(
+            cart.items.select_for_update()
+            .select_related('product')
+            .filter(reserved_quantity__gt=0)
+        )
+
+        if not locked_items:
+            return False
+
+        product_ids = [item.product_id for item in locked_items]
+        locked_products = {
+            p.pk: p
+            for p in Product.objects.select_for_update().filter(pk__in=product_ids)
+        }
+
+        for item in locked_items:
+            product = locked_products.get(item.product_id)
+            if product is not None and item.reserved_quantity > 0:
+                product.stock += item.reserved_quantity
+                product.save(update_fields=['stock', 'updated_at'])
+            item.reserved_quantity = 0
+            item.save(update_fields=['reserved_quantity'])
+
+        cart.reserved_until = None
+        cart.save(update_fields=['reserved_until'])
+        return True
+
+
+def release_expired_reservations():
+    from django.db.models import Prefetch
+
+    expired_carts = Cart.objects.filter(
+        reserved_until__isnull=False,
+        reserved_until__lt=timezone.now(),
+    ).prefetch_related(
+        Prefetch('items', queryset=CartItem.objects.filter(reserved_quantity__gt=0).select_related('product')),
+    )
+
+    released = 0
+    for cart in expired_carts:
+        if release_cart_reservation(cart):
+            released += 1
+    return released

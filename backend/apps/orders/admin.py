@@ -13,6 +13,7 @@ from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 from unfold.admin import ModelAdmin, TabularInline
 
 from apps.catalog.models import Product
@@ -374,6 +375,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
     def get_changeform_custom_tools(self, request, obj):
         return []
 
+    @require_http_methods(['POST'])
     def cancel_unpaid_view(self, request, object_id):
         order = self.get_object(request, object_id)
         if order is None:
@@ -437,6 +439,7 @@ class OrderAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
             payment.amount = order.total
             payment.save(update_fields=['amount'])
 
+    @require_http_methods(['POST'])
     def transition_view(self, request, object_id, target_status):
         order = self.get_object(request, object_id)
         if order is None:

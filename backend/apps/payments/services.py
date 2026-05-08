@@ -308,6 +308,8 @@ def transition_payment_status(payment, new_status, *, reason='', source=''):
 def mark_payment_confirmed(payment, *, source: str) -> bool:
     if payment.status == payment.Status.CONFIRMED:
         return False
+    if payment.amount != payment.order.total:
+        raise PaymentTransitionError(_('O valor do pagamento não corresponde ao total da encomenda.'))
     transition_payment_status(payment, payment.Status.CONFIRMED, source=source)
     if payment.order.payment_state != Order.PaymentState.CONFIRMED:
         from apps.orders.services import transition_payment_state
