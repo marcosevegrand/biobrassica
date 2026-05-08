@@ -168,7 +168,10 @@ class BlogPostAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
 
     class Meta:
         model = BlogPost
-        fields = '__all__'
+        fields = (
+            'slug', 'title', 'excerpt', 'content', 'author',
+            'cover_image', 'tags', 'is_published', 'published_at',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -233,7 +236,11 @@ class RecipeAdminForm(BaseAdminStyleFormMixin, forms.ModelForm):
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = (
+            'slug', 'title', 'description', 'content', 'cover_image',
+            'tags', 'prep_time', 'cook_time', 'servings', 'difficulty',
+            'related_products', 'is_published',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
