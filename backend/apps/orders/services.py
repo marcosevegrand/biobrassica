@@ -80,6 +80,13 @@ def transition_payment_state(order, new_state):
 
 
 def _restore_stock_from_order_items(locked_order):
+    """Return every OrderItem quantity to its Product stock.
+
+    Called when an order is explicitly cancelled so that sold stock
+    becomes available again. Not called on expired-payment
+    cancellation because the order stays pending and the stock
+    remains reserved.
+    """
     product_ids = [item.product_id for item in locked_order.items.all() if item.product_id]
     if not product_ids:
         return
@@ -100,6 +107,11 @@ def _restore_stock_from_order_items(locked_order):
 
 
 def cancel_order(order):
+    """Cancel an order, restore stock, and set status to CANCELLED.
+
+    Only the order is cancelled here — payment cancellation is a
+    separate manual action. Delivered orders cannot be cancelled.
+    """
     with transaction.atomic():
         locked_order = (
             Order.objects.select_for_update()
@@ -118,6 +130,13 @@ def cancel_order(order):
 
 
 def cancel_order_for_expired_payment(order):
+    """Cancel an expired payment without cancelling the order.
+
+    The order stays PENDING so the customer can restart the payment.
+    Stock is NOT restored — it stays deducted because the order
+    still exists. Only when the order itself is cancelled is stock
+    returned.
+    """
     from apps.payments.models import Payment
     from apps.payments.services import transition_payment_status
 
@@ -192,6 +211,14 @@ def create_order_from_cart(
     notes,
     clear_cart_items=True,
 ):
+    """Atomically convert cart items into a pending order.
+
+    If the cart has an active stock reservation (from the checkout
+    page), stock is already deducted and the reservation is simply
+    cleared. When there is no reservation (fallback — e.g. admin
+    creates order, or checkout_reservation_minutes=0), stock is
+    deducted inside this same transaction.
+    """
     snapshot = _cart_item_snapshot(cart_items)
 
     with transaction.atomic():

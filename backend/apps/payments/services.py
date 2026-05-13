@@ -306,6 +306,11 @@ def transition_payment_status(payment, new_status, *, reason='', source=''):
 
 
 def mark_payment_confirmed(payment, *, source: str) -> bool:
+    """Confirm a payment and sync the order's payment state.
+
+    Requires payment.amount == payment.order.total — an underpaid or
+    misconfigured payment cannot be confirmed.
+    """
     if payment.status == payment.Status.CONFIRMED:
         return False
     if payment.amount != payment.order.total:

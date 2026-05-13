@@ -1,39 +1,44 @@
 # Biobrassica
 
-Minimal Django deployment for a single VPS.
+Plataforma de comércio eletrónico para produtos biológicos — website, loja online e painel de administração.
 
 ## Stack
 
-- Three Django web services run the website, shop, and admin from one shared codebase.
-- PostgreSQL stores application data.
-- Redis backs cache and sessions.
-- Nginx proxies each public host to its matching Django service.
-- Docker Compose runs the whole stack on one machine.
+| Camada | Tecnologia |
+|--------|-----------|
+| Backend | Django 6.0 (Python 3.12) |
+| Admin UI | Django-Unfold (tema personalizado) |
+| Base de dados | PostgreSQL |
+| Cache / Sessões | Redis |
+| Web server | Gunicorn + Nginx + certbot (TLS) |
+| Frontend | Django Templates + HTMX + Tailwind CSS v4 + Alpine.js |
+| Infraestrutura | Docker Compose — 3 serviços Django (website, loja, admin) num só VPS |
+| Testes | pytest + pytest-django + pytest-xdist + Playwright + coverage |
+| Linting | ruff + pyright |
+| Conteúdo | Markdown + bleach (HTML sanitizado) |
+| Imagens | Pillow |
+| Email | Brevo SMTP (Mailpit em dev) |
+| Pagamentos | Manuais apenas — MB WAY + Transferência bancária (configurados via ShopSettings no backoffice) |
+| i18n | Português (padrão), Inglês, Francês |
 
-## Local Development
+## Desenvolvimento Local
 
-Prerequisites:
-
-- Docker with Compose support
-
-Setup:
+Pré-requisitos: Docker com suporte a Compose.
 
 ```bash
 make dev
 ```
 
-`make dev` builds the development images, starts PostgreSQL, Redis, Django, Tailwind, and Mailpit, applies migrations, and compiles locale catalogs.
+O `make dev` constrói as imagens de desenvolvimento, inicia PostgreSQL, Redis, Django, Tailwind e Mailpit, aplica migrações e compila traduções.
 
-If you need to override development-only values such as Stripe credentials, create an optional `.env.dev` file and Docker Compose will pick it up automatically.
-
-Local URLs:
+URLs locais:
 
 - Website: http://lvh.me:8000
-- Shop: http://loja.lvh.me:8000
+- Loja: http://loja.lvh.me:8000
 - Admin: http://admin.lvh.me:8000
 - Mailpit: http://localhost:8025
 
-Useful follow-up commands:
+Comandos úteis:
 
 ```bash
 docker compose -p biobrassica-dev -f docker-compose.yml -f docker-compose.dev.yml logs -f django tailwind
@@ -41,18 +46,53 @@ docker compose -p biobrassica-dev -f docker-compose.yml -f docker-compose.dev.ym
 docker compose -p biobrassica-dev -f docker-compose.yml -f docker-compose.dev.yml exec django python manage.py shell
 ```
 
-The Makefile surface is intentionally small:
+Para valores de desenvolvimento (ex.: credenciais de email), cria um ficheiro `.env.dev` opcional.
 
-- `make dev` starts the local stack.
-- `make deploy` performs the production deployment flow.
-- `make backup`, `make restore`, `make verify`, and `make cert` cover the operational tasks.
-- For rare one-off Docker Compose or `manage.py` work, use the direct `docker compose ...` commands instead of growing the Makefile again.
+## Fluxo de Compra
 
-## Validation
+1. **Cliente adiciona produtos ao carrinho** — sem reserva de stock.
+2. **Cliente entra no checkout** — o stock é reservado por 30 minutos (configurável em **Configurações**), mas não é criada encomenda nem pagamento.
+3. **Cliente confirma o checkout** — a encomenda e o pagamento são criados. Stock já estava reservado.
+4. **Cliente paga (MB WAY ou transferência)** — staff confirma manualmente o pagamento no backoffice.
+5. **Staff avança a encomenda** — Preparação → Pronta/Em trânsito → Entregue.
 
-Canonical local validation uses `backend/.venv` together with the SQLite test settings in [backend/config/settings/test_sqlite.py](backend/config/settings/test_sqlite.py).
+**Regras de stock:**
 
-One-time setup:
+- Encomenda cancelada → stock reposto.
+- Pagamento cancelado ≠ encomenda cancelada (ambos são manuais).
+- Checkout abandonado ou expirado (30 min) → stock libertado, cliente forçado a recomeçar.
+- Pagamento expirado → apenas o pagamento é cancelado. Encomenda mantém-se pendente para o cliente reiniciar.
+
+**Configuração dos timeouts no backoffice** (`Configurações`):
+
+- `payment_timeout_minutes` — tempo máximo para pagar. `0` = sem limite.
+- `checkout_reservation_minutes` — tempo que o stock fica reservado durante o checkout. `0` = sem reserva (stock deduzido ao confirmar encomenda, como fallback).
+
+## Comandos Makefile
+
+| Comando | Descrição |
+|---------|-----------|
+| `make dev` | Inicia o stack de desenvolvimento |
+| `make deploy` | Backup, build, migrate, collectstatic, restart e verify em produção |
+| `make backup` | Backup da base de dados e media |
+| `make restore` | Restaura o backup mais recente |
+| `make reset` | Reset completo da DB de produção e redeploy |
+| `make verify` | Verifica que o stack de produção está saudável |
+| `make cert` | Gere ou renova certificados TLS |
+| `make createsuperuser` | Cria superutilizador Django em produção |
+| `make cron` | Cancela pagamentos expirados e liberta reservas de stock expiradas |
+
+Para comandos pontuais de `manage.py` em produção:
+
+```bash
+docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm django_website python manage.py <comando>
+```
+
+## Validação
+
+Validação local usa `backend/.venv` com SQLite.
+
+Setup único:
 
 ```bash
 python -m venv backend/.venv
@@ -61,9 +101,7 @@ backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
 backend/.venv/bin/python -m playwright install chromium
 ```
 
-If `compilemessages` is not available on your machine, install GNU gettext first.
-
-Run the full local validation workflow:
+Workflow completo de validação:
 
 ```bash
 cd backend
@@ -74,195 +112,111 @@ cd backend
 DJANGO_SETTINGS_MODULE=config.settings.test_sqlite DJANGO_ALLOW_INSECURE_DEFAULTS=1 .venv/bin/python -m pytest -q
 ```
 
-The full pytest run already includes the Playwright browser suite. For faster UI-only debugging, run just the browser slice:
+CI usa as mesmas settings SQLite em [/.github/workflows/validate.yml](.github/workflows/validate.yml).
+
+## Produção
+
+Produção usa apenas [docker-compose.yml](docker-compose.yml).
+
+Setup inicial:
 
 ```bash
-cd backend
-DJANGO_SETTINGS_MODULE=config.settings.test_sqlite DJANGO_ALLOW_INSECURE_DEFAULTS=1 .venv/bin/python -m pytest tests/browser -q
+make env   # cria .env a partir de .env.example
 ```
 
-CI uses the same SQLite settings, compiles locale catalogs before tests, installs Playwright Chromium, and runs `pyright` plus the full pytest suite via [/.github/workflows/validate.yml](.github/workflows/validate.yml).
+Preenche os segredos em `.env` antes de iniciar o stack.
 
-## Production
+**Domain routing** é controlado por variáveis de ambiente:
 
-Production uses [docker-compose.yml](docker-compose.yml) only.
+- `PRIMARY_DOMAIN` — domínio principal (ex.: `biobrassica.pt`)
+- `DOMAIN_ALIASES` — domínios alternativos (separados por vírgula)
+- `TLS_CERT_NAME` — nome do diretório certbot (opcional)
+- `CERTBOT_EMAIL` — email para notificações Let's Encrypt
 
-Required setup:
+A partir destes valores, o stack deriva automaticamente:
 
-```bash
-make env
-```
+- Website: `PRIMARY_DOMAIN` e `www.PRIMARY_DOMAIN`
+- Loja: `loja.PRIMARY_DOMAIN`
+- Admin: `admin.PRIMARY_DOMAIN`
 
-Fill in real secrets before starting the stack. Production Compose commands and the backup/restore scripts use `.env` through Docker Compose.
+Cada domínio em `DOMAIN_ALIASES` recebe as mesmas variantes `www.`, `loja.` e `admin.`.
 
-Payments are deployment-wide. Set `PAYMENT_PROVIDER=stripe` to keep the current hosted Stripe checkout flow, or `PAYMENT_PROVIDER=ifthenpay_mbway` to switch the shop to Ifthenpay MB WAY. Only one provider is active in a given deployment.
+Os três serviços de produção:
 
-Provider-specific production variables:
+- `django_website` — website público + www
+- `django_shop` — loja online
+- `django_admin` — painel de administração
 
-- `PAYMENT_PROVIDER=stripe`: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, optional `STRIPE_PUBLISHABLE_KEY`, `STRIPE_CURRENCY`
-- `PAYMENT_PROVIDER=ifthenpay_mbway`: `IFTHENPAY_MBWAY_KEY`, `IFTHENPAY_ANTI_PHISHING_KEY`, optional `IFTHENPAY_API_BASE_URL`
-
-Production domain routing is env-driven. In the normal case, configure only these in `.env` instead of editing Compose or nginx files:
-
-- `PRIMARY_DOMAIN`: default bare domain family for the deployment
-- `DOMAIN_ALIASES`: optional comma-separated bare domains that should also be accepted as mirror families
-- `TLS_CERT_NAME`: optional certbot live directory name nginx should read; when empty it falls back to the canonical website host
-- `CERTBOT_EMAIL`: email used by `./scripts/request_certificate.sh`
-
-From those values, the stack derives these host families automatically:
-
-- Website: `$PRIMARY_DOMAIN` and `www.$PRIMARY_DOMAIN`
-- Shop: `loja.$PRIMARY_DOMAIN`
-- Admin: `admin.$PRIMARY_DOMAIN`
-- Every domain listed in `DOMAIN_ALIASES` gets the same `www.`, `loja.`, and `admin.` variants added automatically
-
-Public routing follows these rules:
-
-- Bare website hosts are mirrored within their own family, so a user entering through `marcosevegrand.com` stays on the `marcosevegrand.com` family and a user entering through `biobrassica.pt` stays on the `biobrassica.pt` family
-- `www.` remains an entry alias only and redirects to the bare website host in the same family
-- `loja.` and `admin.` stay within the same family instead of redirecting back to the primary domain family
-
-Explicit `WEBSITE_HOST`, `WEBSITE_ALLOWED_HOSTS`, `SHOP_HOST`, `SHOP_ALLOWED_HOSTS`, `ADMIN_HOST`, and `ADMIN_ALLOWED_HOSTS` overrides still exist, but they are now only for non-standard host layouts.
-
-For example, to use `biobrassica.pt` as the default family while still serving `marcosevegrand.com` as a mirrored family:
-
-```env
-PRIMARY_DOMAIN=biobrassica.pt
-DOMAIN_ALIASES=marcosevegrand.com
-TLS_CERT_NAME=biobrassica.pt
-```
-
-When MB WAY is active, checkout requires a customer mobile number, creates the MB WAY payment request at order confirmation time, and keeps the customer on the internal payment-status page while Biobrassica waits for the Ifthenpay callback.
-
-The production web tier is split into three services:
-
-- `django_website` for the canonical website host plus its `www.` alias, and the same pair for every alias domain
-- `django_shop` for `loja.` hosts derived from the canonical and alias domains
-- `django_admin` for `admin.` hosts derived from the canonical and alias domains
-
-Deploy new production changes with:
+Deploy:
 
 ```bash
 make deploy
 ```
 
-`make deploy` builds the production images, starts the stateful services, applies migrations, collects static files, recreates the full stack, and runs the production health checks.
-It also takes a fresh backup before changing the running production stack.
+Antes de um deploy que possa interromper o checkout, desativa pagamentos no backoffice: **Configurações → Loja ativa**. O estado é persistido na base de dados e aplicado imediatamente.
 
-Before a deploy that may interrupt checkout, pause payments from the admin backoffice by toggling `Loja ativa` in **Configurações → Geral** (`apps.core.ShopSettings`). The setting is persisted in the database and applied immediately to checkout.
+O stack de produção usa `DJANGO_HTTPS_MODE=proxy` (Django atrás do Nginx, confia em `X-Forwarded-Proto`). HSTS está ativo com `includeSubDomains` e `preload` — todos os hostnames públicos precisam de HTTPS funcional antes de expor a configuração a tráfego real.
 
-For rare production `manage.py` commands that are not part of the standard deploy flow, run them directly against the website image:
-
-```bash
-docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm django_website python manage.py reset_admin_password admin@example.com
-```
-
-Production web containers still fail fast on pending migrations, but they no longer run `collectstatic` automatically unless `DJANGO_COLLECTSTATIC_ON_START=1` is set intentionally.
-
-Production nginx now terminates TLS directly for every host derived from `PRIMARY_DOMAIN` and `DOMAIN_ALIASES`, unless you intentionally override the host lists. HTTP upgrades stay on the same host, `www.` normalizes to the bare website host inside the same family, and bare website, `loja.`, and `admin.` hosts do not redirect across domain families.
-
-The production stack keeps `DJANGO_HTTPS_MODE=proxy` because Django still sits behind nginx and trusts `X-Forwarded-Proto` from the proxy.
-
-Before the first full startup, create the certbot working directories:
+Certificados antes do primeiro arranque:
 
 ```bash
 mkdir -p certbot/www certbot/conf
-```
-
-Bootstrap the first certificate before starting nginx. The helper script reads the canonical domain and alias domains from `.env`, expands them into website/shop/admin hostnames, deduplicates them, and requests one certificate bundle for all configured public hosts:
-
-```bash
 make cert
-```
-
-If nginx is already running, `make cert` uses the ACME webroot and reloads nginx afterwards. If nginx is not running yet, it falls back to standalone validation on port 80. Set `CERTBOT_STAGING=1` in `.env` when you want to hit Let's Encrypt staging during first-run tests.
-
-Once the certificate exists, start the production stack:
-
-```bash
 make deploy
 ```
 
-Renewal uses the shared ACME webroot while nginx is already serving HTTP:
+Renovação:
 
 ```bash
 make cert
 ```
 
-After rollout, verify nginx, redirects, certificates, and upstream health from the VPS host:
+Verificação pós-deploy:
 
 ```bash
 make verify
 ```
 
-`make verify` now expects same-host HTTP to HTTPS redirects for bare website, shop, and admin hosts, plus same-family `www.` to bare redirects for website hosts.
+### Tarefas Periódicas
 
-If you need raw curl checks while debugging a 521, read the canonical host values straight from `.env` so the commands use the same configured hosts as nginx and Django without shell-sourcing the whole file:
+Para correr as tarefas de manutenção manualmente ou via cron:
 
 ```bash
-PRIMARY_DOMAIN=$(sed -n 's/^PRIMARY_DOMAIN=//p' .env | tail -n 1)
-WEBSITE_HOST=$(sed -n 's/^WEBSITE_HOST=//p' .env | tail -n 1)
-SHOP_HOST=$(sed -n 's/^SHOP_HOST=//p' .env | tail -n 1)
-ADMIN_HOST=$(sed -n 's/^ADMIN_HOST=//p' .env | tail -n 1)
-
-WEBSITE_HOST=${WEBSITE_HOST:-$PRIMARY_DOMAIN}
-SHOP_HOST=${SHOP_HOST:-loja.$PRIMARY_DOMAIN}
-ADMIN_HOST=${ADMIN_HOST:-admin.$PRIMARY_DOMAIN}
-
-curl -I "http://${WEBSITE_HOST}"
-curl -I "https://${WEBSITE_HOST}"
-curl -I "https://${SHOP_HOST}"
-curl -I "https://${ADMIN_HOST}"
+make cron
 ```
 
-Because production enables HSTS for subdomains and preload, every public hostname must be healthy on HTTPS before you expose this configuration to traffic.
+Isto executa:
 
-## Backup and Restore
+- `cancel_expired_payments` — cancela pagamentos cujo prazo expirou.
+- `release_expired_reservations` — liberta stock reservado no checkout que não foi confirmado a tempo.
 
-Backup database and media:
+## Backup e Restauro
+
+Backup da base de dados e media:
 
 ```bash
 make backup
 ```
 
-By default, that writes backups into the repo-local `backups/` directory.
-
-To override the destination explicitly:
-
-```bash
-./scripts/backup.sh /path/to/backups
-```
-
-Restore the latest backup pair from `backups/`:
+Restauro do último backup:
 
 ```bash
 make restore
 ```
 
-Hard-reset the production database volume and redeploy the current code:
+Reset completo da base de dados de produção:
 
 ```bash
 make reset
+make reset BACKUP=/caminho/para/db.sql.gz      # restaurar dump específico
+make reset BACKUP=/caminho/para/db.sql.gz YES=1  # não-interativo
 ```
 
-To restore a specific database dump as part of that reset, pass it as `BACKUP`. Use `YES=1` when you need a non-interactive run:
+`make reset` preserva o volume de media. Para restaurar media também, usa `make restore` ou `./scripts/restore.sh` diretamente.
 
-```bash
-make reset BACKUP=/path/to/db.sql.gz
-make reset BACKUP=/path/to/db.sql.gz YES=1
-```
+## Notas
 
-`make reset` preserves the media volume. If you also need to restore media, keep using `make restore` or call `./scripts/restore.sh` directly.
-
-For an explicit database or media archive, use the script directly:
-
-```bash
-./scripts/restore.sh --db /path/to/db.sql.gz --yes
-./scripts/restore.sh --db /path/to/db.sql.gz --media /path/to/media.tar.gz --yes
-```
-
-## Notes
-
-- Development can use an optional `.env.dev` file for local-only overrides.
-- Production uses `.env`, created from `.env.example`.
-- Translation maintenance is supported through `backend/scripts/fill_translations.py` plus `docker compose ... exec django python manage.py compilemessages` in development.
+- `.env.dev` opcional para overrides de desenvolvimento.
+- `.env` em produção, criado a partir de `.env.example`.
+- Traduções: `backend/scripts/fill_translations.py` + `python manage.py compilemessages`.
+- A aplicação `apps.core` contém o singleton `ShopSettings` com todas as configurações operacionais da loja (timeouts, métodos de pagamento, etc.).

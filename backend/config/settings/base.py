@@ -178,7 +178,11 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Payments (manual flows only — MB WAY + bank transfer; configured via ShopSettings singleton in admin)
+# Payments — manual flows only.
+# MB WAY and bank transfer are configured live via the ShopSettings
+# singleton in the admin backoffice (Configurações). The checkout
+# form reads availability from ShopSettings and only shows enabled
+# methods.
 SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
 
 # Email

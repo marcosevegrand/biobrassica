@@ -167,7 +167,17 @@ def adjust_cart_items_for_stock(cart_items: Iterable, *, lang=None):
 
 
 def reserve_cart_stock(cart, *, timeout_minutes=None):
-    if timeout_minutes is None:
+    """Reserve stock for every item in the cart without creating an order.
+
+    Locks products and cart items, deducts stock from each product,
+    and records the reserved quantity on each CartItem. If stock is
+    already reserved from a previous visit to checkout, the old
+    reservation is released first.
+
+    Returns False when timeout_minutes resolves to <= 0 or the cart
+    is empty — no reservation is created and the caller falls back
+    to deducting stock at order-creation time.
+    """
         from apps.core.models import ShopSettings
 
         settings_obj = ShopSettings.objects.filter(pk=1).only('checkout_reservation_minutes').first()
@@ -221,6 +231,11 @@ def reserve_cart_stock(cart, *, timeout_minutes=None):
 
 
 def release_cart_reservation(cart):
+    """Return reserved stock back to products and clear the reservation.
+
+    Used when a cart is abandoned or the checkout reservation
+    expires, so other customers can purchase the stock.
+    """
     with transaction.atomic():
         locked_items = list(
             cart.items.select_for_update()

@@ -21,6 +21,13 @@ if TYPE_CHECKING:
 PT_POSTAL_CODE_RE = re.compile(r'^\d{4}-\d{3}$')
 
 
+# Order lifecycle:
+#   pending → preparing → ready → in_transit → delivered
+#   pending → cancelled
+#   preparing → cancelled
+#   ready → cancelled
+#   in_transit → cancelled
+# Shipping orders skip 'ready', pickup orders skip 'in_transit'
 ORDER_STATUS_TRANSITIONS = {
     'pending': {'preparing', 'cancelled'},
     'preparing': {'ready', 'in_transit', 'cancelled'},
@@ -30,6 +37,12 @@ ORDER_STATUS_TRANSITIONS = {
     'cancelled': set(),
 }
 
+# Payment lifecycle:
+#   pending → confirmed → refunded
+#   pending → cancelled → pending  (restartable)
+# Cancelled payments are separate from cancelled orders — both
+# are manual actions. A cancelled payment can be restarted by
+# the customer if the order is still pending.
 PAYMENT_STATE_TRANSITIONS = {
     'pending': {'confirmed', 'cancelled'},
     'confirmed': {'refunded'},

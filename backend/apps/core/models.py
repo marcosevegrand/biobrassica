@@ -15,7 +15,15 @@ BIC_RE = re.compile(r'^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$')
 
 
 class ShopSettings(models.Model):
-    """Singleton (pk=1) holding shop-wide operational configuration."""
+    """Singleton (pk=1) holding shop-wide operational configuration.
+
+    Controls:
+    - Shop active toggle (pause payments during deployments)
+    - Minimum order total enforcement
+    - Payment methods (MB WAY, bank transfer) with validation
+    - Payment timeout and checkout reservation timeout
+    - Bank transfer beneficiary / IBAN / BIC details
+    """
 
     is_shop_active = models.BooleanField(
         _('loja ativa'),
