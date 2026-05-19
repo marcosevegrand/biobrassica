@@ -59,7 +59,7 @@ def domain_hosts(role, domains):
     )
 
 
-PRIMARY_DOMAIN = env_value('PRIMARY_DOMAIN', 'marcosevegrand.com')
+PRIMARY_DOMAIN = env_value('PRIMARY_DOMAIN', 'biobrassica.pt')
 DOMAIN_ALIASES = env_list('DOMAIN_ALIASES')
 PUBLIC_DOMAINS = dedupe_list([PRIMARY_DOMAIN, *DOMAIN_ALIASES])
 
@@ -106,6 +106,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'config.middleware.SubdomainMiddleware',
+    'config.middleware.ShopBrevementeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -186,7 +187,7 @@ LOGOUT_REDIRECT_URL = '/'
 SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
 
 # Email
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Biobrassica <loja@marcosevegrand.com>')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Biobrassica <loja@biobrassica.pt>')
 STAFF_NOTIFICATION_EMAILS = os.environ.get(
     'STAFF_NOTIFICATION_EMAILS', ''
 ).split(',') if os.environ.get('STAFF_NOTIFICATION_EMAILS') else []

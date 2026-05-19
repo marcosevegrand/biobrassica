@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.http import Http404
+from django.shortcuts import render
 from django.utils import translation
 
 
@@ -82,3 +83,34 @@ class SubdomainSecurityMiddleware:
                 raise Http404
 
         return self.get_response(request)
+
+
+class ShopBrevementeMiddleware:
+    """
+    When the shop is in 'brevemente' mode (is_shop_brevemente=True),
+    intercept all shop-subdomain requests and render the brevemente page.
+
+    Health checks and payment callbacks are excluded so that essential
+    infrastructure and incoming webhooks remain operational.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if getattr(request, 'subdomain', None) == 'shop':
+            if self._is_brevemente_active():
+                path = request.path
+                if not path.startswith('/_health/') and not path.startswith('/api/payments/'):
+                    return render(request, 'core/brevemente.html', status=200)
+
+        return self.get_response(request)
+
+    @staticmethod
+    def _is_brevemente_active():
+        from apps.core.models import ShopSettings
+
+        settings_obj = ShopSettings.objects.filter(pk=1).only('is_shop_brevemente').first()
+        if settings_obj is None:
+            return False
+        return bool(settings_obj.is_shop_brevemente)

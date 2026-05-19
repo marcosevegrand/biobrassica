@@ -110,7 +110,7 @@ EOF
 }
 
 configure_public_domains() {
-    PRIMARY_DOMAIN="$(env_value PRIMARY_DOMAIN marcosevegrand.com)"
+    PRIMARY_DOMAIN="$(env_value PRIMARY_DOMAIN biobrassica.pt)"
     DOMAIN_ALIASES="$(env_value DOMAIN_ALIASES '')"
     PUBLIC_DOMAINS="$(unique_csv "${PRIMARY_DOMAIN},${DOMAIN_ALIASES}")"
 

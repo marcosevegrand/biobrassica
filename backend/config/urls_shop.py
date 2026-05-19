@@ -3,7 +3,7 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.urls import include, path
 
-# Shop: loja.marcosevegrand.com
+# Shop: loja.biobrassica.pt
 # E-commerce — products, cart, checkout, payments, accounts
 
 # Non-i18n URLs (webhooks)

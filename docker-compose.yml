@@ -36,7 +36,7 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
       - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
       - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
-      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-marcosevegrand.com}
+      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-biobrassica.pt}
       - DOMAIN_ALIASES=${DOMAIN_ALIASES:-}
       - WEBSITE_HOST=${WEBSITE_HOST:-}
       - WEBSITE_ALLOWED_HOSTS=${WEBSITE_ALLOWED_HOSTS:-}
@@ -55,7 +55,7 @@ services:
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@biobrassica.pt>}
       - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
 
   django_shop:
@@ -65,7 +65,7 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
       - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
       - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
-      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-marcosevegrand.com}
+      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-biobrassica.pt}
       - DOMAIN_ALIASES=${DOMAIN_ALIASES:-}
       - WEBSITE_HOST=${WEBSITE_HOST:-}
       - WEBSITE_ALLOWED_HOSTS=${WEBSITE_ALLOWED_HOSTS:-}
@@ -84,7 +84,7 @@ services:
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@biobrassica.pt>}
       - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
 
   django_admin:
@@ -94,7 +94,7 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-}
       - DJANGO_HTTPS_MODE=${DJANGO_HTTPS_MODE:-proxy}
       - DJANGO_LOG_LEVEL=${DJANGO_LOG_LEVEL:-INFO}
-      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-marcosevegrand.com}
+      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-biobrassica.pt}
       - DOMAIN_ALIASES=${DOMAIN_ALIASES:-}
       - WEBSITE_HOST=${WEBSITE_HOST:-}
       - WEBSITE_ALLOWED_HOSTS=${WEBSITE_ALLOWED_HOSTS:-}
@@ -113,7 +113,7 @@ services:
       - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@marcosevegrand.com>}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Biobrassica <loja@biobrassica.pt>}
       - STAFF_NOTIFICATION_EMAILS=${STAFF_NOTIFICATION_EMAILS:-}
 
   # --- PostgreSQL ---
@@ -154,7 +154,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-marcosevegrand.com}
+      - PRIMARY_DOMAIN=${PRIMARY_DOMAIN:-biobrassica.pt}
       - DOMAIN_ALIASES=${DOMAIN_ALIASES:-}
       - WEBSITE_HOST=${WEBSITE_HOST:-}
       - WEBSITE_ALLOWED_HOSTS=${WEBSITE_ALLOWED_HOSTS:-}

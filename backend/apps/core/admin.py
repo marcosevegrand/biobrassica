@@ -14,6 +14,7 @@ from apps.core.models import ShopSettings
 class ShopSettingsAdmin(ModelAdmin):
     fields = (
         'is_shop_active',
+        'is_shop_brevemente',
         'min_order_total',
         'payment_timeout_minutes',
         'checkout_reservation_minutes',

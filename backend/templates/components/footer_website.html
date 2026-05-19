@@ -68,7 +68,11 @@
           <li><a href="{% url 'website:agriculture' %}" class="hover:text-paper transition-colors">{% trans "Agricultura Bio" %}</a></li>
           <li><a href="{% url 'content:blog_list' %}" class="hover:text-paper transition-colors">{% trans "Blog" %}</a></li>
           <li><a href="{% url 'content:recipe_list' %}" class="hover:text-paper transition-colors">{% trans "Receitas" %}</a></li>
+          {% if website_defaults.is_shop_brevemente %}
+          <li><span class="text-paper/50">{% trans "Brevemente" %}</span></li>
+          {% else %}
           <li><a href="{% shop_url 'catalog:shop_home' %}" class="hover:text-paper transition-colors">{% trans "Loja Online" %}</a></li>
+          {% endif %}
           <li><a href="{% url 'website:contacts' %}" class="hover:text-paper transition-colors">{% trans "Contactos" %}</a></li>
         </ul>
       </div>

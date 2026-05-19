@@ -44,7 +44,7 @@ $(printf '%s' "$resolved_domains" | tr ',' '\n')
 EOF
 }
 
-primary_domain="${PRIMARY_DOMAIN:-marcosevegrand.com}"
+primary_domain="${PRIMARY_DOMAIN:-biobrassica.pt}"
 domain_aliases="${DOMAIN_ALIASES:-}"
 resolved_domains="$(base_domains)"
 

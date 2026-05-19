@@ -232,6 +232,7 @@ def get_website_defaults(*, request=None, lang=None, content=None, contact_locat
         'shop_visit_cta_body': defaults['shop_visit_cta_body'],
         'about_video_body': resolved_value('about_video_body'),
         'core_home_body': defaults['core_home_body'],
+        'is_shop_brevemente': _get_is_shop_brevemente(),
     }
 
 
@@ -280,6 +281,15 @@ def get_website_content(lang=None):
     if content is None:
         return None
     return content.for_language(lang=lang)
+
+
+def _get_is_shop_brevemente():
+    from apps.core.models import ShopSettings
+
+    settings_obj = ShopSettings.objects.filter(pk=1).only('is_shop_brevemente').first()
+    if settings_obj is None:
+        return False
+    return bool(settings_obj.is_shop_brevemente)
 
 
 def get_shop_base_url(*, request=None):

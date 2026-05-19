@@ -8,7 +8,7 @@ if [ -z "$health_host" ] && [ -n "$allowed_hosts" ]; then
     health_host="${allowed_hosts%%,*}"
 fi
 
-primary_domain="${PRIMARY_DOMAIN:-marcosevegrand.com}"
+primary_domain="${PRIMARY_DOMAIN:-biobrassica.pt}"
 site_role="${SITE_ROLE:-website}"
 
 if [ -z "$health_host" ]; then

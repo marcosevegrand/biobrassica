@@ -6,7 +6,7 @@ from django.views.generic import RedirectView
 
 from apps.core.admin_views import calendario_view
 
-# Admin: admin.marcosevegrand.com
+# Admin: admin.biobrassica.pt
 # Django admin dashboard — manage everything
 
 urlpatterns = [

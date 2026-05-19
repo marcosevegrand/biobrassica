@@ -239,6 +239,7 @@ EN = {
     "Solo saudável e plantas biológicas": "Healthy soil and organic plants",
     "Prove a diferença do biológico": "Taste the organic difference",
     "Visite a nossa loja online ou passe por uma das nossas lojas físicas.": "Visit our online shop or stop by one of our physical stores.",
+    "Passe por uma das nossas lojas físicas.": "Stop by one of our physical stores.",
     "Visitar Loja": "Visit Shop",
     # contacts
     "Entre em contacto com a Biobrassica. Lojas em Braga e Guimarães, ou contacte-nos por telefone e email.": "Get in touch with Biobrassica. Stores in Braga and Guimarães, or contact us by phone and email.",
@@ -335,6 +336,12 @@ EN = {
     # New footer strings
     "Loja Biobrassica Braga": "Biobrassica Store Braga",
     "Loja Biobrassica Guimarães": "Biobrassica Store Guimarães",
+    # brevemente mode
+    "Brevemente": "Coming Soon",
+    "Passe por uma das nossas lojas físicas.": "Stop by one of our physical stores.",
+    "Estes produtos estarão disponíveis em breve na nossa loja online.": "These products will be available soon in our online shop.",
+    "Encontre estes produtos na nossa loja online.": "Find these products in our online shop.",
+    "Comprar Ingredientes": "Buy Ingredients",
 }
 
 # ── FR translations ──────────────────────────────────────────────────
@@ -668,6 +675,12 @@ FR = {
     # New footer strings
     "Loja Biobrassica Braga": "Magasin Biobrassica Braga",
     "Loja Biobrassica Guimarães": "Magasin Biobrassica Guimarães",
+    # brevemente mode
+    "Brevemente": "Bientôt",
+    "Passe por uma das nossas lojas físicas.": "Passez dans l'un de nos magasins.",
+    "Estes produtos estarão disponíveis em breve na nossa loja online.": "Ces produits seront bientôt disponibles dans notre boutique en ligne.",
+    "Encontre estes produtos na nossa loja online.": "Retrouvez ces produits dans notre boutique en ligne.",
+    "Comprar Ingredientes": "Acheter les ingrédients",
 }
 
 

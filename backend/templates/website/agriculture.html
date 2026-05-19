@@ -162,11 +162,18 @@
   </div>
   <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
     <h2 class="text-2xl font-serif italic mb-4">{% trans "Prove a diferença do biológico" %}</h2>
+    {% if website_defaults.is_shop_brevemente %}
+    <p class="text-forest/75 mb-8">{% trans "Passe por uma das nossas lojas físicas." %}</p>
+    <span class="inline-block px-8 py-3 bg-forest text-paper text-sm uppercase tracking-widest font-medium rounded-sm opacity-80 cursor-default">
+      {% trans "Brevemente" %}
+    </span>
+    {% else %}
     <p class="text-forest/75 mb-8">{% trans "Visite a nossa loja online ou passe por uma das nossas lojas físicas." %}</p>
     <a href="{% shop_url 'catalog:shop_home' %}"
        class="inline-block px-8 py-3 bg-forest text-paper text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-forest/90 transition-colors">
       {% trans "Visitar Loja" %}
     </a>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

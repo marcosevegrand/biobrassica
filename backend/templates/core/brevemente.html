@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brevemente | Biobrassica</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/brand/favicon_green.png' %}" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .brevemente-container {
+      text-align: center;
+      padding: 2rem;
+    }
+    .brevemente-container img {
+      height: 80px;
+      width: auto;
+      margin-bottom: 2rem;
+    }
+    .brevemente-container p {
+      color: #3E5F46;
+      font-size: 1.25rem;
+      font-style: italic;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="brevemente-container">
+    <img src="{% static 'images/brand/logo-green-no-bg.png' %}" alt="Biobrassica" />
+    <p>Brevemente...<br>Os teus produtos favoritos à proximidade de um clique.</p>
+  </div>
+</body>
+</html>

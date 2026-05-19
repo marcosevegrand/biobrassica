@@ -88,6 +88,14 @@
     <h2 class="font-serif text-3xl italic text-center text-forest mb-3">
       {% trans "Comprar Ingredientes" %}
     </h2>
+    {% if website_defaults.is_shop_brevemente %}
+    <div class="text-center">
+      <p class="text-muted text-sm mb-6">{% trans "Estes produtos estarão disponíveis em breve na nossa loja online." %}</p>
+      <span class="inline-block px-8 py-3 bg-forest text-paper text-sm uppercase tracking-widest font-medium rounded-sm opacity-80 cursor-default">
+        {% trans "Brevemente" %}
+      </span>
+    </div>
+    {% else %}
     <p class="text-muted text-sm text-center mb-12">
       {% trans "Encontre estes produtos na nossa loja online." %}
     </p>
@@ -118,6 +126,7 @@
       </a>
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 </section>
 {% endif %}

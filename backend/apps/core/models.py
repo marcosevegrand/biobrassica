@@ -19,6 +19,7 @@ class ShopSettings(models.Model):
 
     Controls:
     - Shop active toggle (pause payments during deployments)
+    - Brevemente mode (coming-soon page on loja.* subdomain, CTA changes on main site)
     - Minimum order total enforcement
     - Payment methods (MB WAY, bank transfer) with validation
     - Payment timeout and checkout reservation timeout
@@ -31,6 +32,14 @@ class ShopSettings(models.Model):
         help_text=_(
             'Quando desativado, os clientes não conseguem avançar do carrinho para o pagamento. '
             'Ideal para pausar a loja entre deployments ou em períodos de inatividade.'
+        ),
+    )
+    is_shop_brevemente = models.BooleanField(
+        _('modo brevemente'),
+        default=False,
+        help_text=_(
+            'Quando ativo, o subdomínio loja.* mostra uma página "Brevemente" e '
+            'os botões da loja no site principal passam a dizer "Brevemente" em vez de linkarem para a loja.'
         ),
     )
     min_order_total = models.DecimalField(
