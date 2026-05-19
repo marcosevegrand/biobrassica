@@ -178,10 +178,10 @@ def reserve_cart_stock(cart, *, timeout_minutes=None):
     is empty — no reservation is created and the caller falls back
     to deducting stock at order-creation time.
     """
-        from apps.core.models import ShopSettings
+    from apps.core.models import ShopSettings
 
-        settings_obj = ShopSettings.objects.filter(pk=1).only('checkout_reservation_minutes').first()
-        timeout_minutes = getattr(settings_obj, 'checkout_reservation_minutes', 30) if settings_obj else 30
+    settings_obj = ShopSettings.objects.filter(pk=1).only('checkout_reservation_minutes').first()
+    timeout_minutes = getattr(settings_obj, 'checkout_reservation_minutes', 30) if settings_obj else 30
 
     if timeout_minutes <= 0:
         return False
