@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.http import Http404
-from django.shortcuts import render
+from django.http import Http404, HttpResponse
+from django.template import loader
 from django.utils import translation
 
 
@@ -102,7 +102,8 @@ class ShopBrevementeMiddleware:
             if self._is_brevemente_active():
                 path = request.path
                 if not path.startswith('/_health/') and not path.startswith('/api/payments/'):
-                    return render(request, 'core/brevemente.html', status=200)
+                    content = loader.render_to_string('core/brevemente.html')
+                    return HttpResponse(content, status=200)
 
         return self.get_response(request)
 
