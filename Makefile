@@ -52,3 +52,4 @@ createsuperuser:
 cron:
 	@docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm django_website python manage.py cancel_expired_payments
 	@docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm django_website python manage.py release_expired_reservations
+	@docker compose --env-file .env -p biobrassica -f docker-compose.yml run --rm django_website python manage.py fetch_instagram_posts

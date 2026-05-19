@@ -3,16 +3,18 @@ from django.utils.translation import get_language
 
 from apps.core.site_content import get_website_content
 from apps.content.querysets import featured_recipe_queryset
-from apps.website.models import TeamMember
+from apps.website.models import InstagramPost, TeamMember
 
 
 def home(request):
     """Homepage — hero, values, featured recipes, shop CTA."""
     lang = get_language() or 'pt'
     featured_recipes = featured_recipe_queryset(lang=lang, limit=3)
+    instagram_posts = InstagramPost.objects.filter(is_active=True)[:5]
 
     return render(request, 'website/home.html', {
         'featured_recipes': featured_recipes,
+        'instagram_posts': instagram_posts,
         'lang': lang,
         'website_content': get_website_content(lang=lang),
 

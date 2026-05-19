@@ -152,7 +152,7 @@ class WebsiteRoutingTests(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 		self.assertTemplateUsed(response, 'website/home.html')
-		self.assertContains(response, '/static/js/instagram-feed.js')
+		self.assertContains(response, '@biobrassica')
 		self.assertNotContains(response, 'fonts.googleapis.com')
 
 	@override_settings(ROOT_URLCONF='config.urls_shop')

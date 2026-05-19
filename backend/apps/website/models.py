@@ -75,6 +75,26 @@ class LocalizedWebsiteContent:
         return bool(self.instance)
 
 
+class InstagramPost(models.Model):
+    """Cached Instagram posts fetched from the public profile @biobrassica."""
+
+    instagram_id = models.CharField(_('ID do post'), max_length=50, unique=True, help_text=_('Shortcode único do post no Instagram'))
+    image_url = models.URLField(_('URL da imagem'), max_length=500)
+    caption = models.TextField(_('legenda'), blank=True)
+    permalink = models.URLField(_('link do post'), max_length=300)
+    posted_at = models.DateTimeField(_('publicado em'), null=True, blank=True)
+    is_active = models.BooleanField(_('ativo'), default=True)
+    fetched_at = models.DateTimeField(_('atualizado em'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('post do Instagram')
+        verbose_name_plural = _('posts do Instagram')
+        ordering = ['-posted_at', '-pk']
+
+    def __str__(self):
+        return self.instagram_id
+
+
 class TeamMember(models.Model):
     """Admin-managed team members shown on the 'A Nossa Equipa' section."""
     name = models.CharField(_('nome'), max_length=255, help_text=_('Nome do membro da equipa'))

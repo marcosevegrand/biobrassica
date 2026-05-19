@@ -10,7 +10,7 @@ from unfold.admin import ModelAdmin
 from apps.core.admin_helpers import EditLinkAdminMixin, WorkflowAdminMixin, render_image_preview, render_status_badge, render_summary_panel
 from apps.core.site_content import get_manual_mbway_details, get_payments_availability  # noqa: F401  # legacy public API
 from apps.website.forms import TeamMemberAdminForm, WebsiteContentAdminForm
-from apps.website.models import TeamMember, TeamMemberPosition, WebsiteContent
+from apps.website.models import InstagramPost, TeamMember, TeamMemberPosition, WebsiteContent
 
 
 @admin.register(TeamMember)
@@ -196,3 +196,16 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 			],
 			footer=_('Este registo centraliza os principais blocos estáticos do website, o número MB WAY manual e a pausa de pagamentos no backoffice.'),
 		)
+
+
+@admin.register(InstagramPost)
+class InstagramPostAdmin(ModelAdmin):
+	list_display = ('instagram_id', 'caption_preview', 'posted_at', 'is_active', 'fetched_at')
+	list_filter = ('is_active',)
+	search_fields = ('instagram_id', 'caption')
+	readonly_fields = ('instagram_id', 'image_url', 'caption', 'permalink', 'posted_at', 'fetched_at')
+	ordering = ('-posted_at', '-pk')
+
+	@admin.display(description=_('legenda'))
+	def caption_preview(self, obj):
+		return (obj.caption or '')[:80]
