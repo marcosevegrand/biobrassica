@@ -109,7 +109,7 @@
       {% if category.is_special %}
       {# ── Featured: banner de linha completa ── #}
       <a href="{% url 'catalog:product_list' %}?categoria={{ category.slug }}"
-         class="group col-span-full relative rounded-lg overflow-hidden border border-stone/30 hover:border-forest/60 transition-colors" style="height:280px;">
+         class="group col-span-full relative rounded-lg overflow-hidden border border-stone/30 hover:border-forest/60 transition-colors h-[280px]">
         {% if category.image %}
         <img src="{{ category.image.url }}" alt="{{ category.get_name }}"
              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />

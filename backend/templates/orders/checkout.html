@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Checkout" %} | Biobrassica{% endblock %}
 
@@ -10,7 +10,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
     <!-- Form -->
     <div class="lg:col-span-2">
-      <form method="post" action="{% url 'orders:confirm' %}" x-data="{ fulfillmentMethod: '{{ form.fulfillment_method.value|default:'pickup'|escapejs }}' }">
+      <form method="post" action="{% url 'orders:confirm' %}" data-checkout-form>
         {% csrf_token %}
 
         {% if not payments_enabled %}
@@ -110,15 +110,15 @@
             {% endfor %}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {% if pickup_available %}
-              <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer" :class="fulfillmentMethod === 'pickup' ? 'border-forest text-forest' : ''">
-                <input type="radio" name="fulfillment_method" value="pickup" x-model="fulfillmentMethod" class="sr-only" {% if form.fulfillment_method.value|default:'pickup' == 'pickup' %}checked{% endif %}>
+              <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer" data-method="pickup">
+                <input type="radio" name="fulfillment_method" value="pickup" class="sr-only" {% if form.fulfillment_method.value|default:'pickup' == 'pickup' %}checked{% endif %}>
                 <span class="block text-xs uppercase tracking-widest mb-1">{% trans "Levantamento" %}</span>
                 <span class="text-sm text-muted">{% trans "Recolha numa das lojas disponíveis." %}</span>
               </label>
               {% endif %}
               {% if shipping_available %}
-              <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer" :class="fulfillmentMethod === 'shipping' ? 'border-forest text-forest' : ''">
-                <input type="radio" name="fulfillment_method" value="shipping" x-model="fulfillmentMethod" class="sr-only" {% if form.fulfillment_method.value == 'shipping' %}checked{% endif %}>
+              <label class="border border-stone/30 rounded-sm px-4 py-3 cursor-pointer" data-method="shipping">
+                <input type="radio" name="fulfillment_method" value="shipping" class="sr-only" {% if form.fulfillment_method.value == 'shipping' %}checked{% endif %}>
                 <span class="block text-xs uppercase tracking-widest mb-1">{% trans "Envio" %}</span>
                 <span class="text-sm text-muted">{% trans "Entrega ao domicílio em Portugal continental." %}</span>
               </label>
@@ -132,9 +132,9 @@
           </div>
 
           {% if pickup_available %}
-          <div x-show="fulfillmentMethod === 'pickup'" x-cloak>
+          <div data-section="pickup" hidden>
             <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Local de levantamento" %} *</label>
-            <select name="pickup_location" x-bind:required="fulfillmentMethod === 'pickup'"
+            <select name="pickup_location"
                     class="w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest text-sm bg-paper">
               <option value="">{% trans "Selecione..." %}</option>
               {% for value, label in pickup_locations %}
@@ -148,10 +148,11 @@
           {% endif %}
 
           {% if shipping_available %}
-          <div x-show="fulfillmentMethod === 'shipping'" x-cloak class="space-y-6">
+          <div data-section="shipping" hidden class="space-y-6">
             <div>
               <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Morada" %} *</label>
-              <input type="text" name="shipping_address_line1" x-bind:required="fulfillmentMethod === 'shipping'"
+              <input type="text" name="shipping_address_line1"
+                     data-conditional-required
                      value="{{ form.shipping_address_line1.value|default:'' }}"
                      class="w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest text-sm" />
               {% for error in form.shipping_address_line1.errors %}
@@ -170,7 +171,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Código Postal" %} *</label>
-                <input type="text" name="shipping_postal_code" x-bind:required="fulfillmentMethod === 'shipping'"
+                <input type="text" name="shipping_postal_code"
+                       data-conditional-required
                        value="{{ form.shipping_postal_code.value|default:'' }}"
                        class="w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest text-sm" />
                 {% for error in form.shipping_postal_code.errors %}
@@ -179,7 +181,8 @@
               </div>
               <div>
                 <label class="block text-xs uppercase tracking-widest text-muted mb-2">{% trans "Cidade" %} *</label>
-                <input type="text" name="shipping_city" x-bind:required="fulfillmentMethod === 'shipping'"
+                <input type="text" name="shipping_city"
+                       data-conditional-required
                        value="{{ form.shipping_city.value|default:'' }}"
                        class="w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest text-sm" />
                 {% for error in form.shipping_city.errors %}
@@ -244,4 +247,8 @@
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/checkout.js' %}" defer></script>
 {% endblock %}

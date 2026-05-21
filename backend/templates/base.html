@@ -9,11 +9,7 @@
   <meta name="description" content="{% block meta_description %}{{ website_defaults.shop_meta_description }}{% endblock %}" />
   <link rel="stylesheet" href="{% static 'css/output.css' %}" />
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
-    <style>
-      [x-cloak] { display: none !important; }
-    </style>
   {% block head_extra %}{% endblock %}
-    <script src="{% static 'unfold/js/alpine/alpine.js' %}" defer></script>
 </head>
 <body class="min-h-screen flex flex-col bg-paper text-forest font-sans font-light">
 

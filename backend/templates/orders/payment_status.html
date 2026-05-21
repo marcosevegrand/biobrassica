@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Estado do Pagamento" %} | Biobrassica{% endblock %}
 
@@ -41,27 +41,7 @@
       <h3 class="font-serif text-lg italic">{% trans "Tempo restante para pagamento" %}</h3>
     </div>
     <p class="text-sm mb-3">{% trans "Complete o pagamento antes que o tempo expire, caso contrário a encomenda será cancelada automaticamente." %}</p>
-    <div class="font-mono text-2xl font-bold" id="payment-timer">{{ payment_timeout_minutes }}:00</div>
-    <script>
-      (function() {
-        var expiresAt = new Date('{{ expires_at_iso }}');
-        var timerEl = document.getElementById('payment-timer');
-        function updateTimer() {
-          var now = new Date();
-          var diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
-          var mins = Math.floor(diff / 60);
-          var secs = diff % 60;
-          if (timerEl) {
-            timerEl.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
-          }
-          if (diff <= 0) {
-            window.location.reload();
-          }
-        }
-        updateTimer();
-        setInterval(updateTimer, 1000);
-      })();
-    </script>
+    <div class="font-mono text-2xl font-bold" id="payment-timer" data-expires-iso="{{ expires_at_iso }}">{{ payment_timeout_minutes }}:00</div>
   </div>
   {% endif %}
 
@@ -108,4 +88,8 @@
   </a>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/payment_timer.js' %}" defer></script>
 {% endblock %}

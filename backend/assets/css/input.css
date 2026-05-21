@@ -124,3 +124,13 @@ input[type="number"] {
   color: var(--color-muted);
   font-style: italic;
 }
+
+[x-cloak] { display: none !important; }
+
+.svg-filter-hero {
+  filter: brightness(0) saturate(100%) invert(49%) sepia(12%) saturate(643%) hue-rotate(73deg) brightness(95%) contrast(90%);
+}
+
+.svg-filter-cta {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1065%) hue-rotate(74deg) brightness(92%) contrast(93%);
+}
