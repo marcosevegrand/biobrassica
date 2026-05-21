@@ -2,7 +2,7 @@ FROM owasp/modsecurity-crs:nginx-alpine
 
 USER root
 
-RUN mkdir -p /opt/biobrassica/templates && \
+RUN mkdir -p /opt/biobrassica/templates /etc/nginx/modsecurity && \
     printf '%s\n' \
     'SecRuleEngine On' \
     'SecRequestBodyAccess On' \
