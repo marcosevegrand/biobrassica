@@ -65,3 +65,10 @@ class NginxConfigTests(SimpleTestCase):
         self.assertEqual(app_conf.count('X-Permitted-Cross-Domain-Policies "none" always'), 9)
         self.assertEqual(app_conf.count('Permissions-Policy "camera=(), microphone=(), geolocation=()" always'), 3)
         self.assertEqual(app_conf.count('Cross-Origin-Opener-Policy "same-origin" always'), 2)
+
+    def test_modsecurity_waf_is_enabled(self):
+        nginx_conf = self._nginx_conf()
+
+        self.assertIn('load_module modules/ngx_http_modsecurity_module.so;', nginx_conf)
+        self.assertIn('modsecurity on;', nginx_conf)
+        self.assertIn('modsecurity_rules_file /etc/nginx/modsecurity/main.conf;', nginx_conf)

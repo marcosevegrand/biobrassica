@@ -15,7 +15,7 @@ log_step "creating a pre-deploy backup"
 "$PROJECT_DIR/scripts/backup.sh"
 
 log_step "building production images"
-"${COMPOSE[@]}" build django_website django_shop django_admin
+"${COMPOSE[@]}" build django_website django_shop django_admin nginx
 
 log_step "starting stateful services"
 "${COMPOSE[@]}" up -d db redis

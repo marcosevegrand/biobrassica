@@ -146,7 +146,9 @@ services:
 
   # --- Nginx reverse proxy ---
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     entrypoint:
       - /bin/sh
       - /opt/biobrassica/render-nginx-config.sh
