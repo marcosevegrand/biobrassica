@@ -27,9 +27,11 @@ class NginxConfigTests(SimpleTestCase):
     def test_public_surfaces_have_strict_csp(self):
         app_conf = self._app_conf()
 
+        self.assertEqual(app_conf.count("default-src 'none'"), 3)
         self.assertEqual(app_conf.count("script-src 'self';"), 2)
         self.assertEqual(app_conf.count("style-src 'self' https://fonts.googleapis.com;"), 2)
         self.assertEqual(app_conf.count("'unsafe-eval'"), 1)
+        self.assertEqual(app_conf.count("object-src"), 0)
 
     def test_media_locations_block_active_file_types(self):
         app_conf = self._app_conf()
