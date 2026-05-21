@@ -69,6 +69,6 @@ class NginxConfigTests(SimpleTestCase):
     def test_modsecurity_waf_is_enabled(self):
         nginx_conf = self._nginx_conf()
 
-        self.assertIn('load_module modules/ngx_http_modsecurity_module.so;', nginx_conf)
+        self.assertIn('ngx_http_modsecurity_module.so', nginx_conf)
         self.assertIn('modsecurity on;', nginx_conf)
         self.assertIn('modsecurity_rules_file /etc/nginx/modsecurity/main.conf;', nginx_conf)

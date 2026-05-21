@@ -1,22 +1,29 @@
-FROM nginx:alpine
+FROM owasp/modsecurity-crs:nginx-alpine
 
-RUN apk add --no-cache \
-    nginx-mod-http-modsecurity \
-    modsecurity \
-    wget \
-    tar
+USER root
 
-RUN mkdir -p /opt/owasp-crs && \
-    wget -qO - https://github.com/coreruleset/coreruleset/archive/refs/tags/v4.13.0.tar.gz | \
-    tar xz -C /opt/owasp-crs --strip-components=1
+RUN mkdir -p /opt/biobrassica/templates && \
+    printf '%s\n' \
+    'SecRuleEngine On' \
+    'SecRequestBodyAccess On' \
+    'SecResponseBodyAccess On' \
+    'SecAuditEngine RelevantOnly' \
+    'SecAuditLog /var/log/modsec_audit.log' \
+    'SecDebugLog /dev/null' \
+    'SecDebugLogLevel 0' \
+    'SecPcreMatchLimit 100000' \
+    'SecPcreMatchLimitRecursion 100000' \
+    'SecRequestBodyLimit 13107200' \
+    'SecRequestBodyNoFilesLimit 131072' \
+    'SecResponseBodyLimit 1048576' \
+    'Include /opt/owasp-crs/crs-setup.conf' \
+    'Include /opt/owasp-crs/rules/*.conf' \
+    > /etc/nginx/modsecurity/main.conf
 
-RUN cp /opt/owasp-crs/crs-setup.conf.example /opt/owasp-crs/crs-setup.conf
-
-RUN mkdir -p /etc/nginx/modsecurity && \
-    printf 'SecRuleEngine On\nSecRequestBodyAccess On\nSecResponseBodyAccess On\nSecAuditEngine RelevantOnly\nSecAuditLog /var/log/modsec_audit.log\nSecDebugLog /var/log/modsec_debug.log\nSecDebugLogLevel 0\nInclude /opt/owasp-crs/crs-setup.conf\nInclude /opt/owasp-crs/rules/*.conf\n' > /etc/nginx/modsecurity/main.conf
-
-COPY nginx.conf /etc/nginx/nginx.conf
 COPY conf.d/ /opt/biobrassica/templates/
+COPY nginx.conf /etc/nginx/nginx.conf
 COPY render-nginx-config.sh /opt/biobrassica/render-nginx-config.sh
 
-RUN chmod +x /opt/biobrassica/render-nginx-config.sh
+RUN chmod +x /opt/biobrassica/render-nginx-config.sh && \
+    mkdir -p /var/log/modsecurity && \
+    chown nginx:nginx /var/log/modsecurity
