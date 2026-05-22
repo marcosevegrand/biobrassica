@@ -200,12 +200,8 @@ class WebsiteContentAdmin(WorkflowAdminMixin, EditLinkAdminMixin, ModelAdmin):
 
 @admin.register(InstagramPost)
 class InstagramPostAdmin(ModelAdmin):
-	list_display = ('instagram_id', 'caption_preview', 'posted_at', 'is_active', 'fetched_at')
-	list_filter = ('is_active',)
-	search_fields = ('instagram_id', 'caption')
-	readonly_fields = ('instagram_id', 'image_url', 'caption', 'permalink', 'posted_at', 'fetched_at')
-	ordering = ('-posted_at', '-pk')
-
-	@admin.display(description=_('legenda'))
-	def caption_preview(self, obj):
-		return (obj.caption or '')[:80]
+    list_display = ('instagram_id', 'permalink', 'sort_order', 'is_active')
+    list_filter = ('is_active',)
+    list_editable = ('sort_order', 'is_active')
+    search_fields = ('instagram_id', 'caption')
+    ordering = ('sort_order', '-pk')

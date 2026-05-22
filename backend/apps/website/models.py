@@ -76,20 +76,26 @@ class LocalizedWebsiteContent:
 
 
 class InstagramPost(models.Model):
-    """Cached Instagram posts fetched from the public profile @biobrassica."""
+    """Instagram posts displayed via the official embed.js widget.
+
+    The primary fields are *instagram_id* (shortcode) and *permalink*.
+    Other fields are optional and kept for backward compatibility;
+    Instagram's embed.js handles all rendering client-side.
+    """
 
     instagram_id = models.CharField(_('ID do post'), max_length=50, unique=True, help_text=_('Shortcode único do post no Instagram'))
-    image_url = models.URLField(_('URL da imagem'), max_length=500)
-    caption = models.TextField(_('legenda'), blank=True)
     permalink = models.URLField(_('link do post'), max_length=300)
+    image_url = models.URLField(_('URL da imagem'), max_length=500, blank=True)
+    caption = models.TextField(_('legenda'), blank=True)
     posted_at = models.DateTimeField(_('publicado em'), null=True, blank=True)
+    sort_order = models.PositiveSmallIntegerField(_('ordem'), default=0, help_text=_('Menor = primeiro'))
     is_active = models.BooleanField(_('ativo'), default=True)
     fetched_at = models.DateTimeField(_('atualizado em'), auto_now=True)
 
     class Meta:
         verbose_name = _('post do Instagram')
         verbose_name_plural = _('posts do Instagram')
-        ordering = ['-posted_at', '-pk']
+        ordering = ['sort_order', '-posted_at', '-pk']
 
     def __str__(self):
         return self.instagram_id

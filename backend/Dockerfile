@@ -37,12 +37,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN chmod +x /app/docker-entrypoint.sh /app/docker-healthcheck.sh
-
-# Build Tailwind CSS
-RUN tailwindcss -i assets/css/input.css -o static/css/output.css --minify
-RUN python manage.py compilemessages
-RUN mkdir -p /app/staticfiles /app/media /tmp && chown -R app:app /app /tmp
+RUN chmod +x /app/docker-entrypoint.sh /app/docker-healthcheck.sh \
+    && tailwindcss -i assets/css/input.css -o static/css/output.css --minify \
+    && python manage.py compilemessages \
+    && mkdir -p /app/staticfiles /app/media /tmp \
+    && chown -R app:app /app /tmp
 
 USER app
 

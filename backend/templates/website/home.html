@@ -105,30 +105,27 @@
   </div>
 
   {% if instagram_posts %}
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+  <div class="instagram-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for post in instagram_posts %}
-    <a href="{{ post.permalink }}" target="_blank" rel="noopener noreferrer"
-       class="group block overflow-hidden rounded-sm border border-stone/40 bg-paper">
-      <div class="overflow-hidden aspect-square">
-        <img src="{{ post.image_url }}" alt="{% if post.caption %}{{ post.caption|truncatechars:120 }}{% else %}@biobrassica{% endif %}"
-             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-             loading="lazy" />
-      </div>
-      {% if post.caption %}
-      <div class="p-3">
-        <p class="text-xs text-muted line-clamp-2">{{ post.caption|truncatechars:100 }}</p>
-      </div>
-      {% endif %}
-    </a>
+    <blockquote class="instagram-media"
+                data-instgrm-permalink="{{ post.permalink }}"
+                data-instgrm-captioned
+                data-instgrm-version="14"
+                style="margin:0;max-width:540px;min-width:280px;width:100%;">
+    </blockquote>
     {% endfor %}
   </div>
+  <script async src="//www.instagram.com/embed.js"></script>
   {% else %}
-  <p class="mt-6 text-sm text-muted text-center">
-    {% trans "O feed do Instagram está temporariamente indisponível. Veja as novidades diretamente no nosso perfil." %}
-    <a href="https://www.instagram.com/biobrassica/" target="_blank" rel="noopener noreferrer" class="underline hover:text-terracotta transition-colors">
+  <div class="text-center py-12">
+    <p class="text-sm text-muted">
+      {% trans "O feed do Instagram está temporariamente indisponível. Veja as novidades diretamente no nosso perfil." %}
+    </p>
+    <a href="https://www.instagram.com/biobrassica/" target="_blank" rel="noopener noreferrer"
+       class="inline-block mt-4 px-6 py-2 bg-forest text-paper text-xs uppercase tracking-widest rounded-sm hover:bg-forest/90 transition-colors">
       @biobrassica
     </a>
-  </p>
+  </div>
   {% endif %}
 </section>
 {% endblock %}

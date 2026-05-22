@@ -9,3 +9,13 @@ media
 staticfiles
 coverage
 htmlcov
+.git
+.gitignore
+*.md
+Dockerfile
+docker-compose*.yml
+.editorconfig
+.python-version
+.env.example
+playwright-report
+test-results

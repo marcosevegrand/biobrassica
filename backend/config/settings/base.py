@@ -327,3 +327,7 @@ UNFOLD = {
         ],
     },
 }
+
+# Instagram post shortcodes used by the fetch_instagram_posts management command.
+# Populate this list with shortcodes from https://www.instagram.com/biobrassica/
+INSTAGRAM_POST_SHORTCODES: list[str] = []
