@@ -4,6 +4,7 @@
 /public/hot
 /public/storage
 /public/media/*
+/bootstrap/cache/*.php
 !public/media/.gitkeep
 /storage/*.key
 /storage/pail
