@@ -1,9 +1,0 @@
-django>=5.1,<7
-django-unfold>=0.80,<0.94
-django-htmx>=1.17
-mysqlclient>=2.2
-Pillow>=10.0
-markdown>=3.5
-bleach>=6.2
-gunicorn>=22.0
-requests>=2.31

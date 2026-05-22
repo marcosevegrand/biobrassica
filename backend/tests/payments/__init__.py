@@ -1,1 +1,0 @@
-"""Payment-related pytest suites."""

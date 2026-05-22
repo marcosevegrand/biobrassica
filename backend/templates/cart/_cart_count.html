@@ -1,4 +1,0 @@
-{% load i18n %}
-<span id="cart-count" {% if oob|default:False %}hx-swap-oob="outerHTML"{% endif %} class="absolute -top-2 -right-2 bg-terracotta text-paper text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center {% if not cart_item_count %}hidden{% endif %}">
-  {{ cart_item_count|default:0 }}
-</span>

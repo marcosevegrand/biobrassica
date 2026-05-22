@@ -1,54 +1,38 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-backend/db.sqlite3
-backend/media/
-
-# Node
-node_modules/
-
-# IDE
-.vscode
-.idea/
-*.swp
-*.swo
-
-# Environment
-.env*
-!*.example
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build artifacts
-backend/staticfiles/
-backend/static/css/output.css
-
-# Compiled translations (generated on deploy)
-*.mo
-
-# Docker volumes
-*.sql.gz
-certbot/conf/
-certbot/www/
-
-# Logs
-*.log
-
-# cPanel — static/media populated by collectstatic at deploy time
-public/static/*
-!public/static/.gitkeep
-public/media/*
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/public/media/*
 !public/media/.gitkeep
+/storage/*.key
+/storage/pail
+/vendor
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
 
-# cPanel — Passenger restart / logs
-tmp/*
-!tmp/.gitkeep
+# cPanel
+/tmp/*
+!/tmp/.gitkeep
 
 # Backup files
 *.bak
 *.sql.gz
 *.tar.gz
+
+# Logs
+*.log
+/storage/logs/*
