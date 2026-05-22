@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy
 
 from apps.orders.models import Order
 from apps.payments.models import Payment
-from apps.core.site_content import get_manual_mbway_details, payments_are_enabled
+from apps.core.site_content import get_bank_transfer_details, get_manual_mbway_details, payments_are_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -494,16 +494,7 @@ class ManualBankTransferService(BasePaymentService):
     method = Payment.Method.BANK_TRANSFER
 
     def _bank_details(self):
-        from apps.core.models import ShopSettings
-        settings_obj = ShopSettings.objects.filter(pk=1).first()
-        if settings_obj is None:
-            return {'enabled': False, 'beneficiary': '', 'iban': '', 'bic': ''}
-        return {
-            'enabled': bool(settings_obj.bank_transfer_enabled),
-            'beneficiary': settings_obj.bank_beneficiary,
-            'iban': settings_obj.bank_iban,
-            'bic': settings_obj.bank_bic,
-        }
+        return get_bank_transfer_details()
 
     def is_available(self) -> bool:
         details = self._bank_details()

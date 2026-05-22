@@ -149,7 +149,13 @@ class OrderAdminTests(TestCase):
         self.assertEqual(self.product.stock, 7)
 
 
-@override_settings(ROOT_URLCONF='config.urls_shop')
+@override_settings(
+    ROOT_URLCONF='config.urls_shop',
+    MANUAL_MBWAY_NUMBER='912345678',
+    BANK_TRANSFER_BENEFICIARY='Biobrassica Lda',
+    BANK_TRANSFER_IBAN='PT50000201231234567890154',
+    BANK_TRANSFER_BIC='BBBBPTPL',
+)
 class CheckoutFlowTests(TestCase):
     def setUp(self):
         user_model = get_user_model()
@@ -164,12 +170,8 @@ class CheckoutFlowTests(TestCase):
 
         settings_obj = ShopSettings.load()
         settings_obj.mbway_enabled = True
-        settings_obj.mbway_number = '912345678'
         settings_obj.bank_transfer_enabled = False
         settings_obj.payment_timeout_minutes = 30
-        settings_obj.bank_beneficiary = ''
-        settings_obj.bank_iban = ''
-        settings_obj.bank_bic = ''
         settings_obj.save()
 
         self.location = Location.objects.create(name='Loja Braga', is_active=True)
@@ -277,9 +279,6 @@ class CheckoutFlowTests(TestCase):
     def test_checkout_shows_both_payment_methods_when_both_are_enabled(self):
         settings_obj = ShopSettings.load()
         settings_obj.bank_transfer_enabled = True
-        settings_obj.bank_beneficiary = 'Biobrassica Lda'
-        settings_obj.bank_iban = 'PT50000201231234567890154'
-        settings_obj.bank_bic = 'BBBBPTPL'
         settings_obj.save()
 
         response = self.client.get(reverse('orders:checkout'))
@@ -292,9 +291,6 @@ class CheckoutFlowTests(TestCase):
     def test_checkout_can_start_bank_transfer_without_mobile_requirement(self):
         settings_obj = ShopSettings.load()
         settings_obj.bank_transfer_enabled = True
-        settings_obj.bank_beneficiary = 'Biobrassica Lda'
-        settings_obj.bank_iban = 'PT50000201231234567890154'
-        settings_obj.bank_bic = 'BBBBPTPL'
         settings_obj.save()
 
         response = self.client.post(
@@ -379,11 +375,7 @@ class CheckoutFlowTests(TestCase):
     def test_checkout_blocks_when_no_payment_methods_are_enabled(self):
         settings_obj = ShopSettings.load()
         settings_obj.mbway_enabled = False
-        settings_obj.mbway_number = ''
         settings_obj.bank_transfer_enabled = False
-        settings_obj.bank_beneficiary = ''
-        settings_obj.bank_iban = ''
-        settings_obj.bank_bic = ''
         settings_obj.save()
 
         response = self.client.get(reverse('orders:checkout'))

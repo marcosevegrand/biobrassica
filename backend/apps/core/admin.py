@@ -19,11 +19,7 @@ class ShopSettingsAdmin(ModelAdmin):
         'payment_timeout_minutes',
         'checkout_reservation_minutes',
         'mbway_enabled',
-        'mbway_number',
         'bank_transfer_enabled',
-        'bank_beneficiary',
-        'bank_iban',
-        'bank_bic',
         'locations_link',
         'delivery_methods_link',
         'updated_at',
@@ -62,4 +58,3 @@ class ShopSettingsAdmin(ModelAdmin):
             url, _('Gerir métodos'),
             add_url, _('+ Novo método'),
         )
-

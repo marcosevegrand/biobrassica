@@ -1,12 +1,14 @@
+import re
 from ipaddress import ip_address
 
-from django.core.cache import cache
 from django.conf import settings
-from django.core.exceptions import DisallowedHost
+from django.core.cache import cache
+from django.core.exceptions import DisallowedHost, ValidationError
 from django.urls import reverse
 from django.utils.translation import gettext
 from django.utils.translation import override
 
+from apps.accounts.validators import normalize_portuguese_mobile_phone
 from apps.catalog.models import Location
 from apps.core.translations import normalized_language
 from apps.website.models import WebsiteContent
@@ -14,14 +16,14 @@ from apps.website.models import WebsiteContent
 
 DEFAULT_LOCATION_CONTENT = {
     'braga': {
-        'image': 'images/shop/loja-braga.png',
+        'image': 'images/shop/loja-braga.webp',
         'phone': '253 271 187',
         'email': 'geral@biobrassica.pt',
         'opening_hours': 'Segunda a Sábado\n9h00 – 19h30',
         'map_embed_url': 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Braga+Avenida+Doutor+Ant%C3%B3nio+Palha&t=&z=16&ie=UTF8&iwloc=&output=embed',
     },
     'guimaraes': {
-        'image': 'images/shop/loja-guima.png',
+        'image': 'images/shop/loja-guima.webp',
         'phone': '253 145 388',
         'email': 'geral@biobrassica.pt',
         'opening_hours': 'Segunda a Sábado\n9h00 – 19h30',
@@ -59,6 +61,8 @@ DEFAULT_WHATSAPP_NUMBER = '+351938722638'
 CONTACT_LOCATIONS_CACHE_KEY = 'core:contact_locations:v1'
 CONTACT_LOCATIONS_CACHE_TIMEOUT = 300
 HOST_ROLE_PREFIXES = ('www.', 'loja.', 'admin.')
+IBAN_RE = re.compile(r'^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$')
+BIC_RE = re.compile(r'^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$')
 
 
 def _normalize_whatsapp_number(number):
@@ -239,17 +243,22 @@ def get_website_defaults(*, request=None, lang=None, content=None, contact_locat
 def get_payments_availability(*, content=None):
     """Return whether the shop is open for payments.
 
-    Reads from ``apps.core.models.ShopSettings`` (singleton). The ``content``
-    kwarg is kept for backwards compatibility but is ignored.
+    Reads the shop pause toggle from ``ShopSettings`` and method credentials
+    from environment-backed Django settings. The ``content`` kwarg is kept for
+    backwards compatibility but is ignored.
     """
     from apps.core.models import ShopSettings
 
     settings_obj = ShopSettings.objects.filter(pk=1).only('is_shop_active').first()
     if settings_obj is None:
         return {'enabled': False, 'source': 'default'}
+    has_configured_payment_method = (
+        get_manual_mbway_details()['configured']
+        or get_bank_transfer_details()['configured']
+    )
 
     return {
-        'enabled': bool(settings_obj.is_shop_active and settings_obj.has_any_payment_method),
+        'enabled': bool(settings_obj.is_shop_active and has_configured_payment_method),
         'source': 'database',
     }
 
@@ -257,18 +266,47 @@ def get_payments_availability(*, content=None):
 def get_manual_mbway_details(*, content=None):
     from apps.core.models import ShopSettings
 
-    settings_obj = ShopSettings.objects.filter(pk=1).only('mbway_enabled', 'mbway_number').first()
+    settings_obj = ShopSettings.objects.filter(pk=1).only('mbway_enabled').first()
     number = ''
     enabled = False
     if settings_obj is not None:
         enabled = bool(settings_obj.mbway_enabled)
-        number = str(settings_obj.mbway_number or '').strip()
+    configured_number = str(getattr(settings, 'MANUAL_MBWAY_NUMBER', '') or '')
+    if configured_number:
+        try:
+            number = normalize_portuguese_mobile_phone(configured_number)
+        except ValidationError:
+            number = ''
 
     return {
         'configured': bool(enabled and number),
         'enabled': enabled,
         'number': number,
         'digits': _normalize_whatsapp_number(number),
+    }
+
+
+def get_bank_transfer_details(*, content=None):
+    from apps.core.models import ShopSettings
+
+    settings_obj = ShopSettings.objects.filter(pk=1).only('bank_transfer_enabled').first()
+    enabled = bool(settings_obj and settings_obj.bank_transfer_enabled)
+    beneficiary = str(getattr(settings, 'BANK_TRANSFER_BENEFICIARY', '') or '').strip()
+    iban = ''.join(str(getattr(settings, 'BANK_TRANSFER_IBAN', '') or '').split()).upper()
+    bic = ''.join(str(getattr(settings, 'BANK_TRANSFER_BIC', '') or '').split()).upper()
+    has_valid_bank_details = bool(
+        beneficiary
+        and iban
+        and IBAN_RE.match(iban)
+        and (not bic or BIC_RE.match(bic))
+    )
+
+    return {
+        'configured': bool(enabled and has_valid_bank_details),
+        'enabled': enabled,
+        'beneficiary': beneficiary,
+        'iban': iban,
+        'bic': bic,
     }
 
 

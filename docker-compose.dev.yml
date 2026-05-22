@@ -24,6 +24,10 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - EMAIL_HOST=mailpit
       - EMAIL_PORT=1025
+      - MANUAL_MBWAY_NUMBER=${MANUAL_MBWAY_NUMBER:-}
+      - BANK_TRANSFER_BENEFICIARY=${BANK_TRANSFER_BENEFICIARY:-}
+      - BANK_TRANSFER_IBAN=${BANK_TRANSFER_IBAN:-}
+      - BANK_TRANSFER_BIC=${BANK_TRANSFER_BIC:-}
     depends_on:
       db:
         condition: service_healthy

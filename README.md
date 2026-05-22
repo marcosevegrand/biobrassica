@@ -18,7 +18,7 @@ Plataforma de comércio eletrónico para produtos biológicos — website, loja 
 | Conteúdo | Markdown + bleach (HTML sanitizado) |
 | Imagens | Pillow |
 | Email | Brevo SMTP (Mailpit em dev) |
-| Pagamentos | Manuais apenas — MB WAY + Transferência bancária (configurados via ShopSettings no backoffice) |
+| Pagamentos | Manuais apenas — MB WAY + Transferência bancária (métodos no backoffice, credenciais no `.env`) |
 | i18n | Português (padrão), Inglês, Francês |
 
 ## Desenvolvimento Local
@@ -155,6 +155,8 @@ make deploy
 
 Antes de um deploy que possa interromper o checkout, desativa pagamentos no backoffice: **Configurações → Loja ativa**. O estado é persistido na base de dados e aplicado imediatamente.
 
+As credenciais de pagamento manual são configuradas apenas por variáveis de ambiente: `MANUAL_MBWAY_NUMBER`, `BANK_TRANSFER_BENEFICIARY`, `BANK_TRANSFER_IBAN` e `BANK_TRANSFER_BIC`.
+
 O stack de produção usa `DJANGO_HTTPS_MODE=proxy` (Django atrás do Nginx, confia em `X-Forwarded-Proto`). HSTS está ativo com `includeSubDomains` e `preload` — todos os hostnames públicos precisam de HTTPS funcional antes de expor a configuração a tráfego real.
 
 Certificados antes do primeiro arranque:
@@ -219,4 +221,4 @@ make reset BACKUP=/caminho/para/db.sql.gz YES=1  # não-interativo
 - `.env.dev` opcional para overrides de desenvolvimento.
 - `.env` em produção, criado a partir de `.env.example`.
 - Traduções: `backend/scripts/fill_translations.py` + `python manage.py compilemessages`.
-- A aplicação `apps.core` contém o singleton `ShopSettings` com todas as configurações operacionais da loja (timeouts, métodos de pagamento, etc.).
+- A aplicação `apps.core` contém o singleton `ShopSettings` com configurações operacionais da loja (timeouts, métodos de pagamento, etc.). Credenciais sensíveis de pagamento ficam fora do backoffice e vêm do `.env`.

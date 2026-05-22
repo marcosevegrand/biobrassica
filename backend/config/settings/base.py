@@ -180,11 +180,13 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Payments — manual flows only.
-# MB WAY and bank transfer are configured live via the ShopSettings
-# singleton in the admin backoffice (Configurações). The checkout
-# form reads availability from ShopSettings and only shows enabled
-# methods.
+# Method toggles stay in ShopSettings, but payment credentials are sensitive
+# and must come from environment variables instead of the admin backoffice.
 SHOP_BASE_URL = f'https://{SHOP_HOST}'.rstrip('/')
+MANUAL_MBWAY_NUMBER = env_value('MANUAL_MBWAY_NUMBER')
+BANK_TRANSFER_BENEFICIARY = env_value('BANK_TRANSFER_BENEFICIARY')
+BANK_TRANSFER_IBAN = env_value('BANK_TRANSFER_IBAN')
+BANK_TRANSFER_BIC = env_value('BANK_TRANSFER_BIC')
 
 # Email
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Biobrassica <loja@biobrassica.pt>')
