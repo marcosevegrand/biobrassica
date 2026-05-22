@@ -6,7 +6,7 @@ RUN mkdir -p /opt/biobrassica/templates /etc/nginx/modsecurity && \
     printf '%s\n' \
     'SecRuleEngine On' \
     'SecRequestBodyAccess On' \
-    'SecResponseBodyAccess On' \
+    'SecResponseBodyAccess Off' \
     'SecAuditEngine RelevantOnly' \
     'SecAuditLog /var/log/modsec_audit.log' \
     'SecDebugLog /dev/null' \

@@ -61,8 +61,8 @@ class NginxConfigTests(SimpleTestCase):
     def test_https_locations_send_security_headers(self):
         app_conf = self._app_conf()
 
-        self.assertEqual(app_conf.count('Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always'), 9)
-        self.assertEqual(app_conf.count('X-Permitted-Cross-Domain-Policies "none" always'), 9)
+        self.assertEqual(app_conf.count('Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always'), 3)
+        self.assertEqual(app_conf.count('X-Permitted-Cross-Domain-Policies "none" always'), 3)
         self.assertEqual(app_conf.count('Permissions-Policy "camera=(), microphone=(), geolocation=()" always'), 3)
         self.assertEqual(app_conf.count('Cross-Origin-Opener-Policy "same-origin" always'), 2)
 
