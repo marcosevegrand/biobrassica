@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib import admin
-from django.contrib.postgres.indexes import GinIndex
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, connection, transaction
 from django.test import TestCase, override_settings
@@ -186,20 +185,6 @@ class ContentConstraintTests(TestCase):
             translation.full_clean()
 
         self.assertIn('instructions', ctx.exception.message_dict)
-
-
-class ContentIndexTests(TestCase):
-    def test_blogpost_tags_uses_named_gin_index(self):
-        index = next(idx for idx in BlogPost._meta.indexes if idx.name == 'content_blog_tags_gin')
-
-        self.assertIsInstance(index, GinIndex)
-        self.assertEqual(index.fields, ['tags'])
-
-    def test_recipe_tags_uses_named_gin_index(self):
-        index = next(idx for idx in Recipe._meta.indexes if idx.name == 'content_recipe_tags_gin')
-
-        self.assertIsInstance(index, GinIndex)
-        self.assertEqual(index.fields, ['tags'])
 
 
 @override_settings(ROOT_URLCONF='config.urls_website')

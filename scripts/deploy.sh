@@ -12,8 +12,8 @@ require_command docker
 setup_prod_compose
 
 # Start stateful services early — needed for backup and later for migrations.
-log_step "starting database and redis"
-"${COMPOSE[@]}" up -d db redis
+log_step "starting database"
+"${COMPOSE[@]}" up -d db
 
 # Backup runs in the background while we build images.
 BACKUP_PID=""

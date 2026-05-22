@@ -1,0 +1,81 @@
+# Biobrassica — Apache .htaccess for cPanel + Phusion Passenger
+# Colocar em: /home/<user>/biobrassica/public/.htaccess
+
+# ------------------------------------------------------------------
+# Forçar HTTPS (opcional — o cPanel tem "Force HTTPS Redirect" nativo)
+# ------------------------------------------------------------------
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ------------------------------------------------------------------
+# Segurança — equivalentes ao nginx.conf do projecto
+# ------------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Headers que só fazem sentido em páginas HTML
+    <FilesMatch "\.(html|htm)$">
+        # Website público (usa o CSP mais restritivo)
+        Header always set Content-Security-Policy "default-src 'none'; img-src 'self' data: https:; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self'; connect-src 'self'; media-src 'self'; frame-src https://www.google.com https://maps.google.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        Header always set X-Frame-Options "DENY"
+        Header always set Cross-Origin-Opener-Policy "same-origin"
+        Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    </FilesMatch>
+
+    # Headers genéricos (todos os tipos de ficheiro)
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Permitted-Cross-Domain-Policies "none"
+</IfModule>
+
+# ------------------------------------------------------------------
+# Cache para ficheiros estáticos
+# ------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 30 days"
+    ExpiresByType text/javascript "access plus 30 days"
+    ExpiresByType application/javascript "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 30 days"
+    ExpiresByType video/mp4 "access plus 7 days"
+</IfModule>
+
+# ------------------------------------------------------------------
+# Compressão (equivalente ao gzip do nginx)
+# ------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE text/javascript application/javascript application/json
+    AddOutputFilterByType DEFLATE application/xml application/rss+xml
+    AddOutputFilterByType DEFLATE image/svg+xml font/woff2
+</IfModule>
+
+# ------------------------------------------------------------------
+# Bloquear acesso a ficheiros sensíveis
+# ------------------------------------------------------------------
+<FilesMatch "\.(py|pyc|sqlite3|env|ini|yml|yaml|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear listagem de directórios
+Options -Indexes
+
+# ------------------------------------------------------------------
+# Regras de reescrita para servir ficheiros estáticos
+#   /static/...  → public/static/...
+#   /media/...   → public/media/...
+# ------------------------------------------------------------------
+RewriteCond %{REQUEST_URI} ^/static/
+RewriteCond %{DOCUMENT_ROOT}/static/$1 -f
+RewriteRule ^/static/(.*)$ /static/$1 [L]
+
+RewriteCond %{REQUEST_URI} ^/media/
+RewriteCond %{DOCUMENT_ROOT}/media/$1 -f
+RewriteRule ^/media/(.*)$ /media/$1 [L]
+
+# Bloquear tipos de ficheiro executáveis em /media/
+RewriteCond %{REQUEST_URI} ^/media/.*\.(?:html?|xhtml|xml|svg|js|mjs|json|css|php|phtml|pl|py|sh|cgi|exe|dll|bat|cmd)$ [NC]
+RewriteRule ^ - [F,L]

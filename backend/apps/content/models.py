@@ -2,7 +2,6 @@ import json
 from django.utils.text import slugify
 
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -79,9 +78,6 @@ class BlogPost(models.Model):
         ordering = ['-published_at', '-created_at']
         verbose_name = _('artigo do blog')
         verbose_name_plural = _('artigos do blog')
-        indexes = [
-            GinIndex(fields=['tags'], name='content_blog_tags_gin'),
-        ]
 
     def __str__(self):
         return self.get_title('pt') or self.slug
@@ -212,9 +208,6 @@ class Recipe(models.Model):
         ordering = ['-created_at']
         verbose_name = _('receita')
         verbose_name_plural = _('receitas')
-        indexes = [
-            GinIndex(fields=['tags'], name='content_recipe_tags_gin'),
-        ]
 
     def __str__(self):
         return self.get_title('pt') or self.slug

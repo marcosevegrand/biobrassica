@@ -38,6 +38,16 @@ certbot/www/
 # Logs
 *.log
 
+# cPanel — static/media populated by collectstatic at deploy time
+public/static/*
+!public/static/.gitkeep
+public/media/*
+!public/media/.gitkeep
+
+# cPanel — Passenger restart / logs
+tmp/*
+!tmp/.gitkeep
+
 # Backup files
 *.bak
 *.sql.gz

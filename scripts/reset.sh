@@ -64,7 +64,7 @@ if [ "$DRY_RUN" = "1" ]; then
     fi
     log_step "would stop the current production stack"
     log_step "would remove the PostgreSQL volume and rebuild the web images"
-    log_step "would start db and redis, then wait for $DB_NAME readiness"
+    log_step "would start db, then wait for $DB_NAME readiness"
     log_step "would apply migrations, collect static files, restart the full stack, and verify it"
     exit 0
 fi
@@ -102,7 +102,7 @@ log_step "building production images"
 "${COMPOSE[@]}" build django_website django_shop django_admin
 
 log_step "starting stateful services"
-"${COMPOSE[@]}" up -d db redis >/dev/null
+"${COMPOSE[@]}" up -d db >/dev/null
 
 log_step "waiting for database readiness"
 wait_started_at=$SECONDS

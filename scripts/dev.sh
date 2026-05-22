@@ -12,7 +12,7 @@ require_command docker
 setup_dev_compose
 
 log_step "starting development services"
-"${COMPOSE[@]}" up -d --build db redis django tailwind mailpit
+"${COMPOSE[@]}" up -d --build db django tailwind mailpit
 
 log_step "applying database migrations"
 dev_manage migrate --noinput

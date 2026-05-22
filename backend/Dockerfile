@@ -4,7 +4,7 @@ FROM python:3.12-slim AS development
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gettext libatomic1 && rm -rf /var/lib/apt/lists/*
+    curl gettext libatomic1 default-libmysqlclient-dev && rm -rf /var/lib/apt/lists/*
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
@@ -24,7 +24,7 @@ FROM python:3.12-slim AS production
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gettext libpq5 && rm -rf /var/lib/apt/lists/*
+    curl gettext libpq5 default-libmysqlclient-dev && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --home-dir /app --shell /usr/sbin/nologin app
 
