@@ -1,18 +1,6 @@
-# Biobrassica — Apache .htaccess para cPanel + PHP 8.3
-# Colocar em: /home/biobrassica/biobrassica/public/.htaccess
-
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Forçar HTTPS
-    RewriteCond %{HTTPS} off
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-    # Laravel — redirect all requests to public/index.php
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
-</IfModule>
+# Biobrassica — Apache .htaccess para cPanel + Passenger
+# O Passenger trata do routing do Laravel automaticamente.
+# Este ficheiro só adiciona segurança e caching.
 
 # ------------------------------------------------------------------
 # Segurança
