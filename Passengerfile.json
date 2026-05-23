@@ -1,0 +1,6 @@
+{
+    "app_type": "laravel",
+    "startup_file": "public/index.php",
+    "environment": "production",
+    "app_root": "/home/biobrassica/biobrassica"
+}
