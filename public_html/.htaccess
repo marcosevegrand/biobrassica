@@ -1,6 +1,4 @@
-# Biobrassica — Apache .htaccess for a standard Laravel document root.
-# Use this when cPanel lets you point the domain document root directly to
-# /home/<cpanel-user>/biobrassica/public.
+# Biobrassica — Apache .htaccess for cPanel / public_html
 
 <IfModule mod_negotiation.c>
     Options -MultiViews -Indexes
@@ -57,7 +55,7 @@
     AddOutputFilterByType DEFLATE image/svg+xml font/woff2
 </IfModule>
 
-# Block sensitive files if they are accidentally placed in the public folder.
+# Block sensitive files if they are accidentally placed in public_html.
 # Keep .well-known available for SSL/AutoSSL validation.
 <FilesMatch "(^\.env$|^\.git|composer\.(json|lock)$|\.(env|log|sqlite|sqlite3|sql|bak|config|lock|md|yml|yaml|ini|sh)$)">
     Require all denied

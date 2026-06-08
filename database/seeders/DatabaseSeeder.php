@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,11 +12,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $adminEmail = config('biobrassica.admin.email');
+        $adminPassword = config('biobrassica.admin.password');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (!$adminEmail || !$adminPassword) {
+            return;
+        }
+
+        User::query()->updateOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => config('biobrassica.admin.name', 'Biobrassica Admin'),
+                'password' => $adminPassword,
+                'preferred_language' => 'pt',
+            ],
+        );
     }
 }

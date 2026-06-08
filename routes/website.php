@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\WebsiteController;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WebsiteController::class, 'home'])->name('website.home');
@@ -16,9 +15,3 @@ Route::get('/blog', [ContentController::class, 'blogList'])->name('content.blog'
 Route::get('/blog/{slug}', [ContentController::class, 'blogDetail'])->name('content.blog-detail');
 Route::get('/receitas', [ContentController::class, 'recipeList'])->name('content.recipes');
 Route::get('/receitas/{slug}', [ContentController::class, 'recipeDetail'])->name('content.recipe-detail');
-
-Route::get('/_health', function () {
-    DB::connection()->getPdo();
-
-    return response()->json(['status' => 'ok']);
-});

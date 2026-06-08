@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    # Optional cPanel Git deployment helper.
+    # Clone this repository to /home/<cpanel-user>/biobrassica, then deploy.
+    # Dependencies (vendor/) and .env must still exist in the app folder.
+    - export PUBLICPATH=$HOME/public_html
+    - /bin/mkdir -p $PUBLICPATH
+    - /bin/cp -R public/. $PUBLICPATH
+    - /bin/cp public_html/index.php $PUBLICPATH/index.php
+    - /bin/cp public_html/.htaccess $PUBLICPATH/.htaccess
+    - /bin/cp public_html/.user.ini $PUBLICPATH/.user.ini

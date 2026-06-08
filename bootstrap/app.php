@@ -11,17 +11,25 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             require base_path('routes/health.php');
 
-            $host = request()->getHost();
+            Route::middleware('web')->group(base_path('routes/web.php'));
 
-            if (str_starts_with($host, 'loja.')) {
-                $routeFile = base_path('routes/shop.php');
-            } elseif (str_starts_with($host, 'admin.')) {
-                $routeFile = base_path('routes/admin.php');
-            } else {
-                $routeFile = base_path('routes/website.php');
+            $domains = config('biobrassica.domains');
+
+            Route::middleware('web')
+                ->domain($domains['shop'])
+                ->group(base_path('routes/shop.php'));
+
+            Route::middleware('web')
+                ->domain($domains['admin'])
+                ->group(base_path('routes/admin.php'));
+
+            Route::middleware('web')
+                ->domain($domains['website'])
+                ->group(base_path('routes/website.php'));
+
+            if (app()->environment(['local', 'testing'])) {
+                Route::middleware('web')->group(base_path('routes/website.php'));
             }
-
-            Route::middleware('web')->group($routeFile);
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
