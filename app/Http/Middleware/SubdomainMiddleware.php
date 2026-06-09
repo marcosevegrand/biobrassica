@@ -10,11 +10,12 @@ class SubdomainMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $host = $request->getHost();
+        $shopPath = trim((string) config('biobrassica.paths.shop', 'loja'), '/');
+        $adminPath = trim((string) config('biobrassica.paths.admin', 'admin'), '/');
 
-        if (str_starts_with($host, 'loja.')) {
+        if ($request->is($shopPath, $shopPath.'/*')) {
             $role = 'shop';
-        } elseif (str_starts_with($host, 'admin.')) {
+        } elseif ($request->is($adminPath, $adminPath.'/*')) {
             $role = 'admin';
         } else {
             $role = 'website';

@@ -6,10 +6,9 @@ $adminEmail = env('ADMIN_EMAIL');
 return [
     'primary_domain' => $primaryDomain,
 
-    'domains' => [
-        'website' => env('WEBSITE_DOMAIN', $primaryDomain),
-        'shop' => env('SHOP_DOMAIN', 'loja.'.$primaryDomain),
-        'admin' => env('ADMIN_DOMAIN', 'admin.'.$primaryDomain),
+    'paths' => [
+        'shop' => env('SHOP_PATH', 'loja'),
+        'admin' => env('ADMIN_PATH', 'admin'),
     ],
 
     'public_path' => env('APP_PUBLIC_PATH'),

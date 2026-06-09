@@ -26,7 +26,7 @@ class AdminPanelProvider extends PanelProvider
         $panel = $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path(trim((string) config('biobrassica.paths.admin', 'admin'), '/'))
             ->login()
             ->brandName('Biobrassica')
             ->colors([
@@ -62,10 +62,6 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
-
-        if ($adminDomain = config('biobrassica.domains.admin')) {
-            $panel = $panel->domain($adminDomain);
-        }
 
         return $panel;
     }
