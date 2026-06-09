@@ -185,10 +185,10 @@
   },
   "active": "12ea938647255c97",
   "lastOpenFiles": [
+    "bootstrap/cache/config.php",
+    "bootstrap/cache/routes-v7.php",
     "bootstrap/cache/services.php",
     "bootstrap/cache/packages.php",
-    "CPANEL_DEPLOYMENT.md",
-    "bootstrap/cache/routes-v7.php",
-    "bootstrap/cache/config.php"
+    "CPANEL_DEPLOYMENT.md"
   ]
 }

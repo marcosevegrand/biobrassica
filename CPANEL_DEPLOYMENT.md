@@ -1,15 +1,15 @@
-# Biobrassica — cPanel Deployment Guide
+# Biobrassica — cPanel Git Deployment Guide
 
-This guide is written for the actual cPanel account available to you:
+This guide matches your real cPanel limitations:
 
 - cPanel username: `biobrassica`
-- Main domain available in **Domains**: `biobrassica.pt`
-- No additional domains/subdomains allowed by the hosting plan
-- `loja.biobrassica.pt` and `admin.biobrassica.pt` may exist in **Zone Editor**, but they are DNS-only and are **not** valid app entry points for this plan
+- Only `biobrassica.pt` exists as a real cPanel domain
+- Your plan does **not** allow additional domains/subdomains in cPanel
+- `loja.biobrassica.pt` and `admin.biobrassica.pt` may exist in **Zone Editor**, but they are DNS-only and are not valid app entry points
 - No Terminal access
-- Deployment must use cPanel tools such as **File Manager**, **Database Wizard**, **phpMyAdmin**, **MultiPHP Manager**, **MultiPHP INI Editor**, **Cron Jobs**, **Errors**, and **Backup Wizard**
+- Deployment should use **Git™ Version Control** + `.cpanel.yml`
 
-Final production URLs:
+Final URLs:
 
 ```text
 Website: https://biobrassica.pt
@@ -18,94 +18,64 @@ Admin:   https://biobrassica.pt/admin
 Health:  https://biobrassica.pt/_health
 ```
 
-Do not deploy this project expecting these URLs to work:
-
-```text
-https://loja.biobrassica.pt
-https://admin.biobrassica.pt
-```
-
-Those names can resolve in DNS, but your plan does not create separate Apache/cPanel virtual hosts for them.
-
 ---
 
-## 0. Local preparation before uploading
+## What the `.cpanel.yml` now automates
 
-Do this on your local computer, before creating the ZIP you upload to cPanel.
+The checked-in `.cpanel.yml` automatically does this when you click **Deploy HEAD Commit** in cPanel Git:
 
-### 0.1 Install production Composer dependencies
+1. Uses the app path:
 
-From the project folder on your computer, run:
+   ```text
+   /home/biobrassica/biobrassica
+   ```
 
-```bash
-composer install --no-dev --optimize-autoloader
-```
+2. Uses the public path:
 
-The upload must include the `vendor/` folder. The cPanel account has no Terminal, so do not depend on running Composer on the server.
+   ```text
+   /home/biobrassica/public_html
+   ```
 
-### 0.2 Confirm these files/folders exist locally
+3. Creates required writable folders.
+4. Runs Composer install if cPanel Composer exists.
+5. Stops deployment if `vendor/autoload.php` is missing.
+6. Stops deployment if `.env` is missing.
+7. Copies everything from `public/` to `public_html/`.
+8. Overwrites `public_html/index.php`, `.htaccess`, and `.user.ini` with the cPanel bridge files.
+9. Runs:
 
-Before zipping, the project folder should include at least:
+   ```text
+   php artisan optimize:clear
+   php artisan migrate --force
+   php artisan db:seed --force
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
 
-```text
-app/
-artisan
-bootstrap/
-composer.json
-composer.lock
-config/
-database/
-public/
-public_html/
-resources/
-routes/
-storage/
-vendor/
-.env.cpanel
-```
-
-Notes:
-
-- `.env.cpanel` is intentionally ignored by Git, but it exists locally and contains the production environment template for this cPanel deployment.
-- Do not commit `.env.cpanel`.
-- Do not place `.env.cpanel` or `.env` in `/home/biobrassica/public_html`.
-
-### 0.3 Create the ZIP
-
-Create a ZIP containing the **contents of the project folder**, not a parent folder.
-
-When extracted on cPanel, this should be true:
+This means repeat deployments become:
 
 ```text
-/home/biobrassica/biobrassica/artisan
-```
-
-Not this:
-
-```text
-/home/biobrassica/biobrassica/some-extra-folder/artisan
+cPanel → Git™ Version Control → Manage → Update from Remote → Deploy HEAD Commit
 ```
 
 ---
 
-## 1. Back up the cPanel account
+## What cannot be automated by `.cpanel.yml`
 
-Before changing files or database tables:
+These must still be done once in cPanel:
 
-1. Open cPanel.
-2. Go to **Files** → **Backup Wizard** or **Backup**.
-3. Download a full backup if available.
-4. If a full backup is not available, at least back up:
-   - `/home/biobrassica/public_html`
-   - the current database from **phpMyAdmin** using **Export**
+1. Set PHP 8.3 for `biobrassica.pt`.
+2. Ensure PHP extension `intl` is enabled.
+3. Create the database and database user.
+4. Create the `.env` file with secrets.
+5. Create/register the cPanel Git repository.
 
-Do not skip this if the site already has production data.
+After that, Git deploy handles the normal deployment tasks.
 
 ---
 
-## 2. Set PHP 8.3 for the main domain
-
-Only `biobrassica.pt` appears in your **Domains** / **MultiPHP Manager** area, so only configure that domain.
+## 1. Set PHP 8.3
 
 1. Open cPanel.
 2. Go to **Software** → **MultiPHP Manager**.
@@ -128,69 +98,82 @@ xml
 dom
 ```
 
-You cannot enable all extensions yourself from this cPanel interface. If one is missing, ask the hosting provider to enable it for PHP 8.3. `intl` is especially important because Filament requires it.
+Important: Filament requires `intl`. Without `intl`, Composer or the admin panel can fail.
+
+If you cannot enable `intl` in cPanel, ask the host:
+
+```text
+Please enable the PHP intl extension for PHP 8.3 on my cPanel domain biobrassica.pt. My Laravel/Filament app requires it.
+```
 
 ---
 
-## 3. PHP basic settings
+## 2. Configure PHP INI settings
 
-The repository includes this file:
+The repository includes:
 
 ```text
 public_html/.user.ini
 ```
 
-It is copied into:
+The Git deploy copies it to:
 
 ```text
 /home/biobrassica/public_html/.user.ini
 ```
 
-It sets safe production values such as:
+It sets:
 
 ```ini
 display_errors=Off
 log_errors=On
+expose_php=Off
 memory_limit=256M
 upload_max_filesize=20M
 post_max_size=25M
 max_execution_time=120
 ```
 
-You may also view these settings in **Software** → **MultiPHP INI Editor**, but you do not need to manually create them there if `.user.ini` is uploaded correctly.
+You do not need to manually recreate these values in MultiPHP INI Editor unless your host requires it.
 
 ---
 
-## 4. Database setup
+## 3. Create or confirm the database
 
-Use cPanel → **Databases** → **Database Wizard** / **MySQL Database Wizard**.
+Open cPanel → **Databases** → **Database Wizard**.
 
-Create or confirm these values:
+Use:
 
 ```text
 Database name entered: biobrassica
 Database user entered: biobrassica
-Final DB_DATABASE:     biobrassica_biobrassica
-Final DB_USERNAME:     biobrassica_biobrassica
+```
+
+cPanel should create:
+
+```text
+DB_DATABASE=biobrassica_biobrassica
+DB_USERNAME=biobrassica_biobrassica
 ```
 
 Steps:
 
-1. Open **Database Wizard**.
-2. Create database name `biobrassica`.
-3. Create user name `biobrassica`.
-4. Choose a strong database password.
-5. Save the password somewhere secure.
-6. Assign the user to the database.
-7. Grant **ALL PRIVILEGES**.
+1. Create database `biobrassica`.
+2. Create user `biobrassica`.
+3. Choose a strong password.
+4. Save that password.
+5. Add the user to the database.
+6. Grant **ALL PRIVILEGES**.
 
-If the database or user already exists, do not recreate it. Instead, confirm in **Manage My Databases** that user `biobrassica_biobrassica` has **ALL PRIVILEGES** on database `biobrassica_biobrassica`.
+If the database already exists, go to **Manage My Databases** and confirm the user has **ALL PRIVILEGES**.
 
 ---
 
-## 5. Domain setup
+## 4. Confirm domain document root
 
-In cPanel → **Domains**, the only required domain is:
+Open cPanel → **Domains**.
+
+Confirm:
 
 ```text
 Domain:        biobrassica.pt
@@ -200,219 +183,88 @@ PHP version:   8.3
 
 Enable **Force HTTPS Redirect** for `biobrassica.pt` after SSL is active.
 
-Do not create deployment steps for `loja.biobrassica.pt` or `admin.biobrassica.pt`, because your plan does not allow them as real cPanel domains. The app uses paths instead:
+Do not create deployment instructions for `loja.biobrassica.pt` or `admin.biobrassica.pt`. Your production paths are:
 
 ```text
 /loja
 /admin
 ```
 
-Zone Editor records for `loja` and `admin` are not required for this deployment. You can leave existing DNS records alone, but they are not the production app URLs.
-
 ---
 
-## 6. Enable hidden files in File Manager
+## 5. Enable hidden files in File Manager
 
-This is required because `.htaccess`, `.user.ini`, `.env`, and `.env.cpanel` are dotfiles.
+You need this to see/edit `.env`, `.htaccess`, and `.user.ini`.
 
 1. Open cPanel → **Files** → **File Manager**.
-2. Click **Settings** in the top-right corner.
+2. Click **Settings**.
 3. Enable **Show Hidden Files (dotfiles)**.
 4. Click **Save**.
 
 ---
 
-## 7. Upload the private Laravel app
+## 6. Create the cPanel Git repository
 
-The private app folder is:
+Open cPanel → **Files** → **Git™ Version Control**.
 
-```text
-/home/biobrassica/biobrassica
-```
+### 6.1 Create repository
 
-Steps:
-
-1. Open **File Manager**.
-2. Go to:
-
-   ```text
-   /home/biobrassica
-   ```
-
-3. Create a folder named:
-
-   ```text
-   biobrassica
-   ```
-
-4. Open:
+1. Click **Create**.
+2. Enable **Clone a Repository**.
+3. In **Clone URL**, enter your remote Git repository URL.
+4. In **Repository Path**, enter exactly:
 
    ```text
    /home/biobrassica/biobrassica
    ```
 
-5. Upload your project ZIP.
-6. Select the ZIP.
-7. Click **Extract**.
-8. Confirm that `artisan` is directly here:
+5. In **Repository Name**, enter:
 
    ```text
-   /home/biobrassica/biobrassica/artisan
+   Biobrassica
    ```
 
-9. Confirm that `vendor/autoload.php` exists:
+6. Click **Create**.
 
-   ```text
-   /home/biobrassica/biobrassica/vendor/autoload.php
-   ```
+### 6.2 Important notes
 
-10. Delete the uploaded ZIP after extraction to save disk space.
-
-Final private app folder should include:
-
-```text
-/home/biobrassica/biobrassica/app
-/home/biobrassica/biobrassica/artisan
-/home/biobrassica/biobrassica/bootstrap
-/home/biobrassica/biobrassica/config
-/home/biobrassica/biobrassica/database
-/home/biobrassica/biobrassica/public
-/home/biobrassica/biobrassica/public_html
-/home/biobrassica/biobrassica/resources
-/home/biobrassica/biobrassica/routes
-/home/biobrassica/biobrassica/storage
-/home/biobrassica/biobrassica/vendor
-```
+- The repository path must be `/home/biobrassica/biobrassica` because `.cpanel.yml` expects that path.
+- Do not clone the repository directly into `/home/biobrassica/public_html`.
+- If cPanel says the path is not empty, either empty that folder first or choose **Add Existing Repository** only if it is already the correct Git repository.
+- If your remote repository is private, cPanel may require SSH key setup. If that is blocked by your plan, use a public repository or ask the host how private Git repositories are supported in your account.
 
 ---
 
-## 8. Prepare the public web root
+## 7. Create the `.env` file once
 
-The public web root is:
+The `.env` file is intentionally not committed to Git. You must create it once using File Manager.
 
-```text
-/home/biobrassica/public_html
-```
-
-Only public files should be there. The Laravel app code must stay outside it.
-
-### 8.1 Back up or clear old public files
-
-In File Manager, open:
-
-```text
-/home/biobrassica/public_html
-```
-
-If this folder contains an old failed deployment, either:
-
-- rename it temporarily, for example to `public_html_old_backup`, or
-- delete old files after confirming you have a backup.
-
-If a `.well-known` folder exists, you may leave it. It is often used for SSL validation.
-
-### 8.2 Copy Laravel public assets
-
-Copy **all contents inside** this folder:
-
-```text
-/home/biobrassica/biobrassica/public
-```
-
-into:
-
-```text
-/home/biobrassica/public_html
-```
-
-This copies assets such as:
-
-```text
-css/
-js/
-images/
-fonts/
-media/
-videos/
-favicon.ico
-robots.txt
-Filament assets
-```
-
-### 8.3 Overwrite with cPanel bridge files
-
-Now copy these three files from:
-
-```text
-/home/biobrassica/biobrassica/public_html
-```
-
-into:
-
-```text
-/home/biobrassica/public_html
-```
-
-Overwrite if prompted:
-
-```text
-index.php
-.htaccess
-.user.ini
-```
-
-This overwrite is intentional.
-
-Why:
-
-- `public/index.php` is Laravel's normal front controller.
-- `public_html/index.php` is the cPanel bridge that loads the app from `/home/biobrassica/biobrassica`.
-- `public_html/.htaccess` contains the correct rewrite/security rules for this cPanel deployment.
-- `public_html/.user.ini` contains PHP production settings.
-
-### 8.4 Create upload folder
-
-Create this folder manually:
-
-```text
-/home/biobrassica/public_html/storage
-```
-
-The app is configured to store public uploads directly there. This avoids relying on Laravel's `storage:link`, because shared cPanel often blocks symlinks.
-
----
-
-## 9. Create the production `.env`
-
-The real Laravel environment file must be here:
+Create:
 
 ```text
 /home/biobrassica/biobrassica/.env
 ```
 
-Recommended method:
+Use your local `.env.cpanel` as the source. Fill real values for:
 
-1. In File Manager, open:
+```text
+APP_KEY
+DB_PASSWORD
+MAIL_PASSWORD
+ADMIN_PASSWORD
+MANUAL_MBWAY_NUMBER
+BANK_TRANSFER_IBAN
+BANK_TRANSFER_BIC
+```
 
-   ```text
-   /home/biobrassica/biobrassica
-   ```
-
-2. If `.env.cpanel` exists there, copy it to `.env`.
-3. If `.env.cpanel` does not exist there, create a new file named `.env` and paste the values from your local `.env.cpanel` file.
-4. Edit `.env`.
-5. Set your real database password.
-6. Set a strong admin password.
-7. Save the file.
-
-Required production values:
+Minimum expected shape:
 
 ```env
 APP_NAME=Biobrassica
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://biobrassica.pt
-APP_KEY=base64:YOUR_EXISTING_APP_KEY
+APP_KEY=base64:YOUR_APP_KEY
 APP_TIMEZONE=Europe/Lisbon
 APP_LOCALE=pt
 APP_FALLBACK_LOCALE=pt
@@ -464,161 +316,91 @@ BANK_TRANSFER_BIC=YOUR_BIC
 STAFF_NOTIFICATION_EMAILS=
 ```
 
-Important:
+Rules:
 
-- Do not add `APP_DEBUG=true` anywhere.
-- Do not use `CACHE_DRIVER`; Laravel 11 uses `CACHE_STORE`.
-- Do not use `MAIL_ENCRYPTION`; this app uses `MAIL_SCHEME=smtp`.
-- Do not put `.env` inside `/home/biobrassica/public_html`.
+- Do not put `.env` in `/home/biobrassica/public_html`.
+- Do not commit `.env`.
+- Do not add `APP_DEBUG=true`.
+- Use `CACHE_STORE`, not `CACHE_DRIVER`.
+- Use `MAIL_SCHEME=smtp`, not `MAIL_ENCRYPTION=tls`.
 
 ---
 
-## 10. Permissions
+## 8. First deployment with Git
 
-Set these folders to **0755** using File Manager → Permissions:
+After the repository exists and `.env` exists:
+
+1. Open cPanel → **Files** → **Git™ Version Control**.
+2. Find repository **Biobrassica**.
+3. Click **Manage**.
+4. Open **Pull or Deploy**.
+5. Click **Update from Remote**.
+6. Wait for cPanel to finish pulling.
+7. Click **Deploy HEAD Commit**.
+
+The `.cpanel.yml` will then:
+
+- create required folders,
+- install Composer dependencies if Composer exists,
+- copy public files to `public_html`,
+- run migrations,
+- seed the admin user,
+- cache config/routes/views.
+
+If the deploy fails, read the deployment output in cPanel. The `.cpanel.yml` intentionally stops with clear messages if `.env` or `vendor/autoload.php` is missing.
+
+---
+
+## 9. If Composer is not available on cPanel
+
+The `.cpanel.yml` tries these Composer options:
 
 ```text
-/home/biobrassica/biobrassica/storage
-/home/biobrassica/biobrassica/bootstrap/cache
-/home/biobrassica/public_html/storage
+/opt/cpanel/composer/bin/composer
+composer
 ```
 
-If Laravel cannot write logs/cache/uploads after deployment, ask the hosting provider which writable permission is required for PHP-FPM on your account. Some shared hosts require **0775**.
+If neither exists, deployment stops unless `vendor/` already exists.
 
-Avoid **0777** unless your host specifically instructs it.
+If that happens, use this fallback:
+
+1. On your local computer, run:
+
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   ```
+
+2. Upload the local `vendor/` folder to:
+
+   ```text
+   /home/biobrassica/biobrassica/vendor
+   ```
+
+3. Run **Deploy HEAD Commit** again.
+
+You still need `intl` enabled on cPanel. Ignoring `ext-intl` only bypasses Composer checks; it does not make Filament safe to run without `intl`.
 
 ---
 
-## 11. Find the PHP 8.3 CLI path for Cron Jobs
+## 10. Repeat deployments
 
-Cron commands need the PHP CLI binary path.
+After the first successful deployment, normal updates are simple:
 
-### 11.1 Set Cron Email first
+1. Push your changes to the remote Git repository.
+2. Open cPanel → **Git™ Version Control**.
+3. Click **Manage** on **Biobrassica**.
+4. Click **Update from Remote**.
+5. Click **Deploy HEAD Commit**.
 
-1. Open cPanel → **Advanced** → **Cron Jobs**.
-2. At the top, find **Cron Email**.
-3. Enter your email address.
-4. Click **Update Email**.
-
-This lets you receive command output.
-
-### 11.2 Test common PHP paths
-
-Add a temporary Cron Job, once per minute, with this command:
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php -v
-```
-
-Wait one minute and check the email output.
-
-If it reports PHP 8.3, use this path:
-
-```text
-/opt/cpanel/ea-php83/root/usr/bin/php
-```
-
-If it fails, delete that cron and try:
-
-```bash
-/usr/local/bin/php -v
-```
-
-Use whichever path reports PHP 8.3.
-
-The remaining guide assumes:
-
-```text
-/opt/cpanel/ea-php83/root/usr/bin/php
-```
-
-If your host uses another path, replace it in every command below.
+No manual File Manager copying should be needed for normal updates.
 
 ---
 
-## 12. Run Laravel commands through Cron Jobs
-
-Because there is no Terminal, each Artisan command must be run as a temporary Cron Job.
-
-For each command below:
-
-1. Open cPanel → **Advanced** → **Cron Jobs**.
-2. Choose **Once Per Minute**.
-3. Paste exactly one command.
-4. Click **Add New Cron Job**.
-5. Wait one minute.
-6. Check the email output.
-7. Delete that Cron Job.
-8. Continue to the next command.
-
-Do not leave these one-time commands running permanently.
-
-### 12.1 Clear existing Laravel caches
-
-Run this first so Laravel reads the fresh `.env`:
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan optimize:clear
-```
-
-Expected result includes messages like caches cleared successfully.
-
-### 12.2 Run database migrations
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan migrate --force
-```
-
-This creates/updates the database tables.
-
-If this fails, do not continue. Fix the database error first.
-
-### 12.3 Create or update the admin user
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan db:seed --force
-```
-
-This creates/updates the user from:
-
-```env
-ADMIN_EMAIL=admin@biobrassica.pt
-ADMIN_PASSWORD=...
-```
-
-### 12.4 Cache config
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan config:cache
-```
-
-### 12.5 Cache routes
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan route:cache
-```
-
-### 12.6 Cache views
-
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan view:cache
-```
-
-Do not run `storage:link`. This deployment uses:
-
-```env
-PUBLIC_DISK_ROOT=/home/biobrassica/public_html/storage
-```
-
----
-
-## 13. Test the deployment
+## 11. Test the site
 
 Test in this order.
 
-### 13.1 Health check
-
-Open:
+### 11.1 Health check
 
 ```text
 https://biobrassica.pt/_health
@@ -630,24 +412,13 @@ Expected:
 {"status":"ok"}
 ```
 
-If this fails, check:
-
-```text
-cPanel → Metrics → Errors
-/home/biobrassica/biobrassica/storage/logs/laravel.log
-```
-
-### 13.2 Website
-
-Open:
+### 11.2 Website
 
 ```text
 https://biobrassica.pt
 ```
 
-### 13.3 Shop
-
-Open:
+### 11.3 Shop
 
 ```text
 https://biobrassica.pt/loja
@@ -660,9 +431,7 @@ https://biobrassica.pt/loja/produtos
 https://biobrassica.pt/loja/conta/entrar
 ```
 
-### 13.4 Admin
-
-Open:
+### 11.4 Admin
 
 ```text
 https://biobrassica.pt/admin
@@ -672,50 +441,56 @@ Login with:
 
 ```text
 Email: admin@biobrassica.pt
-Password: the ADMIN_PASSWORD from .env
+Password: ADMIN_PASSWORD from .env
 ```
 
 ---
 
-## 14. After deployment
+## 12. Troubleshooting
 
-After everything works:
+### Deploy button is disabled
 
-1. Confirm `.env` still has:
+cPanel requires:
 
-   ```env
-   APP_DEBUG=false
-   ```
+- `.cpanel.yml` checked in at the repository root,
+- at least one branch,
+- clean working tree.
 
-2. Delete all temporary Cron Jobs used for deployment.
-3. Keep backups of:
-   - `/home/biobrassica/biobrassica/.env`
-   - database export from phpMyAdmin
-   - uploaded project ZIP on your local computer, not necessarily on cPanel
-4. In the admin panel, update website content and shop settings.
+Commit and push `.cpanel.yml`, then click **Update from Remote**.
 
----
+### Composer fails with `ext-intl` missing
 
-## 15. Troubleshooting
+Ask the host to enable PHP `intl` for PHP 8.3 on `biobrassica.pt`.
 
-### 15.1 `503 Application is not fully installed`
+Do not accept a production deployment without `intl`; Filament requires it.
 
-The bridge file cannot find Laravel.
+### Deployment stopped: `.env` is missing
 
-Check that these exist:
+Create:
+
+```text
+/home/biobrassica/biobrassica/.env
+```
+
+Then click **Deploy HEAD Commit** again.
+
+### Deployment stopped: `vendor/autoload.php` is missing
+
+Composer was not available or failed. Either fix Composer/`intl`, or upload `vendor/` manually once.
+
+### 503 Application is not fully installed
+
+Check:
 
 ```text
 /home/biobrassica/biobrassica/bootstrap/app.php
 /home/biobrassica/biobrassica/vendor/autoload.php
+/home/biobrassica/public_html/index.php
 ```
 
-Also confirm that `/home/biobrassica/public_html/index.php` is the cPanel bridge file from:
+`public_html/index.php` must be the bridge file from this repository's `public_html/index.php`.
 
-```text
-/home/biobrassica/biobrassica/public_html/index.php
-```
-
-### 15.2 `500 Internal Server Error`
+### 500 Internal Server Error
 
 Check:
 
@@ -726,83 +501,56 @@ cPanel → Metrics → Errors
 
 Common causes:
 
-- Wrong database password.
-- Missing PHP extension, especially `intl`.
-- `.env` syntax typo.
-- `storage` or `bootstrap/cache` not writable.
-- `vendor/` missing or incomplete.
+- wrong database password,
+- missing `intl`,
+- `.env` typo,
+- `storage/` or `bootstrap/cache/` not writable,
+- incomplete `vendor/`.
 
-### 15.3 `/loja` returns 404
+### `/loja` returns 404
 
-Check that route cache was rebuilt:
+Confirm `.env` has:
 
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan route:cache
+```env
+SHOP_PATH=loja
 ```
 
-Also confirm `SHOP_PATH=loja` exists in `.env`.
+Then deploy again so `route:cache` runs.
 
-### 15.4 `/admin` does not load
+### `/admin` does not load
 
-Confirm:
+Confirm `.env` has:
 
 ```env
 ADMIN_PATH=admin
 ```
 
-Then rerun:
+Then deploy again so `config:cache` and `route:cache` run.
 
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan optimize:clear
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan config:cache
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan route:cache
-```
+### Admin says you do not have access
 
-### 15.5 Admin says you do not have access
-
-Make sure the admin user's email is listed in `.env`:
+Confirm `.env` has:
 
 ```env
+ADMIN_EMAIL=admin@biobrassica.pt
 ADMIN_EMAILS=admin@biobrassica.pt
 ```
 
-Then rerun the seed command:
+Then deploy again or run the seed step again through deployment.
 
-```bash
-/opt/cpanel/ea-php83/root/usr/bin/php /home/biobrassica/biobrassica/artisan db:seed --force
-```
+### CSS, JS, or images missing
 
-### 15.6 CSS, JS, or images are missing
-
-Re-copy everything from:
+Click **Deploy HEAD Commit** again. The deploy copies:
 
 ```text
-/home/biobrassica/biobrassica/public
+public/ → /home/biobrassica/public_html
 ```
 
-to:
+and overwrites the bridge files.
 
-```text
-/home/biobrassica/public_html
-```
+### Uploads fail
 
-Then re-copy these bridge files:
-
-```text
-/home/biobrassica/biobrassica/public_html/index.php
-/home/biobrassica/biobrassica/public_html/.htaccess
-/home/biobrassica/biobrassica/public_html/.user.ini
-```
-
-to:
-
-```text
-/home/biobrassica/public_html
-```
-
-### 15.7 File uploads fail
-
-Confirm this folder exists and is writable:
+Confirm this folder exists:
 
 ```text
 /home/biobrassica/public_html/storage
@@ -816,17 +564,18 @@ FILAMENT_FILESYSTEM_DISK=public
 PUBLIC_DISK_ROOT=/home/biobrassica/public_html/storage
 ```
 
-Then clear/cache config again.
+If it still fails, ask the host whether PHP-FPM requires folder permission `0775` for writable folders.
 
 ---
 
-## 16. What not to do
+## 13. Do not do these things
 
 Do not:
 
-- Put the full Laravel app inside `/home/biobrassica/public_html`.
-- Put `.env` inside `/home/biobrassica/public_html`.
-- Depend on `loja.biobrassica.pt` or `admin.biobrassica.pt`.
-- Run `storage:link` for this deployment.
-- Leave one-time Cron Jobs active.
-- Enable `APP_DEBUG=true` in production.
+- clone the Git repository into `/home/biobrassica/public_html`,
+- put `.env` in `/home/biobrassica/public_html`,
+- rely on `loja.biobrassica.pt` or `admin.biobrassica.pt`,
+- run `storage:link`,
+- leave `APP_DEBUG=true`,
+- commit `.env` or `.env.cpanel`,
+- edit files inside cPanel Git repository with File Manager except for `.env`; prefer changing code locally, pushing to Git, then deploying.
