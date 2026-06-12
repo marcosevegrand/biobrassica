@@ -17,9 +17,11 @@ deployment:
     - /bin/cp public_html/index.php $PUBLICPATH/index.php
     - /bin/cp public_html/.htaccess $PUBLICPATH/.htaccess
     - /bin/cp public_html/.user.ini $PUBLICPATH/.user.ini
-    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan optimize:clear || echo "vendor/ not found, skipping artisan"
-    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan migrate --force || echo "vendor/ not found, skipping migrate"
-    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan db:seed --force || echo "vendor/ not found, skipping seed"
-    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan config:cache || echo "vendor/ not found, skipping config:cache"
-    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan route:cache || echo "vendor/ not found, skipping route:cache"
-    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan view:cache || echo "vendor/ not found, skipping view:cache"
+    - test -f $APPPATH/vendor/autoload.php
+    - test -f $APPPATH/.env
+    - cd $APPPATH && $PHPBIN artisan optimize:clear 2>&1
+    - cd $APPPATH && $PHPBIN artisan migrate --force 2>&1
+    - cd $APPPATH && $PHPBIN artisan db:seed --force 2>&1
+    - cd $APPPATH && $PHPBIN artisan config:cache 2>&1
+    - cd $APPPATH && $PHPBIN artisan route:cache 2>&1
+    - cd $APPPATH && $PHPBIN artisan view:cache 2>&1
