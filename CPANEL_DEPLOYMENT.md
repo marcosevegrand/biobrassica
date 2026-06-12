@@ -1,15 +1,21 @@
 # Biobrassica — cPanel Git Deployment Guide
 
-This guide matches your real cPanel limitations:
+This guide is written for the actual hosting plan being used.
+
+## Account assumptions
 
 - cPanel username: `biobrassica`
-- Only `biobrassica.pt` exists as a real cPanel domain
-- Your plan does **not** allow additional domains/subdomains in cPanel
-- `loja.biobrassica.pt` and `admin.biobrassica.pt` may exist in **Zone Editor**, but they are DNS-only and are not valid app entry points
+- Main cPanel domain: `biobrassica.pt`
+- Main document root: `/home/biobrassica/public_html`
+- Laravel app path: `/home/biobrassica/biobrassica`
+- PHP version: PHP 8.3
 - No Terminal access
-- Deployment should use **Git™ Version Control** + `.cpanel.yml`
+- No extra cPanel domains/subdomains allowed
+- Deployment method: **cPanel Git™ Version Control** using `.cpanel.yml`
 
-Final URLs:
+## Final URLs
+
+Because the hosting plan does not allow real cPanel subdomains, the app uses paths:
 
 ```text
 Website: https://biobrassica.pt
@@ -18,31 +24,59 @@ Admin:   https://biobrassica.pt/admin
 Health:  https://biobrassica.pt/_health
 ```
 
+Do **not** use these as production app URLs:
+
+```text
+https://loja.biobrassica.pt
+https://admin.biobrassica.pt
+```
+
+Those may exist in **Zone Editor**, but they are DNS-only on this plan. They do not create Apache/cPanel virtual hosts.
+
 ---
 
-## What the `.cpanel.yml` now automates
+# 1. What is automated by `.cpanel.yml`
 
-The checked-in `.cpanel.yml` automatically does this when you click **Deploy HEAD Commit** in cPanel Git:
+The repository contains a checked-in `.cpanel.yml` file.
 
-1. Uses the app path:
+When you click **Deploy HEAD Commit** in cPanel Git, it automatically:
+
+1. Uses app path:
 
    ```text
    /home/biobrassica/biobrassica
    ```
 
-2. Uses the public path:
+2. Uses public path:
 
    ```text
    /home/biobrassica/public_html
    ```
 
-3. Creates required writable folders.
-4. Runs Composer install if cPanel Composer exists.
-5. Stops deployment if `vendor/autoload.php` is missing.
-6. Stops deployment if `.env` is missing.
-7. Copies everything from `public/` to `public_html/`.
-8. Overwrites `public_html/index.php`, `.htaccess`, and `.user.ini` with the cPanel bridge files.
-9. Runs:
+3. Creates required folders:
+
+   ```text
+   /home/biobrassica/public_html/storage
+   /home/biobrassica/biobrassica/bootstrap/cache
+   /home/biobrassica/biobrassica/storage/framework/cache/data
+   /home/biobrassica/biobrassica/storage/framework/sessions
+   /home/biobrassica/biobrassica/storage/framework/views
+   /home/biobrassica/biobrassica/storage/logs
+   ```
+
+4. Runs Composer install if Composer is available in cPanel.
+5. Stops clearly if `vendor/autoload.php` is missing.
+6. Stops clearly if `.env` is missing.
+7. Copies everything from `public/` to `/home/biobrassica/public_html`.
+8. Overwrites these public bridge files:
+
+   ```text
+   /home/biobrassica/public_html/index.php
+   /home/biobrassica/public_html/.htaccess
+   /home/biobrassica/public_html/.user.ini
+   ```
+
+9. Runs Laravel deployment commands:
 
    ```text
    php artisan optimize:clear
@@ -53,37 +87,35 @@ The checked-in `.cpanel.yml` automatically does this when you click **Deploy HEA
    php artisan view:cache
    ```
 
-This means repeat deployments become:
+After the first setup, normal deployments should be:
 
 ```text
-cPanel → Git™ Version Control → Manage → Update from Remote → Deploy HEAD Commit
+Push code to Git → cPanel Git™ Version Control → Update from Remote → Deploy HEAD Commit
 ```
 
 ---
 
-## What cannot be automated by `.cpanel.yml`
+# 2. What is not automated
 
-These must still be done once in cPanel:
+These must be done once in cPanel:
 
 1. Set PHP 8.3 for `biobrassica.pt`.
 2. Ensure PHP extension `intl` is enabled.
-3. Create the database and database user.
-4. Create the `.env` file with secrets.
-5. Create/register the cPanel Git repository.
-
-After that, Git deploy handles the normal deployment tasks.
+3. Create/confirm the MySQL database and user.
+4. Create `/home/biobrassica/biobrassica/.env`.
+5. Create/register the cPanel Git repository at `/home/biobrassica/biobrassica`.
 
 ---
 
-## 1. Set PHP 8.3
+# 3. Set PHP 8.3
 
 1. Open cPanel.
 2. Go to **Software** → **MultiPHP Manager**.
-3. Select `biobrassica.pt`.
+3. Select only `biobrassica.pt`.
 4. Set PHP version to **8.3**.
 5. Click **Apply**.
 
-Required PHP 8.3 extensions:
+Required PHP extensions for PHP 8.3:
 
 ```text
 intl
@@ -98,9 +130,9 @@ xml
 dom
 ```
 
-Important: Filament requires `intl`. Without `intl`, Composer or the admin panel can fail.
+Important: **Filament requires `intl`**. Without it, Composer and/or the admin panel can fail.
 
-If you cannot enable `intl` in cPanel, ask the host:
+If `intl` is not enabled, ask the host:
 
 ```text
 Please enable the PHP intl extension for PHP 8.3 on my cPanel domain biobrassica.pt. My Laravel/Filament app requires it.
@@ -108,7 +140,7 @@ Please enable the PHP intl extension for PHP 8.3 on my cPanel domain biobrassica
 
 ---
 
-## 2. Configure PHP INI settings
+# 4. Confirm PHP INI settings
 
 The repository includes:
 
@@ -116,13 +148,13 @@ The repository includes:
 public_html/.user.ini
 ```
 
-The Git deploy copies it to:
+During Git deploy, `.cpanel.yml` copies it to:
 
 ```text
 /home/biobrassica/public_html/.user.ini
 ```
 
-It sets:
+It contains safe production settings:
 
 ```ini
 display_errors=Off
@@ -134,22 +166,22 @@ post_max_size=25M
 max_execution_time=120
 ```
 
-You do not need to manually recreate these values in MultiPHP INI Editor unless your host requires it.
+You do not need to manually recreate these in **MultiPHP INI Editor** unless the hosting provider asks you to.
 
 ---
 
-## 3. Create or confirm the database
+# 5. Create or confirm the database
 
-Open cPanel → **Databases** → **Database Wizard**.
+Open cPanel → **Databases** → **Database Wizard** or **MySQL Database Wizard**.
 
-Use:
+Create:
 
 ```text
 Database name entered: biobrassica
 Database user entered: biobrassica
 ```
 
-cPanel should create:
+cPanel should create these final names:
 
 ```text
 DB_DATABASE=biobrassica_biobrassica
@@ -160,16 +192,16 @@ Steps:
 
 1. Create database `biobrassica`.
 2. Create user `biobrassica`.
-3. Choose a strong password.
-4. Save that password.
-5. Add the user to the database.
+3. Choose a strong database password.
+4. Save the password.
+5. Add user `biobrassica_biobrassica` to database `biobrassica_biobrassica`.
 6. Grant **ALL PRIVILEGES**.
 
-If the database already exists, go to **Manage My Databases** and confirm the user has **ALL PRIVILEGES**.
+If the database already exists, open **Manage My Databases** and confirm that user `biobrassica_biobrassica` has **ALL PRIVILEGES** on database `biobrassica_biobrassica`.
 
 ---
 
-## 4. Confirm domain document root
+# 6. Confirm the main domain
 
 Open cPanel → **Domains**.
 
@@ -181,9 +213,9 @@ Document root: /home/biobrassica/public_html
 PHP version:   8.3
 ```
 
-Enable **Force HTTPS Redirect** for `biobrassica.pt` after SSL is active.
+After SSL is active, enable **Force HTTPS Redirect** for `biobrassica.pt`.
 
-Do not create deployment instructions for `loja.biobrassica.pt` or `admin.biobrassica.pt`. Your production paths are:
+Do not configure deployment around `loja.biobrassica.pt` or `admin.biobrassica.pt`. The app uses:
 
 ```text
 /loja
@@ -192,9 +224,9 @@ Do not create deployment instructions for `loja.biobrassica.pt` or `admin.biobra
 
 ---
 
-## 5. Enable hidden files in File Manager
+# 7. Enable hidden files in File Manager
 
-You need this to see/edit `.env`, `.htaccess`, and `.user.ini`.
+This is necessary to see/edit dotfiles like `.env`, `.htaccess`, and `.user.ini`.
 
 1. Open cPanel → **Files** → **File Manager**.
 2. Click **Settings**.
@@ -203,15 +235,15 @@ You need this to see/edit `.env`, `.htaccess`, and `.user.ini`.
 
 ---
 
-## 6. Create the cPanel Git repository
+# 8. Create the cPanel Git repository
 
 Open cPanel → **Files** → **Git™ Version Control**.
 
-### 6.1 Create repository
+## 8.1 Create repository
 
 1. Click **Create**.
 2. Enable **Clone a Repository**.
-3. In **Clone URL**, enter your remote Git repository URL.
+3. In **Clone URL**, enter the remote Git repository URL.
 4. In **Repository Path**, enter exactly:
 
    ```text
@@ -226,38 +258,28 @@ Open cPanel → **Files** → **Git™ Version Control**.
 
 6. Click **Create**.
 
-### 6.2 Important notes
+## 8.2 Important repository notes
 
-- The repository path must be `/home/biobrassica/biobrassica` because `.cpanel.yml` expects that path.
-- Do not clone the repository directly into `/home/biobrassica/public_html`.
-- If cPanel says the path is not empty, either empty that folder first or choose **Add Existing Repository** only if it is already the correct Git repository.
-- If your remote repository is private, cPanel may require SSH key setup. If that is blocked by your plan, use a public repository or ask the host how private Git repositories are supported in your account.
+- The repository path must be `/home/biobrassica/biobrassica`.
+- Do not clone into `/home/biobrassica/public_html`.
+- Do not manually edit app code in File Manager after cloning; push changes to Git instead.
+- If the remote repository is private, cPanel may require SSH key configuration. If your plan blocks that, use a public repository or ask the host how private Git repositories are supported.
 
 ---
 
-## 7. Create the `.env` file once
+# 9. Create the `.env` file
 
-The `.env` file is intentionally not committed to Git. You must create it once using File Manager.
+The Laravel `.env` is not committed to Git. You must create it once.
 
-Create:
+Create this file:
 
 ```text
 /home/biobrassica/biobrassica/.env
 ```
 
-Use your local `.env.cpanel` as the source. Fill real values for:
+Use your local `.env.cpanel` as the source. Fill in real secret values.
 
-```text
-APP_KEY
-DB_PASSWORD
-MAIL_PASSWORD
-ADMIN_PASSWORD
-MANUAL_MBWAY_NUMBER
-BANK_TRANSFER_IBAN
-BANK_TRANSFER_BIC
-```
-
-Minimum expected shape:
+Minimum required shape:
 
 ```env
 APP_NAME=Biobrassica
@@ -320,13 +342,14 @@ Rules:
 
 - Do not put `.env` in `/home/biobrassica/public_html`.
 - Do not commit `.env`.
+- Do not commit `.env.cpanel`.
 - Do not add `APP_DEBUG=true`.
 - Use `CACHE_STORE`, not `CACHE_DRIVER`.
 - Use `MAIL_SCHEME=smtp`, not `MAIL_ENCRYPTION=tls`.
 
 ---
 
-## 8. First deployment with Git
+# 10. First Git deployment
 
 After the repository exists and `.env` exists:
 
@@ -335,72 +358,73 @@ After the repository exists and `.env` exists:
 3. Click **Manage**.
 4. Open **Pull or Deploy**.
 5. Click **Update from Remote**.
-6. Wait for cPanel to finish pulling.
+6. Wait until cPanel finishes pulling.
 7. Click **Deploy HEAD Commit**.
 
-The `.cpanel.yml` will then:
+During deployment, `.cpanel.yml` will:
 
-- create required folders,
-- install Composer dependencies if Composer exists,
-- copy public files to `public_html`,
-- run migrations,
+- create folders,
+- run Composer if available,
+- copy public assets,
+- publish bridge files,
+- migrate the database,
 - seed the admin user,
 - cache config/routes/views.
 
-If the deploy fails, read the deployment output in cPanel. The `.cpanel.yml` intentionally stops with clear messages if `.env` or `vendor/autoload.php` is missing.
+If deploy fails, read the output shown by cPanel. The deploy script intentionally stops with clear messages when `.env` or `vendor/autoload.php` is missing.
 
 ---
 
-## 9. If Composer is not available on cPanel
+# 11. If Composer is not available in cPanel
 
-The `.cpanel.yml` tries these Composer options:
+The deploy script tries:
 
 ```text
 /opt/cpanel/composer/bin/composer
 composer
 ```
 
-If neither exists, deployment stops unless `vendor/` already exists.
+If neither exists, deploy will continue only if `vendor/autoload.php` already exists.
 
-If that happens, use this fallback:
+Fallback:
 
-1. On your local computer, run:
+1. On your local computer, install dependencies:
 
    ```bash
    composer install --no-dev --optimize-autoloader
    ```
 
-2. Upload the local `vendor/` folder to:
+2. Upload your local `vendor/` folder to:
 
    ```text
    /home/biobrassica/biobrassica/vendor
    ```
 
-3. Run **Deploy HEAD Commit** again.
+3. Click **Deploy HEAD Commit** again.
 
-You still need `intl` enabled on cPanel. Ignoring `ext-intl` only bypasses Composer checks; it does not make Filament safe to run without `intl`.
+Important: cPanel still needs PHP `intl` enabled. Ignoring `ext-intl` only bypasses Composer checks; it does not make Filament safe to run without `intl`.
 
 ---
 
-## 10. Repeat deployments
+# 12. Repeat deployments
 
-After the first successful deployment, normal updates are simple:
+After first successful setup, normal updates are:
 
-1. Push your changes to the remote Git repository.
+1. Push code to the remote Git repository.
 2. Open cPanel → **Git™ Version Control**.
-3. Click **Manage** on **Biobrassica**.
+3. Click **Manage** for **Biobrassica**.
 4. Click **Update from Remote**.
 5. Click **Deploy HEAD Commit**.
 
-No manual File Manager copying should be needed for normal updates.
+No File Manager copying should be needed for normal deploys.
 
 ---
 
-## 11. Test the site
+# 13. Test the site
 
 Test in this order.
 
-### 11.1 Health check
+## 13.1 Health check
 
 ```text
 https://biobrassica.pt/_health
@@ -412,26 +436,21 @@ Expected:
 {"status":"ok"}
 ```
 
-### 11.2 Website
+## 13.2 Website
 
 ```text
 https://biobrassica.pt
 ```
 
-### 11.3 Shop
+## 13.3 Shop
 
 ```text
 https://biobrassica.pt/loja
-```
-
-Also test:
-
-```text
 https://biobrassica.pt/loja/produtos
 https://biobrassica.pt/loja/conta/entrar
 ```
 
-### 11.4 Admin
+## 13.4 Admin
 
 ```text
 https://biobrassica.pt/admin
@@ -446,9 +465,9 @@ Password: ADMIN_PASSWORD from .env
 
 ---
 
-## 12. Troubleshooting
+# 14. Troubleshooting
 
-### Deploy button is disabled
+## Deploy button is disabled
 
 cPanel requires:
 
@@ -458,13 +477,86 @@ cPanel requires:
 
 Commit and push `.cpanel.yml`, then click **Update from Remote**.
 
-### Composer fails with `ext-intl` missing
+If cPanel shows this message:
+
+```text
+The system cannot deploy
+For deployment, ensure that your repository meets the following requirements:
+A valid .cpanel.yml file exists.
+No uncommitted changes exist on the checked-out branch.
+```
+
+use this checklist:
+
+1. On your local computer, confirm `.cpanel.yml` is committed and pushed:
+
+   ```bash
+   git status
+   git add .cpanel.yml CPANEL_DEPLOYMENT.md .gitignore .env.example
+   git commit -m "Configure cPanel deployment"
+   git push
+   ```
+
+   If Git says there is nothing to commit, just run `git push`.
+
+2. In cPanel → **Git™ Version Control** → **Manage** → **Basic Information**, confirm the repository path is exactly:
+
+   ```text
+   /home/biobrassica/biobrassica
+   ```
+
+3. In cPanel → **Git™ Version Control** → **Manage** → **Pull or Deploy**, click:
+
+   ```text
+   Update from Remote
+   ```
+
+4. If deployment is still disabled, the cPanel checkout probably has uncommitted changes. This commonly happens when `.cpanel.yml`, `.htaccess`, `index.php`, or other tracked files were edited directly in File Manager.
+
+5. Since this cPanel account has no Terminal, the cleanest recovery is to recreate the cPanel clone:
+
+   - In File Manager, download or copy this file somewhere safe:
+
+     ```text
+     /home/biobrassica/biobrassica/.env
+     ```
+
+   - In cPanel → **Git™ Version Control**, remove/unregister the repository.
+   - In File Manager, rename the old folder:
+
+     ```text
+     /home/biobrassica/biobrassica
+     ```
+
+     to:
+
+     ```text
+     /home/biobrassica/biobrassica_old
+     ```
+
+   - Recreate the repository in cPanel Git using path:
+
+     ```text
+     /home/biobrassica/biobrassica
+     ```
+
+   - Put the saved `.env` back into:
+
+     ```text
+     /home/biobrassica/biobrassica/.env
+     ```
+
+   - Go to **Pull or Deploy** and click **Deploy HEAD Commit**.
+
+Important: do not create or edit `.cpanel.yml` directly in cPanel File Manager. It must be committed to Git and pulled from the remote repository. Editing tracked files directly in cPanel makes the working tree dirty, and cPanel disables deployment.
+
+## Composer fails with `ext-intl` missing
 
 Ask the host to enable PHP `intl` for PHP 8.3 on `biobrassica.pt`.
 
-Do not accept a production deployment without `intl`; Filament requires it.
+Do not deploy this app without `intl`; Filament requires it.
 
-### Deployment stopped: `.env` is missing
+## Deployment stopped: `.env` is missing
 
 Create:
 
@@ -474,11 +566,11 @@ Create:
 
 Then click **Deploy HEAD Commit** again.
 
-### Deployment stopped: `vendor/autoload.php` is missing
+## Deployment stopped: `vendor/autoload.php` is missing
 
 Composer was not available or failed. Either fix Composer/`intl`, or upload `vendor/` manually once.
 
-### 503 Application is not fully installed
+## 503: Application is not fully installed
 
 Check:
 
@@ -488,9 +580,9 @@ Check:
 /home/biobrassica/public_html/index.php
 ```
 
-`public_html/index.php` must be the bridge file from this repository's `public_html/index.php`.
+`public_html/index.php` must be the bridge file from the repository's `public_html/index.php`.
 
-### 500 Internal Server Error
+## 500 Internal Server Error
 
 Check:
 
@@ -507,7 +599,7 @@ Common causes:
 - `storage/` or `bootstrap/cache/` not writable,
 - incomplete `vendor/`.
 
-### `/loja` returns 404
+## `/loja` returns 404
 
 Confirm `.env` has:
 
@@ -515,9 +607,9 @@ Confirm `.env` has:
 SHOP_PATH=loja
 ```
 
-Then deploy again so `route:cache` runs.
+Then run deploy again so route cache is rebuilt.
 
-### `/admin` does not load
+## `/admin` does not load
 
 Confirm `.env` has:
 
@@ -525,9 +617,9 @@ Confirm `.env` has:
 ADMIN_PATH=admin
 ```
 
-Then deploy again so `config:cache` and `route:cache` run.
+Then run deploy again so config and route caches are rebuilt.
 
-### Admin says you do not have access
+## Admin says you do not have access
 
 Confirm `.env` has:
 
@@ -536,9 +628,9 @@ ADMIN_EMAIL=admin@biobrassica.pt
 ADMIN_EMAILS=admin@biobrassica.pt
 ```
 
-Then deploy again or run the seed step again through deployment.
+Then deploy again so `db:seed --force` runs.
 
-### CSS, JS, or images missing
+## CSS, JS, or images are missing
 
 Click **Deploy HEAD Commit** again. The deploy copies:
 
@@ -546,9 +638,7 @@ Click **Deploy HEAD Commit** again. The deploy copies:
 public/ → /home/biobrassica/public_html
 ```
 
-and overwrites the bridge files.
-
-### Uploads fail
+## Uploads fail
 
 Confirm this folder exists:
 
@@ -568,7 +658,7 @@ If it still fails, ask the host whether PHP-FPM requires folder permission `0775
 
 ---
 
-## 13. Do not do these things
+# 15. Do not do these things
 
 Do not:
 
@@ -578,4 +668,4 @@ Do not:
 - run `storage:link`,
 - leave `APP_DEBUG=true`,
 - commit `.env` or `.env.cpanel`,
-- edit files inside cPanel Git repository with File Manager except for `.env`; prefer changing code locally, pushing to Git, then deploying.
+- edit app code in File Manager after Git setup; change code locally, push to Git, then deploy.
