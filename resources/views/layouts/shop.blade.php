@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/brand/favicon_green.png') }}">
     <meta name="description" content="@yield('meta_description', $websiteDefaults->seo_description ?? 'Loja online Biobrassica — produtos biológicos de Braga e Guimarães.')">
     <link rel="stylesheet" href="{{ asset('css/output.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/biobrassica-overrides.css') }}">
     <script src="{{ asset('js/htmx.min.js') }}" defer></script>
     @yield('head_extra')
 </head>

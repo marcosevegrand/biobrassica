@@ -1,0 +1,98 @@
+/* Compatibility layer for classes copied from the original Django/Tailwind build.
+   The Laravel project ships a precompiled CSS file, so arbitrary Tailwind classes
+   added in Blade will not exist unless we define the important ones here. */
+
+#site-header nav > a img,
+#site-header .bb-nav-logo {
+  display: block;
+  height: 52px !important;
+  max-height: 52px !important;
+  width: auto !important;
+  max-width: 210px !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 640px) {
+  #site-header nav > a img,
+  #site-header .bb-nav-logo {
+    height: 42px !important;
+    max-height: 42px !important;
+    max-width: 170px !important;
+  }
+}
+
+img { max-width: 100%; }
+.object-contain { object-fit: contain; }
+.rounded-sm { border-radius: 2px; }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25); }
+.max-w-384 { max-width: 96rem; }
+
+.h-\[68px\] { height: 52px !important; }
+.max-h-\[68px\] { max-height: 52px !important; }
+.max-w-\[280px\] { max-width: 210px !important; }
+
+.aspect-4\/3 { aspect-ratio: 4 / 3; }
+.aspect-3\/4 { aspect-ratio: 3 / 4; }
+.aspect-4\/5 { aspect-ratio: 4 / 5; }
+.aspect-video { aspect-ratio: 16 / 9; }
+.min-h-\[70vh\] { min-height: 70vh; }
+.text-\[10px\] { font-size: 10px; }
+.py-3\.5 { padding-top: .875rem; padding-bottom: .875rem; }
+
+.bg-terracotta\/6 { background-color: rgb(176 120 80 / 0.06); }
+.bg-stone\/10 { background-color: rgb(209 209 204 / 0.10); }
+.bg-stone\/15 { background-color: rgb(209 209 204 / 0.15); }
+.border-stone\/20 { border-color: rgb(209 209 204 / 0.20); }
+.border-stone\/30 { border-color: rgb(209 209 204 / 0.30); }
+.text-muted\/30 { color: rgb(107 107 107 / 0.30); }
+.text-paper\/50 { color: rgb(251 249 246 / 0.50); }
+.text-paper\/60 { color: rgb(251 249 246 / 0.60); }
+.text-paper\/70 { color: rgb(251 249 246 / 0.70); }
+.text-paper\/80 { color: rgb(251 249 246 / 0.80); }
+.text-paper\/90 { color: rgb(251 249 246 / 0.90); }
+.hover\:bg-terracotta:hover { background-color: #B07850; }
+.hover\:text-paper:hover { color: #FBF9F6; }
+.hover\:border-forest:hover { border-color: #2C3F2D; }
+.hover\:border-forest\/60:hover { border-color: rgb(44 63 45 / 0.60); }
+.group:hover .group-hover\:border-forest\/60 { border-color: rgb(44 63 45 / 0.60); }
+.group:hover .group-hover\:text-forest { color: #2C3F2D; }
+.group:hover .group-hover\:text-terracotta { color: #B07850; }
+.group:hover .group-hover\:scale-105 { transform: scale(1.05); }
+.bg-\[radial-gradient\(circle_at_30\%_50\%\,rgba\(255\,255\,255\,0\.1\)\,transparent_60\%\)\] { background-image: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1), transparent 60%); }
+
+.tracking-\[0\.14em\] { letter-spacing: 0.14em; }
+.tracking-\[0\.18em\] { letter-spacing: 0.18em; }
+.tracking-\[0\.2em\] { letter-spacing: 0.2em; }
+.tracking-\[0\.22em\] { letter-spacing: 0.22em; }
+.tracking-\[0\.3em\] { letter-spacing: 0.3em; }
+
+.opacity-\[0\.16\] { opacity: 0.16; }
+.opacity-\[0\.18\] { opacity: 0.18; }
+.opacity-\[0\.19\] { opacity: 0.19; }
+.opacity-\[0\.20\] { opacity: 0.20; }
+.opacity-\[0\.21\] { opacity: 0.21; }
+.opacity-\[0\.22\] { opacity: 0.22; }
+
+.top-\[6\%\] { top: 6%; } .top-\[8\%\] { top: 8%; } .top-\[11\%\] { top: 11%; } .top-\[13\%\] { top: 13%; }
+.top-\[27\%\] { top: 27%; } .top-\[36\%\] { top: 36%; } .top-\[43\%\] { top: 43%; } .top-\[52\%\] { top: 52%; }
+.top-\[53\%\] { top: 53%; } .top-\[60\%\] { top: 60%; } .top-\[74\%\] { top: 74%; } .top-\[77\%\] { top: 77%; }
+.top-\[78\%\] { top: 78%; } .top-\[82\%\] { top: 82%; }
+.left-\[9\%\] { left: 9%; } .left-\[10\%\] { left: 10%; } .left-\[14\%\] { left: 14%; } .left-\[15\%\] { left: 15%; }
+.left-\[81\%\] { left: 81%; } .left-\[82\%\] { left: 82%; } .left-\[83\%\] { left: 83%; } .left-\[85\%\] { left: 85%; } .left-\[87\%\] { left: 87%; }
+
+.svg-filter-hero,
+.svg-filter-cta { filter: brightness(0) invert(1); }
+
+.bb-btn,
+a[class*="uppercase"][class*="tracking"],
+button[class*="uppercase"][class*="tracking"] {
+  line-height: 1.2;
+}
+
+.bb-media-frame,
+.bb-media-frame img {
+  width: 100%;
+  overflow: hidden;
+}
+
+.bb-media-frame img { height: 100%; object-fit: cover; }

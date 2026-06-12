@@ -4,7 +4,7 @@
 
 @section('content')
 <section class="relative bg-forest text-paper overflow-hidden mt-6">
-  <div class="absolute inset-0 opacity-10"><div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_60%)]"></div></div>
+  <div class="absolute inset-0 opacity-10"><div class="absolute inset-0" style="background-image: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1), transparent 60%);"></div></div>
   <div class="relative max-w-7xl mx-auto px-6 sm:px-8 py-20 md:py-28"><div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center"><div><p class="text-xs uppercase tracking-[0.3em] text-paper/50 mb-4">Loja Online Biobrassica</p><h1 class="text-4xl sm:text-5xl md:text-6xl font-serif italic leading-tight mb-6">Produtos biológicos, entregues com cuidado</h1><p class="text-paper/70 text-lg leading-relaxed mb-10 max-w-lg">Do campo para a sua porta. Encomende online e receba em casa ou levante nas nossas lojas em Braga e Guimarães.</p><a href="{{ route('catalog.products') }}" class="inline-block px-8 py-3.5 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">Ver Produtos</a></div><div class="hidden md:block"><img src="{{ asset('images/people/002.jpg') }}" alt="Equipa Biobrassica" class="w-full h-auto rounded-sm shadow-2xl"></div></div></div>
 </section>
 

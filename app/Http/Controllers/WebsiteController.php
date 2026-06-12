@@ -11,11 +11,11 @@ class WebsiteController extends Controller
 {
     public function home()
     {
-        $websiteContent = WebsiteContent::first();
-        $instagramPosts = InstagramPost::where('is_active', true)
+        $websiteContent = $this->websiteContent();
+        $instagramPosts = $this->safeCollection(fn () => InstagramPost::where('is_active', true)
             ->orderBy('sort_order')
             ->take(5)
-            ->get();
+            ->get());
         $teamMembers = $this->getActiveTeamMembers();
 
         return view('website.home', compact('websiteContent', 'instagramPosts', 'teamMembers'));
@@ -23,7 +23,7 @@ class WebsiteController extends Controller
 
     public function about()
     {
-        $websiteContent = WebsiteContent::first();
+        $websiteContent = $this->websiteContent();
         $teamMembers = $this->getActiveTeamMembers();
 
         return view('website.about', compact('websiteContent', 'teamMembers'));
@@ -31,45 +31,89 @@ class WebsiteController extends Controller
 
     public function agriculture()
     {
-        $websiteContent = WebsiteContent::first();
+        $websiteContent = $this->websiteContent();
 
         return view('website.agriculture', compact('websiteContent'));
     }
 
     public function contacts()
     {
-        $websiteContent = WebsiteContent::first();
-        $locations = Location::query()
+        $websiteContent = $this->websiteContent();
+        $locations = $this->safeCollection(fn () => Location::query()
             ->select('locations.*')
             ->join('location_positions', 'locations.id', '=', 'location_positions.location_id')
             ->where('locations.is_active', true)
             ->orderBy('location_positions.position')
-            ->get();
+            ->get(), $this->fallbackLocations());
 
         return view('website.contacts', compact('websiteContent', 'locations'));
     }
 
     public function privacy()
     {
-        $websiteContent = WebsiteContent::first();
+        $websiteContent = $this->websiteContent();
 
         return view('website.privacy', compact('websiteContent'));
     }
 
     public function terms()
     {
-        $websiteContent = WebsiteContent::first();
+        $websiteContent = $this->websiteContent();
 
         return view('website.terms', compact('websiteContent'));
     }
 
     private function getActiveTeamMembers()
     {
-        return TeamMember::query()
+        return $this->safeCollection(fn () => TeamMember::query()
             ->select('team_members.*')
             ->join('team_member_positions', 'team_members.id', '=', 'team_member_positions.team_member_id')
             ->where('team_members.is_active', true)
             ->orderBy('team_member_positions.position')
-            ->get();
+            ->get());
+    }
+
+    private function websiteContent(): ?WebsiteContent
+    {
+        try {
+            return WebsiteContent::first();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function safeCollection(callable $callback, $fallback = null)
+    {
+        try {
+            return $callback();
+        } catch (\Throwable) {
+            return $fallback ?? collect();
+        }
+    }
+
+    private function fallbackLocations()
+    {
+        return collect([
+            (object) [
+                'name' => 'Loja Braga',
+                'pickup_location_code' => 'braga',
+                'address' => "Avenida Doutor António Palha\nBraga",
+                'image' => 'images/shop/loja-braga.webp',
+                'phone' => '253 271 187',
+                'email' => 'geral@biobrassica.pt',
+                'opening_hours' => "Segunda a Sábado\n9h00 – 19h30",
+                'map_embed_url' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Braga+Avenida+Doutor+Ant%C3%B3nio+Palha&t=&z=16&ie=UTF8&iwloc=&output=embed',
+            ],
+            (object) [
+                'name' => 'Loja Guimarães',
+                'pickup_location_code' => 'guimaraes',
+                'address' => "Rua Calouste Gulbenkian\nGuimarães",
+                'image' => 'images/shop/loja-guima.webp',
+                'phone' => '253 145 388',
+                'email' => 'geral@biobrassica.pt',
+                'opening_hours' => "Segunda a Sábado\n9h00 – 19h30",
+                'map_embed_url' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Guimar%C3%A3es+Rua+Calouste+Gulbenkian&t=&z=16&ie=UTF8&iwloc=&output=embed',
+            ],
+        ]);
     }
 }

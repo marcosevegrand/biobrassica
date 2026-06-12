@@ -14,6 +14,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon_green.png') }}">
 
     <link rel="stylesheet" href="{{ asset('css/output.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/biobrassica-overrides.css') }}">
 
     @yield('extra_css')
 </head>

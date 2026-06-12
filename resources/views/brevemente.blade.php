@@ -6,6 +6,7 @@
     <title>Brevemente | Biobrassica</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/brand/favicon_green.png') }}">
     <link rel="stylesheet" href="{{ asset('css/output.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/biobrassica-overrides.css') }}">
 </head>
 <body class="bg-white flex items-center justify-center min-h-screen font-serif">
     <main class="text-center p-8">
