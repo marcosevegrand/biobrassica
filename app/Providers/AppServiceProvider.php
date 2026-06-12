@@ -10,7 +10,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        if ($publicPath = config('biobrassica.public_path')) {
+        if ($publicPath = env('APP_PUBLIC_PATH')) {
             $this->app->usePublicPath($publicPath);
         }
     }

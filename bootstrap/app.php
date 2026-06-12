@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             require base_path('routes/health.php');
 
-            $shopPath = trim((string) config('biobrassica.paths.shop', 'loja'), '/');
+            $shopPath = trim((string) env('SHOP_PATH', 'loja'), '/');
 
             Route::middleware('web')
                 ->prefix($shopPath)
