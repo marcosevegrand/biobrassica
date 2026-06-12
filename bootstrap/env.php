@@ -32,4 +32,13 @@ if (file_exists($envFile) && is_readable($envFile)) {
         $_ENV[$key] = $value;
         $_SERVER[$key] = $value;
     }
+
+    // Also copy .env to a non-hidden location that Dotenv can find.
+    // open_basedir on this host prevents Dotenv from accessing hidden files.
+    $visibleEnv = dirname($envFile) . '/env.txt';
+    if (copy($envFile, $visibleEnv)) {
+        // Trick Laravel into using the visible copy
+        $_ENV['APP_ENV_FILE'] = 'env.txt';
+        putenv('APP_ENV_FILE=env.txt');
+    }
 }

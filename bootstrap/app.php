@@ -1,6 +1,6 @@
 <?php
 
-// Manual .env loader — bypasses Dotenv issue on this host
+// Manual .env loader - bypasses Dotenv issue on this host
 require __DIR__ . '/env.php';
 
 use Illuminate\Foundation\Application;
