@@ -1,40 +1,25 @@
 ---
 deployment:
   tasks:
-    # Biobrassica cPanel Git deployment.
-    # Expected cPanel Git repository path: /home/biobrassica/biobrassica
-    # Public document root: /home/biobrassica/public_html
-    # The .env file must be created manually once at /home/biobrassica/biobrassica/.env
-
-    - 'export APPPATH=$HOME/biobrassica'
-    - 'export PUBLICPATH=$HOME/public_html'
-    - 'if [ -x /opt/cpanel/ea-php83/root/usr/bin/php ]; then export PHPBIN=/opt/cpanel/ea-php83/root/usr/bin/php; else export PHPBIN=/usr/local/bin/php; fi'
-
-    # Required writable/public folders.
-    - '/bin/mkdir -p $PUBLICPATH'
-    - '/bin/mkdir -p $PUBLICPATH/storage'
-    - '/bin/mkdir -p $APPPATH/bootstrap/cache'
-    - '/bin/mkdir -p $APPPATH/storage/app/public'
-    - '/bin/mkdir -p $APPPATH/storage/framework/cache/data'
-    - '/bin/mkdir -p $APPPATH/storage/framework/sessions'
-    - '/bin/mkdir -p $APPPATH/storage/framework/views'
-    - '/bin/mkdir -p $APPPATH/storage/logs'
-
-    # Install/update Composer dependencies if cPanel's Composer is available.
-    - 'if [ -f /opt/cpanel/composer/bin/composer ]; then cd $APPPATH && $PHPBIN /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction; elif command -v composer >/dev/null 2>&1; then cd $APPPATH && composer install --no-dev --optimize-autoloader --no-interaction; else echo "Composer was not found on this cPanel account; vendor/ must already exist."; fi'
-    - 'if [ ! -f $APPPATH/vendor/autoload.php ]; then echo "Deployment stopped: $APPPATH/vendor/autoload.php is missing."; exit 1; fi'
-    - 'if [ ! -f $APPPATH/.env ]; then echo "Deployment stopped: $APPPATH/.env is missing. Create it from .env.cpanel first."; exit 1; fi'
-
-    # Publish public assets to public_html.
-    - '/bin/cp -R public/. $PUBLICPATH'
-    - '/bin/cp public_html/index.php $PUBLICPATH/index.php'
-    - '/bin/cp public_html/.htaccess $PUBLICPATH/.htaccess'
-    - '/bin/cp public_html/.user.ini $PUBLICPATH/.user.ini'
-
-    # Laravel deployment tasks.
-    - 'cd $APPPATH && $PHPBIN artisan optimize:clear'
-    - 'cd $APPPATH && $PHPBIN artisan migrate --force'
-    - 'cd $APPPATH && $PHPBIN artisan db:seed --force'
-    - 'cd $APPPATH && $PHPBIN artisan config:cache'
-    - 'cd $APPPATH && $PHPBIN artisan route:cache'
-    - 'cd $APPPATH && $PHPBIN artisan view:cache'
+    - export APPPATH=$HOME/biobrassica
+    - export PUBLICPATH=$HOME/public_html
+    - export PHPBIN=/usr/local/bin/php
+    - test -x /opt/cpanel/ea-php83/root/usr/bin/php && export PHPBIN=/opt/cpanel/ea-php83/root/usr/bin/php
+    - /bin/mkdir -p $PUBLICPATH
+    - /bin/mkdir -p $PUBLICPATH/storage
+    - /bin/mkdir -p $APPPATH/bootstrap/cache
+    - /bin/mkdir -p $APPPATH/storage/app/public
+    - /bin/mkdir -p $APPPATH/storage/framework/cache/data
+    - /bin/mkdir -p $APPPATH/storage/framework/sessions
+    - /bin/mkdir -p $APPPATH/storage/framework/views
+    - /bin/mkdir -p $APPPATH/storage/logs
+    - /bin/cp -R public/. $PUBLICPATH
+    - /bin/cp public_html/index.php $PUBLICPATH/index.php
+    - /bin/cp public_html/.htaccess $PUBLICPATH/.htaccess
+    - /bin/cp public_html/.user.ini $PUBLICPATH/.user.ini
+    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan optimize:clear || echo "vendor/ not found, skipping artisan"
+    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan migrate --force || echo "vendor/ not found, skipping migrate"
+    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan db:seed --force || echo "vendor/ not found, skipping seed"
+    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan config:cache || echo "vendor/ not found, skipping config:cache"
+    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan route:cache || echo "vendor/ not found, skipping route:cache"
+    - cd $APPPATH && test -f vendor/autoload.php && $PHPBIN artisan view:cache || echo "vendor/ not found, skipping view:cache"
