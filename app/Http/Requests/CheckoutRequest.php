@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Rules\Nif;
 use App\Rules\PortuguesePhone;
+use App\Rules\PortuguesePostalCode;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CheckoutRequest extends FormRequest
@@ -26,7 +27,7 @@ class CheckoutRequest extends FormRequest
             'shipping_address_line1' => ['required_if:fulfillment_method,shipping', 'string', 'max:255'],
             'shipping_address_line2' => ['nullable', 'string', 'max:255'],
             'shipping_city' => ['required_if:fulfillment_method,shipping', 'string', 'max:255'],
-            'shipping_postal_code' => ['required_if:fulfillment_method,shipping', 'string', 'max:20'],
+            'shipping_postal_code' => ['required_if:fulfillment_method,shipping', 'string', 'max:20', new PortuguesePostalCode],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

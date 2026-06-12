@@ -30,7 +30,7 @@
                     </p>
                 </div>
                 <p class="text-sm text-muted text-center">
-                    Após o pagamento, a encomenda será confirmada automaticamente.
+                    Após o pagamento, a equipa Biobrassica confirmará manualmente a encomenda no backoffice.
                 </p>
             </div>
         @elseif($order->payment->method === 'bank_transfer')

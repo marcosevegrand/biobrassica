@@ -68,18 +68,15 @@
     </div>
 </section>
 
-@php
-    $quoteMember = $teamMembers->where('photo', '!=', null)->first();
-@endphp
-
-@if($quoteMember)
 <section class="py-20 bg-white">
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row items-center gap-10">
             <div class="flex-shrink-0">
                 <div class="w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-terracotta/30 shadow-lg">
-                    <img src="{{ $quoteMember->photo ? asset('storage/' . $quoteMember->photo) : asset('images/people/001.jpg') }}"
-                         alt="{{ $quoteMember->name }}"
+                    @php($quoteMember = $teamMembers->where('photo', '!=', null)->first())
+                    @php($quotePhoto = $quoteMember?->photo ? (str_starts_with($quoteMember->photo, 'images/') ? asset($quoteMember->photo) : asset('storage/' . $quoteMember->photo)) : asset('images/people/006.jpg'))
+                    <img src="{{ $quotePhoto }}"
+                         alt="Engª Ângela Pereira"
                          class="w-full h-full object-cover">
                 </div>
             </div>
@@ -88,15 +85,14 @@
                     <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.69 11 13.166 11 15c0 1.933-1.567 3.5-3.5 3.5-1.267 0-2.417-.667-2.917-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.69 21 13.166 21 15c0 1.933-1.567 3.5-3.5 3.5-1.267 0-2.417-.667-2.917-1.179z"/>
                 </svg>
                 <blockquote class="font-serif text-xl md:text-2xl text-forest italic leading-relaxed mb-4">
-                    "A agricultura biológica não é apenas um método de cultivo, é um compromisso com a terra, com a saúde e com as futuras gerações."
+                    "Temos conseguido ao longo destes anos oferecer cada vez mais produtos frescos, colhidos no próprio dia, vindos das mãos de produtores que se levantam às 5h da manhã num esforço último de transmitir a vitalidade e qualidade das suas terras aos consumidores que já se haviam esquecido do sabor e do cheiro dos legumes acabados de colher!"
                 </blockquote>
-                <p class="text-terracotta font-semibold text-lg">{{ $quoteMember->name }}</p>
-                <p class="text-muted text-sm">{{ $quoteMember->role }}</p>
+                <p class="text-terracotta font-semibold text-lg">{{ $quoteMember->name ?? 'Engª Ângela Pereira' }}</p>
+                <p class="text-muted text-sm">{{ $quoteMember->role ?? 'Fundadora' }}</p>
             </div>
         </div>
     </div>
 </section>
-@endif
 
 @php
     $decorativeIcons = ['tomato', 'broccoli', 'carrot', 'garlic', 'onion', 'cabbage', 'grapes', 'strawberry', 'avocado'];
@@ -121,11 +117,10 @@
              class="h-16 w-auto mx-auto mb-8">
 
         <h2 class="font-serif text-4xl md:text-5xl font-bold text-white mb-6">
-            Loja Online
+            {{ $websiteContent->hero_cta_text ?? 'Descubra os nossos produtos' }}
         </h2>
         <p class="text-lg text-white/80 font-light max-w-2xl mx-auto mb-10">
-            Descubra os nossos produtos biológicos frescos, diretamente da nossa horta para sua casa.
-            Qualidade e sabor que fazem a diferença.
+            Entrega em todo o Portugal continental ou levantamento nas nossas lojas em Braga e Guimarães.
         </p>
 
         <a href="https://loja.biobrassica.pt"

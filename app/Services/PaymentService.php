@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\ShopSettings;
 use Carbon\Carbon;
 use RuntimeException;
 
@@ -15,7 +16,8 @@ class PaymentService
 
     public function createPayment(Order $order, string $method): Payment
     {
-        $timeout = config('payments.timeout_minutes', 30);
+        $settings = ShopSettings::first();
+        $timeout = $settings?->payment_timeout_minutes ?: config('payments.timeout_minutes', 30);
 
         return Payment::create([
             'order_id' => $order->id,
@@ -28,18 +30,22 @@ class PaymentService
 
     public function getManualMbwayDetails(): array
     {
+        $settings = ShopSettings::first();
+
         return [
-            'phone' => config('payments.mbway_phone'),
+            'phone' => $settings?->mbway_number ?: config('payments.mbway_phone'),
             'label' => 'MB WAY',
         ];
     }
 
     public function getManualBankTransferDetails(): array
     {
+        $settings = ShopSettings::first();
+
         return [
-            'iban' => config('payments.bank_transfer_iban'),
-            'bic' => config('payments.bank_transfer_bic'),
-            'beneficiary' => config('payments.bank_transfer_beneficiary'),
+            'iban' => $settings?->bank_iban ?: config('payments.bank_transfer_iban'),
+            'bic' => $settings?->bank_bic ?: config('payments.bank_transfer_bic'),
+            'beneficiary' => $settings?->bank_beneficiary ?: config('payments.bank_transfer_beneficiary'),
             'label' => 'Transferência Bancária',
         ];
     }
@@ -55,6 +61,9 @@ class PaymentService
         $payment->save();
 
         $order = $payment->order;
+        $order->payment_state = 'paid';
+        $order->save();
+
         $this->stateMachine->transition($order, 'confirmed');
     }
 
@@ -64,11 +73,41 @@ class PaymentService
             throw new RuntimeException('Apenas pagamentos pendentes podem ser rejeitados.');
         }
 
-        $payment->status = 'failed';
+        $payment->status = 'rejected';
         $payment->last_error = $reason;
         $payment->save();
 
         $order = $payment->order;
+        $order->payment_state = 'rejected';
+        $order->save();
+
         $this->stateMachine->transition($order, 'cancelled');
+    }
+
+    public function expireIfTimedOut(Payment $payment): void
+    {
+        if ($payment->status !== 'pending' || !$payment->expires_at || $payment->expires_at->isFuture()) {
+            return;
+        }
+
+        $order = $payment->order()->with('items.product')->first();
+
+        $payment->status = 'expired';
+        $payment->last_error = 'Tempo de pagamento expirado.';
+        $payment->save();
+
+        if (!$order || $order->payment_state !== 'pending') {
+            return;
+        }
+
+        foreach ($order->items as $item) {
+            if ($item->product) {
+                $item->product->stock = (int) $item->product->stock + (int) $item->quantity;
+                $item->product->save();
+            }
+        }
+
+        $order->payment_state = 'expired';
+        $order->save();
     }
 }

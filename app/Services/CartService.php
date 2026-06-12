@@ -6,9 +6,12 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
 class CartService
 {
+    private const MAX_PURCHASE_QUANTITY = 99;
+
     public function getOrCreateCart(User $user): Cart
     {
         $cart = Cart::firstOrCreate(
@@ -21,15 +24,24 @@ class CartService
 
     public function addItem(Cart $cart, Product $product, int $quantity): CartItem
     {
+        if (!$product->is_active) {
+            throw ValidationException::withMessages([
+                'product' => 'Este produto não está disponível.',
+            ]);
+        }
+
         $item = $cart->items()->where('product_id', $product->id)->first();
+        $desiredQuantity = ($item?->quantity ?? 0) + $quantity;
+
+        $this->ensureQuantityIsAvailable($product, $desiredQuantity);
 
         if ($item) {
-            $item->quantity += $quantity;
+            $item->quantity = min($desiredQuantity, self::MAX_PURCHASE_QUANTITY);
             $item->save();
         } else {
             $item = $cart->items()->create([
                 'product_id' => $product->id,
-                'quantity' => $quantity,
+                'quantity' => min($quantity, self::MAX_PURCHASE_QUANTITY),
                 'reserved_quantity' => 0,
             ]);
         }
@@ -45,7 +57,9 @@ class CartService
             return $item;
         }
 
-        $item->quantity = $quantity;
+        $this->ensureQuantityIsAvailable($item->product, $quantity);
+
+        $item->quantity = min($quantity, self::MAX_PURCHASE_QUANTITY);
         $item->save();
 
         return $item->load('product');
@@ -76,6 +90,8 @@ class CartService
 
         foreach ($cart->items as $item) {
             if ($item->product) {
+                $this->ensureQuantityIsAvailable($item->product, $item->quantity);
+
                 $item->reserved_quantity = $item->quantity;
                 $item->save();
 
@@ -111,5 +127,26 @@ class CartService
         $cart->items()->delete();
         $cart->reserved_until = null;
         $cart->save();
+    }
+
+    private function ensureQuantityIsAvailable(?Product $product, int $quantity): void
+    {
+        if (!$product) {
+            throw ValidationException::withMessages([
+                'product' => 'Este produto já não está disponível.',
+            ]);
+        }
+
+        if ($quantity > self::MAX_PURCHASE_QUANTITY) {
+            throw ValidationException::withMessages([
+                'quantity' => 'A quantidade máxima por produto é ' . self::MAX_PURCHASE_QUANTITY . '.',
+            ]);
+        }
+
+        if ((int) $product->stock < $quantity) {
+            throw ValidationException::withMessages([
+                'quantity' => "Só existem {$product->stock} unidades disponíveis de {$product->name}.",
+            ]);
+        }
     }
 }

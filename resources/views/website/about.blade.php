@@ -20,14 +20,23 @@
 
     <div class="relative z-10 text-center px-4">
         <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-            Quem Somos
+            {{ $websiteContent->about_title ?? 'Do campo à sua mesa, com quem conhece a terra' }}
         </h1>
         <p class="text-lg md:text-xl text-white/80 font-light max-w-2xl mx-auto">
-            Uma história de paixão pela terra e compromisso com a agricultura biológica
+            Pessoas reais, produtos de confiança
         </p>
     </div>
 </section>
 
+@if(isset($websiteContent) && $websiteContent->about_content)
+<section class="py-20 bg-paper">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-lg max-w-none text-muted font-light">
+            {!! Str::markdown($websiteContent->about_content) !!}
+        </div>
+    </div>
+</section>
+@else
 <section class="py-20 bg-paper">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col lg:flex-row items-center gap-12 mb-20">
@@ -111,6 +120,7 @@
         </div>
     </div>
 </section>
+@endif
 
 @if($teamMembers->isNotEmpty())
 <section class="py-20 bg-white">
@@ -129,7 +139,8 @@
             @foreach($teamMembers as $member)
                 <div class="text-center group">
                     <div class="w-40 h-40 mx-auto rounded-full overflow-hidden bg-paper mb-4 border-2 border-terracotta/20 group-hover:border-terracotta/50 transition-colors shadow-md">
-                        <img src="{{ $member->photo ? asset('storage/' . $member->photo) : asset('images/people/001.jpg') }}"
+                        @php($memberPhoto = $member->photo ? (str_starts_with($member->photo, 'images/') ? asset($member->photo) : asset('storage/' . $member->photo)) : asset('images/people/001.jpg'))
+                        <img src="{{ $memberPhoto }}"
                              alt="{{ $member->name }}"
                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                              loading="lazy">
@@ -142,6 +153,26 @@
     </div>
 </section>
 @endif
+
+<section class="px-6 sm:px-8 py-20 bg-paper">
+    <div class="max-w-4xl mx-auto bg-forest rounded-2xl p-6 sm:p-10">
+        <p class="text-xs uppercase tracking-[0.3em] text-paper/50 mb-3 text-center">As nossas lojas</p>
+        <h2 class="text-2xl md:text-3xl font-serif italic text-paper text-center mb-8">Conheça os nossos espaços</h2>
+        <div class="rounded-lg overflow-hidden shadow-2xl mb-10">
+            <video class="w-full" controls preload="metadata" poster="{{ asset('images/brand/logo-white-no-bg.png') }}">
+                <source src="{{ asset('videos/video_brassica.mp4') }}" type="video/mp4">
+                O seu navegador não suporta vídeo.
+            </video>
+        </div>
+        <div class="text-center">
+            <p class="text-paper/70 mb-8">Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa.</p>
+            <a href="{{ route('website.contacts') }}"
+               class="inline-block px-8 py-3 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">
+                Ver Localizações
+            </a>
+        </div>
+    </div>
+</section>
 
 <section class="py-20 bg-forest">
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">

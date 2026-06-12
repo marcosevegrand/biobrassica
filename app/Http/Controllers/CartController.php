@@ -73,7 +73,7 @@ class CartController extends Controller
 
     public function update(Request $request, $itemId)
     {
-        $item = CartItem::findOrFail($itemId);
+        $item = CartItem::whereHas('cart', fn ($query) => $query->where('user_id', Auth::id()))->findOrFail($itemId);
         $quantity = max(0, (int) $request->input('quantity', 1));
 
         $this->cartService->updateItem($item, $quantity);
@@ -107,7 +107,7 @@ class CartController extends Controller
 
     public function remove($itemId)
     {
-        $item = CartItem::findOrFail($itemId);
+        $item = CartItem::whereHas('cart', fn ($query) => $query->where('user_id', Auth::id()))->findOrFail($itemId);
         $cart = $item->cart;
         $this->cartService->removeItem($item);
 

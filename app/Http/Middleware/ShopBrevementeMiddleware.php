@@ -21,7 +21,7 @@ class ShopBrevementeMiddleware
             return $next($request);
         }
 
-        if ($request->is('_health', '_health/*', 'payment/callback', 'payment/callback/*')) {
+        if ($request->is('_health', '_health/*', 'api/payments/callback', 'api/payments/callback/*', '*/api/payments/callback', '*/api/payments/callback/*')) {
             return $next($request);
         }
 

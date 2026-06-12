@@ -13,13 +13,6 @@ Route::get('/produtos', [CatalogController::class, 'productList'])->name('catalo
 Route::get('/produto/{slug}', [CatalogController::class, 'productDetail'])->name('catalog.product');
 Route::get('/categoria/{slug}', [CatalogController::class, 'categoryDetail'])->name('catalog.category');
 
-Route::get('/carrinho', [CartController::class, 'detail'])->name('cart.detail');
-Route::get('/carrinho/contagem', [CartController::class, 'count'])->name('cart.count');
-Route::get('/carrinho/popup', [CartController::class, 'popup'])->name('cart.popup');
-Route::post('/carrinho/adicionar/{product}', [CartController::class, 'add'])->name('cart.add');
-Route::post('/carrinho/atualizar/{item}', [CartController::class, 'update'])->name('cart.update');
-Route::post('/carrinho/remover/{item}', [CartController::class, 'remove'])->name('cart.remove');
-
 Route::get('/conta/registar', [AuthController::class, 'showRegister'])->name('shop.register');
 Route::post('/conta/registar', [AuthController::class, 'register']);
 Route::get('/conta/entrar', [AuthController::class, 'showLogin'])->name('login');
@@ -27,6 +20,13 @@ Route::post('/conta/entrar', [AuthController::class, 'login']);
 Route::post('/conta/sair', [AuthController::class, 'logout'])->name('shop.logout');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/carrinho', [CartController::class, 'detail'])->name('cart.detail');
+    Route::get('/carrinho/contagem', [CartController::class, 'count'])->name('cart.count');
+    Route::get('/carrinho/popup', [CartController::class, 'popup'])->name('cart.popup');
+    Route::post('/carrinho/adicionar/{product}', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/carrinho/atualizar/{item}', [CartController::class, 'update'])->name('cart.update');
+    Route::post('/carrinho/remover/{item}', [CartController::class, 'remove'])->name('cart.remove');
+
     Route::get('/conta/perfil', [AuthController::class, 'profile'])->name('shop.profile');
     Route::post('/conta/perfil', [AuthController::class, 'updateProfile'])->name('shop.profile.update');
     Route::get('/conta/encomendas', [AuthController::class, 'orderHistory'])->name('shop.orders');

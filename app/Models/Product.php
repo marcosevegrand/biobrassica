@@ -29,7 +29,6 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
-            'quantity' => 'decimal:2',
             'is_active' => 'boolean',
             'is_highlight' => 'boolean',
             'is_preview' => 'boolean',

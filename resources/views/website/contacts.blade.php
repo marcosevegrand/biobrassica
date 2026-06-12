@@ -7,10 +7,10 @@
 <section class="relative h-[50vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-forest via-forest/90 to-forest/70">
     <div class="relative z-10 text-center px-4">
         <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-            Contactos
+            {{ $websiteContent->contacts_title ?? 'Encontre-nos' }}
         </h1>
         <p class="text-lg md:text-xl text-white/80 font-light max-w-2xl mx-auto">
-            Estamos aqui para si. Encontre-nos ou fale connosco.
+            {{ $websiteContent->contacts_content ?? 'Visite-nos nas nossas lojas ou entre em contacto por telefone e email.' }}
         </p>
     </div>
 </section>
@@ -23,7 +23,8 @@
                     <div class="flex flex-col lg:flex-row gap-10 bg-white rounded-xl shadow-sm border border-stone-400/40 overflow-hidden">
                         @if($location->image)
                             <div class="lg:w-1/3">
-                                <img src="{{ asset('storage/' . $location->image) }}"
+                                @php($locationImage = str_starts_with($location->image, 'images/') ? asset($location->image) : asset('storage/' . $location->image))
+                                <img src="{{ $locationImage }}"
                                      alt="{{ $location->name }}"
                                      class="w-full h-64 lg:h-full object-cover">
                             </div>
@@ -108,7 +109,7 @@
                                 <div class="mt-6 rounded-lg overflow-hidden border border-stone-400/40">
                                     @php
                                         $mapUrl = $location->map_embed_url;
-                                        if (!str_contains($mapUrl, 'src=')) {
+                                        if (!str_contains($mapUrl, 'src=') && !str_contains($mapUrl, 'output=embed')) {
                                             $mapUrl = 'https://www.google.com/maps?q=' . urlencode($location->address ?? $location->name);
                                         }
                                     @endphp

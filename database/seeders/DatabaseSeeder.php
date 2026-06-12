@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(BiobrassicaContentSeeder::class);
+
         $adminEmail = config('biobrassica.admin.email');
         $adminPassword = config('biobrassica.admin.password');
 

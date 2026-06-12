@@ -40,7 +40,7 @@
                         $badgeCart = \App\Models\Cart::where('user_id', auth()->id())->first();
                         $badgeCount = $badgeCart ? $badgeCart->items()->sum('quantity') : 0;
                     @endphp
-                    <a href="{{ route('cart.detail') }}" class="relative p-2 block text-forest hover:text-terracotta transition-colors">
+                    <a href="{{ auth()->check() ? route('cart.detail') : route('login', ['next' => request()->fullUrl()]) }}" class="relative p-2 block text-forest hover:text-terracotta transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
@@ -61,7 +61,7 @@
 
                 @auth
                     <div class="hidden md:flex items-center space-x-3">
-                        <a href="{{ url('/dashboard') }}" class="text-sm font-medium text-forest hover:text-terracotta transition-colors">
+                        <a href="{{ route('shop.profile') }}" class="text-sm font-medium text-forest hover:text-terracotta transition-colors">
                             {{ auth()->user()->name }}
                         </a>
                         <form method="POST" action="{{ route('shop.logout') }}" class="inline">
@@ -71,6 +71,10 @@
                             </button>
                         </form>
                     </div>
+                @else
+                    <a href="{{ route('login') }}" class="hidden md:inline-flex text-sm font-medium text-forest hover:text-terracotta transition-colors">
+                        Entrar
+                    </a>
                 @endauth
             </div>
         </div>
@@ -88,7 +92,7 @@
                 @endforeach
                 @auth
                     <hr class="border-stone-400/40">
-                    <a href="{{ url('/dashboard') }}" class="text-sm font-medium text-forest hover:text-terracotta transition-colors">
+                    <a href="{{ route('shop.profile') }}" class="text-sm font-medium text-forest hover:text-terracotta transition-colors">
                         {{ auth()->user()->name }}
                     </a>
                     <form method="POST" action="{{ route('shop.logout') }}" class="inline">
@@ -97,6 +101,11 @@
                             Sair
                         </button>
                     </form>
+                @else
+                    <hr class="border-stone-400/40">
+                    <a href="{{ route('login') }}" class="text-sm font-medium text-forest hover:text-terracotta transition-colors">
+                        Entrar
+                    </a>
                 @endauth
             </div>
         </div>

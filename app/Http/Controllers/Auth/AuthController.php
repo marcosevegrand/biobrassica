@@ -31,8 +31,12 @@ class AuthController extends Controller
         return redirect()->route('shop.home');
     }
 
-    public function showLogin()
+    public function showLogin(Request $request)
     {
+        if ($request->filled('next')) {
+            $request->session()->put('url.intended', $request->input('next'));
+        }
+
         return view('auth.login');
     }
 

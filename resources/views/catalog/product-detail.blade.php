@@ -22,7 +22,8 @@
         <div class="bg-white rounded-lg border border-stone/40 overflow-hidden">
             <div class="aspect-square">
                 @if($product->image)
-                    <img src="{{ asset('storage/' . $product->image) }}"
+                    @php($productImage = str_starts_with($product->image, 'images/') ? asset($product->image) : asset('storage/' . $product->image))
+                    <img src="{{ $productImage }}"
                          alt="{{ $product->name }}"
                          class="w-full h-full object-cover">
                 @else
@@ -61,21 +62,28 @@
                 @if($product->stock !== null && $product->stock <= 0)
                     <p class="text-terracotta font-medium mb-4">Produto esgotado</p>
                 @else
-                    <form class="flex items-center gap-4"
-                          hx-post="{{ route('cart.add', $product->id) }}"
-                          hx-target="#cart-popup-container"
-                          hx-swap="innerHTML"
-                          hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'>
-                        <label class="flex items-center gap-2">
-                            <span class="text-sm font-medium text-forest">Qtd:</span>
-                            <input type="number" name="quantity" value="1" min="1"
-                                   class="w-20 px-3 py-2 border border-stone/40 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-forest/30">
-                        </label>
-                        <button type="submit"
-                                class="flex-1 bg-forest text-white py-3 px-6 rounded-md font-medium hover:bg-forest/90 transition-colors">
-                            Adicionar ao Carrinho
-                        </button>
-                    </form>
+                    @auth
+                        <form class="flex items-center gap-4"
+                              hx-post="{{ route('cart.add', $product->id) }}"
+                              hx-target="#cart-popup-container"
+                              hx-swap="innerHTML"
+                              hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'>
+                            <label class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-forest">Qtd:</span>
+                                <input type="number" name="quantity" value="1" min="1" max="{{ min(99, (int) $product->stock) }}"
+                                       class="w-20 px-3 py-2 border border-stone/40 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-forest/30">
+                            </label>
+                            <button type="submit"
+                                    class="flex-1 bg-forest text-white py-3 px-6 rounded-md font-medium hover:bg-forest/90 transition-colors">
+                                Adicionar ao Carrinho
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login', ['next' => request()->fullUrl()]) }}"
+                           class="inline-flex w-full justify-center bg-forest text-white py-3 px-6 rounded-md font-medium hover:bg-forest/90 transition-colors">
+                            Entrar para comprar
+                        </a>
+                    @endauth
                 @endif
 
                 @if($product->allow_pickup && $product->pickupLocations->isNotEmpty())

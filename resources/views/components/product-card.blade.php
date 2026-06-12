@@ -2,7 +2,8 @@
     <a href="{{ route('catalog.product', $product->slug) }}" class="block">
         <div class="aspect-square overflow-hidden bg-paper">
             @if($product->image)
-                <img src="{{ asset('storage/' . $product->image) }}"
+                @php($productImage = str_starts_with($product->image, 'images/') ? asset($product->image) : asset('storage/' . $product->image))
+                <img src="{{ $productImage }}"
                      alt="{{ $product->name }}"
                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                      loading="lazy">
@@ -45,14 +46,21 @@
         @if($product->stock !== null && $product->stock <= 0)
             <p class="mt-2 text-sm text-terracotta font-medium">Esgotado</p>
         @else
-            <button class="mt-3 w-full bg-forest text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-forest/90 transition-colors"
-                    hx-post="{{ route('cart.add', $product->id) }}"
-                    hx-target="#cart-popup-container"
-                    hx-swap="innerHTML"
-                    hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'
-                    hx-vals='{"quantity": 1}'>
-                Adicionar
-            </button>
+            @auth
+                <button class="mt-3 w-full bg-forest text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-forest/90 transition-colors"
+                        hx-post="{{ route('cart.add', $product->id) }}"
+                        hx-target="#cart-popup-container"
+                        hx-swap="innerHTML"
+                        hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'
+                        hx-vals='{"quantity": 1}'>
+                    Adicionar
+                </button>
+            @else
+                <a href="{{ route('login', ['next' => request()->fullUrl()]) }}"
+                   class="mt-3 block w-full bg-forest text-white py-2 px-4 rounded-md text-sm font-medium text-center hover:bg-forest/90 transition-colors">
+                    Entrar para comprar
+                </a>
+            @endauth
         @endif
     </div>
 </div>

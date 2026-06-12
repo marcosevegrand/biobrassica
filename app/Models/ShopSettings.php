@@ -11,9 +11,13 @@ class ShopSettings extends Model
         'is_shop_brevemente',
         'min_order_total',
         'mbway_enabled',
+        'mbway_number',
         'payment_timeout_minutes',
         'checkout_reservation_minutes',
         'bank_transfer_enabled',
+        'bank_beneficiary',
+        'bank_iban',
+        'bank_bic',
     ];
 
     protected function casts(): array

@@ -6,11 +6,13 @@ use App\Http\Requests\CheckoutRequest;
 use App\Models\Location;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\ShopSettings;
 use App\Services\CartService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -27,7 +29,7 @@ class CheckoutController extends Controller
         $total = $this->cartService->getTotal($cart);
         $count = $this->cartService->getCount($cart);
 
-        $settings = ShopSettings::first();
+        $settings = $this->settings();
         $minOrderTotal = $settings->min_order_total ?? 0;
 
         $locations = Location::where('is_active', true)
@@ -48,8 +50,28 @@ class CheckoutController extends Controller
         $cart = $this->cartService->getOrCreateCart($user);
         $total = $this->cartService->getTotal($cart);
 
-        $settings = ShopSettings::first();
+        $settings = $this->settings();
         $minOrderTotal = $settings->min_order_total ?? 0;
+
+        if (!$settings->is_shop_active) {
+            return redirect()->route('cart.detail')
+                ->with('error', 'A loja está temporariamente indisponível para encomendas.');
+        }
+
+        if ($cart->items->isEmpty()) {
+            return redirect()->route('cart.detail')
+                ->with('error', 'O carrinho está vazio.');
+        }
+
+        if (!$this->paymentMethodIsEnabled($settings, $request->payment_method)) {
+            return redirect()->back()
+                ->with('error', 'O método de pagamento selecionado não está disponível.')
+                ->withInput();
+        }
+
+        if ($message = $this->cartFulfillmentError($cart, $request->fulfillment_method, $request->pickup_location)) {
+            return redirect()->back()->with('error', $message)->withInput();
+        }
 
         if ($total < $minOrderTotal) {
             return redirect()->back()
@@ -57,53 +79,65 @@ class CheckoutController extends Controller
                 ->withInput();
         }
 
-        $order = Order::create([
-            'user_id' => $user->id,
-            'access_token' => Str::random(32),
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'nif' => $request->nif,
-            'status' => 'pending',
-            'payment_state' => 'pending',
-            'fulfillment_method' => $request->fulfillment_method,
-            'pickup_location' => $request->fulfillment_method === 'pickup'
-                ? $request->pickup_location
-                : null,
-            'shipping_address_line1' => $request->fulfillment_method === 'shipping'
-                ? $request->shipping_address_line1
-                : null,
-            'shipping_address_line2' => $request->fulfillment_method === 'shipping'
-                ? $request->shipping_address_line2
-                : null,
-            'shipping_city' => $request->fulfillment_method === 'shipping'
-                ? $request->shipping_city
-                : null,
-            'shipping_postal_code' => $request->fulfillment_method === 'shipping'
-                ? $request->shipping_postal_code
-                : null,
-            'language' => app()->getLocale(),
-            'subtotal' => $total,
-            'total' => $total,
-            'notes' => $request->notes,
-        ]);
+        $order = DB::transaction(function () use ($request, $user, $cart, $total) {
+            $cart->load('items.product');
 
-        foreach ($cart->items as $cartItem) {
-            $product = $cartItem->product;
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $product->id,
-                'product_name' => $product->name,
-                'price' => $product->price,
-                'quantity' => $cartItem->quantity,
+            foreach ($cart->items as $cartItem) {
+                $lockedProduct = Product::whereKey($cartItem->product_id)->lockForUpdate()->first();
+                if ($lockedProduct) {
+                    $cartItem->setRelation('product', $lockedProduct);
+                }
+            }
+
+            $this->cartService->reserveStock($cart);
+
+            $order = Order::create([
+                'user_id' => $user->id,
+                'access_token' => Str::random(32),
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'nif' => $request->nif,
+                'status' => 'pending',
+                'payment_state' => 'pending',
+                'fulfillment_method' => $request->fulfillment_method,
+                'pickup_location' => $request->fulfillment_method === 'pickup'
+                    ? $request->pickup_location
+                    : null,
+                'shipping_address_line1' => $request->fulfillment_method === 'shipping'
+                    ? $request->shipping_address_line1
+                    : null,
+                'shipping_address_line2' => $request->fulfillment_method === 'shipping'
+                    ? $request->shipping_address_line2
+                    : null,
+                'shipping_city' => $request->fulfillment_method === 'shipping'
+                    ? $request->shipping_city
+                    : null,
+                'shipping_postal_code' => $request->fulfillment_method === 'shipping'
+                    ? $request->shipping_postal_code
+                    : null,
+                'language' => app()->getLocale(),
+                'subtotal' => $total,
+                'total' => $total,
+                'notes' => $request->notes,
             ]);
-        }
 
-        $this->cartService->reserveStock($cart);
+            foreach ($cart->items as $cartItem) {
+                $product = $cartItem->product;
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'price' => $product->price,
+                    'quantity' => $cartItem->quantity,
+                ]);
+            }
 
-        $this->paymentService->createPayment($order, $request->payment_method);
+            $this->paymentService->createPayment($order, $request->payment_method);
+            $this->cartService->clearCart($cart);
 
-        $this->cartService->clearCart($cart);
+            return $order;
+        });
 
         return redirect()->route('payment.show', ['order' => $order->id]);
     }
@@ -150,5 +184,61 @@ class CheckoutController extends Controller
         }
 
         return redirect()->route('checkout')->with('error', 'Encomenda cancelada.');
+    }
+
+    private function settings(): ShopSettings
+    {
+        return ShopSettings::firstOrCreate(
+            ['id' => 1],
+            [
+                'is_shop_active' => true,
+                'is_shop_brevemente' => false,
+                'min_order_total' => 0,
+                'mbway_enabled' => true,
+                'bank_transfer_enabled' => true,
+                'payment_timeout_minutes' => 30,
+                'checkout_reservation_minutes' => 30,
+            ]
+        );
+    }
+
+    private function paymentMethodIsEnabled(ShopSettings $settings, string $method): bool
+    {
+        return match ($method) {
+            'mbway' => (bool) $settings->mbway_enabled,
+            'bank_transfer' => (bool) $settings->bank_transfer_enabled,
+            default => false,
+        };
+    }
+
+    private function cartFulfillmentError($cart, string $method, ?int $pickupLocationId): ?string
+    {
+        $cart->loadMissing('items.product.pickupLocations');
+
+        foreach ($cart->items as $item) {
+            $product = $item->product;
+
+            if (!$product || !$product->is_active) {
+                return 'Um dos produtos do carrinho já não está disponível.';
+            }
+
+            if ((int) $product->stock < (int) $item->quantity) {
+                return "Só existem {$product->stock} unidades disponíveis de {$product->name}.";
+            }
+
+            if ($method === 'shipping' && !$product->allow_shipping) {
+                return "{$product->name} apenas está disponível para levantamento.";
+            }
+
+            if ($method === 'pickup' && !$product->allow_pickup) {
+                return "{$product->name} apenas está disponível para envio.";
+            }
+
+            if ($method === 'pickup' && $product->pickupLocations->isNotEmpty() && !$product->pickupLocations->contains('id', (int) $pickupLocationId)) {
+                return "{$product->name} não está disponível no local de levantamento selecionado.";
+            }
+        }
+
+        return null;
     }
 }

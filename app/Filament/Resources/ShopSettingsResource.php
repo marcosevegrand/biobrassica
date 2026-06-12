@@ -51,9 +51,23 @@ class ShopSettingsResource extends Resource
                         Forms\Components\Toggle::make('mbway_enabled')
                             ->label('MB WAY Enabled')
                             ->default(true),
+                        Forms\Components\TextInput::make('mbway_number')
+                            ->label('Número MB WAY')
+                            ->tel()
+                            ->maxLength(20)
+                            ->helperText('Telemóvel mostrado ao cliente para pagamento manual por MB WAY.'),
                         Forms\Components\Toggle::make('bank_transfer_enabled')
                             ->label('Bank Transfer Enabled')
                             ->default(true),
+                        Forms\Components\TextInput::make('bank_beneficiary')
+                            ->label('Beneficiário')
+                            ->maxLength(120),
+                        Forms\Components\TextInput::make('bank_iban')
+                            ->label('IBAN')
+                            ->maxLength(34),
+                        Forms\Components\TextInput::make('bank_bic')
+                            ->label('BIC/SWIFT')
+                            ->maxLength(11),
                         Forms\Components\TextInput::make('payment_timeout_minutes')
                             ->numeric()
                             ->suffix('minutes')

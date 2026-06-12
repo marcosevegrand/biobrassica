@@ -3,16 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private readonly PaymentService $paymentService,
+    ) {}
+
     public function show($orderId)
     {
         $order = Order::where('user_id', Auth::id())
             ->with(['items.product', 'payment'])
             ->findOrFail($orderId);
+
+        if ($order->payment) {
+            $this->paymentService->expireIfTimedOut($order->payment);
+            $order->refresh()->load(['items.product', 'payment']);
+        }
 
         return view('orders.show', compact('order'));
     }
@@ -22,6 +32,11 @@ class OrderController extends Controller
         $order = Order::where('user_id', Auth::id())
             ->with('payment')
             ->findOrFail($orderId);
+
+        if ($order->payment) {
+            $this->paymentService->expireIfTimedOut($order->payment);
+            $order->refresh()->load('payment');
+        }
 
         return view('orders.partials.payment-status', compact('order'));
     }

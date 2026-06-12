@@ -24,6 +24,9 @@ class PaymentController extends Controller
                 ->with('error', 'Pagamento não encontrado.');
         }
 
+        $this->paymentService->expireIfTimedOut($order->payment);
+        $order->refresh()->load('payment');
+
         $paymentDetails = null;
 
         if ($order->payment->method === 'mbway') {
