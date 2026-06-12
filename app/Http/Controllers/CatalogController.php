@@ -42,7 +42,11 @@ class CatalogController extends Controller
             'highlightedProducts',
             'contactLocations',
             'websiteDefaults'
-        ));
+        ) + [
+            'categories' => $featuredCategories,
+            'highlights' => $highlightedProducts,
+            'latest_products' => Product::with('category')->where('is_active', true)->latest()->take(4)->get(),
+        ]);
     }
 
     public function productList(Request $request)
@@ -50,8 +54,17 @@ class CatalogController extends Controller
         $query = Product::with('category')
             ->where('is_active', true);
 
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->input('category'));
+        $currentCategory = $request->input('categoria') ?: $request->input('category');
+
+        if ($currentCategory) {
+            if (is_numeric($currentCategory)) {
+                $query->where('category_id', $currentCategory);
+            } else {
+                $category = Category::where('slug', $currentCategory)->first();
+                if ($category) {
+                    $query->where('category_id', $category->id);
+                }
+            }
         }
 
         if ($request->filled('q')) {
@@ -70,7 +83,10 @@ class CatalogController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('catalog.product-list', compact('products', 'categories'));
+        return view('catalog.product-list', compact('products', 'categories') + [
+            'current_category' => is_numeric($currentCategory) ? optional(Category::find($currentCategory))->slug : $currentCategory,
+            'search_query' => $request->input('q', ''),
+        ]);
     }
 
     public function productDetail($slug)

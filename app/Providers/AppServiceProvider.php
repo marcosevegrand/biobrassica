@@ -21,7 +21,11 @@ class AppServiceProvider extends ServiceProvider
             $data = $view->getData();
 
             if (!isset($data['websiteDefaults']) || !$data['websiteDefaults']) {
-                $websiteDefaults = WebsiteContent::first();
+                try {
+                    $websiteDefaults = WebsiteContent::first();
+                } catch (\Throwable) {
+                    $websiteDefaults = null;
+                }
 
                 if (!$websiteDefaults) {
                     $websiteDefaults = new WebsiteContent([

@@ -1,66 +1,37 @@
-<div class="bg-white rounded-lg border border-stone/40 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-    <a href="{{ route('catalog.product', $product->slug) }}" class="block">
-        <div class="aspect-square overflow-hidden bg-paper">
-            @if($product->image)
-                @php($productImage = str_starts_with($product->image, 'images/') ? asset($product->image) : asset('storage/' . $product->image))
-                <img src="{{ $productImage }}"
-                     alt="{{ $product->name }}"
-                     class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                     loading="lazy">
-            @else
-                <div class="w-full h-full flex items-center justify-center bg-paper">
-                    <svg class="w-16 h-16 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
-            @endif
-        </div>
-    </a>
-
-    <div class="p-4">
-        @if($product->brand)
-            <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ $product->brand }}</p>
-        @endif
-
-        <a href="{{ route('catalog.product', $product->slug) }}" class="block group">
-            <h3 class="font-serif text-forest font-semibold text-lg leading-tight group-hover:text-terracotta transition-colors">
-                {{ $product->name }}
-            </h3>
-        </a>
-
-        @if($product->category)
-            <p class="text-xs text-muted mt-1">{{ $product->category->name }}</p>
-        @endif
-
-        <div class="mt-3 flex items-center justify-between">
-            <span class="text-forest font-bold text-lg">
-                &euro;{{ number_format($product->price, 2) }}
-            </span>
-
-            @if($product->quantity)
-                <span class="text-xs text-muted">{{ $product->quantity }}</span>
-            @endif
-        </div>
-
-        @if($product->stock !== null && $product->stock <= 0)
-            <p class="mt-2 text-sm text-terracotta font-medium">Esgotado</p>
-        @else
-            @auth
-                <button class="mt-3 w-full bg-forest text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-forest/90 transition-colors"
-                        hx-post="{{ route('cart.add', $product->id) }}"
-                        hx-target="#cart-popup-container"
-                        hx-swap="innerHTML"
-                        hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'
-                        hx-vals='{"quantity": 1}'>
-                    Adicionar
-                </button>
-            @else
-                <a href="{{ route('login', ['next' => request()->fullUrl()]) }}"
-                   class="mt-3 block w-full bg-forest text-white py-2 px-4 rounded-md text-sm font-medium text-center hover:bg-forest/90 transition-colors">
-                    Entrar para comprar
-                </a>
-            @endauth
-        @endif
+<div class="group border border-stone/40 rounded-sm overflow-hidden bg-paper">
+  <a href="{{ route('catalog.product', $product->slug) }}">
+    <div class="overflow-hidden">
+      @if($product->image)
+        @php($productImage = str_starts_with($product->image, 'images/') ? asset($product->image) : asset('storage/' . $product->image))
+        <img src="{{ $productImage }}" alt="{{ $product->name }}" class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+      @else
+        <div class="aspect-square w-full bg-stone/20 flex items-center justify-center"><span class="text-muted text-sm">Sem imagem</span></div>
+      @endif
     </div>
+  </a>
+
+  <div class="p-4">
+    <p class="text-[10px] uppercase tracking-widest text-muted mb-1">{{ $product->category?->name }}</p>
+    <a href="{{ route('catalog.product', $product->slug) }}" class="block"><h3 class="font-serif text-lg italic mb-2 group-hover:text-terracotta transition-colors">{{ $product->name }}</h3></a>
+    <div class="mb-4 bg-terracotta/6 px-3 py-3"><p class="font-serif text-2xl italic leading-none text-forest">€{{ number_format((float) $product->price, 2, ',', ' ') }}</p><p class="mt-1 text-xs uppercase tracking-[0.14em] text-terracotta">{{ $product->quantity }}</p></div>
+
+    <div class="flex flex-wrap gap-1 mb-3">
+      @if($product->allow_pickup && $product->relationLoaded('pickupLocations') && $product->pickupLocations->isNotEmpty())
+        @foreach($product->pickupLocations as $loc)<span class="text-[10px] uppercase tracking-widest text-muted border border-stone/30 px-2 py-0.5 rounded-sm">{{ $loc->name }}</span>@endforeach
+      @endif
+      <span class="text-[10px] uppercase tracking-widest border px-2 py-0.5 rounded-sm {{ $product->allow_shipping ? 'text-forest border-forest/30' : 'text-muted border-stone/30' }}">{{ $product->allow_shipping && $product->allow_pickup ? 'Envio e recolha' : ($product->allow_shipping ? 'Apenas envio' : ($product->allow_pickup ? 'Apenas recolha' : 'Sem modo disponível')) }}</span>
+    </div>
+
+    @if($product->is_preview)<p class="mb-3 text-[10px] uppercase tracking-widest text-terracotta">Pré-visualização</p>@endif
+
+    @auth
+      <form method="post" action="{{ route('cart.add', $product->id) }}" hx-post="{{ route('cart.add', $product->id) }}" hx-swap="none">
+        @csrf
+        <div class="flex items-center gap-2 mb-3"><div class="flex items-center border border-stone/40 rounded-sm"><button type="button" data-cart-quantity-action="decrement" aria-label="Diminuir quantidade" class="px-2 py-1 text-muted hover:text-forest transition-colors">−</button><input type="number" name="quantity" value="1" min="1" max="{{ min(99, max(1, (int) $product->stock)) }}" class="w-12 text-center border-x border-stone/40 py-1 text-xs focus:outline-none no-spinner"><button type="button" data-cart-quantity-action="increment" aria-label="Aumentar quantidade" class="px-2 py-1 text-muted hover:text-forest transition-colors">+</button></div><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="3" class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">3x</button><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="6" class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">6x</button></div>
+        <button type="submit" class="w-full text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors cursor-pointer {{ $product->stock <= 0 || $product->is_preview ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 || $product->is_preview ? 'disabled' : '' }}>{{ $product->is_preview ? 'Pré-visualização' : ((int) $product->stock > 0 ? 'Adicionar ao carrinho' : 'Esgotado') }}</button>
+      </form>
+    @else
+      <a href="{{ route('login', ['next' => request()->fullUrl()]) }}" class="block w-full text-center text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors">Entrar para comprar</a>
+    @endauth
+  </div>
 </div>

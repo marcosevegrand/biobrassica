@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="scroll-smooth">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>@yield('title', 'BioBrassica')</title>
@@ -13,31 +13,23 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon_green.png') }}">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="{{ asset('css/output.css') }}">
-
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 
     @yield('extra_css')
 </head>
-<body class="bg-paper text-forest font-sans font-light antialiased">
+<body class="min-h-screen flex flex-col bg-paper text-forest font-sans font-light">
 
     <x-navbar-website />
 
     <x-site-messages />
 
-    <main>
+    <main class="flex-1">
         @yield('content')
     </main>
 
     <x-footer-website />
 
-    <script src="{{ asset('js/navbar.js') }}"></script>
+    <script src="{{ asset('js/navbar.js') }}" defer></script>
     @yield('extra_js')
 
     @if(isset($websiteDefaults) && $websiteDefaults->custom_js)

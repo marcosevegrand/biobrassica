@@ -1,94 +1,20 @@
 @extends('layouts.shop')
 
-@section('title', 'Loja')
+@section('title', 'Loja | Biobrassica')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="relative bg-forest text-paper overflow-hidden mt-6">
+  <div class="absolute inset-0 opacity-10"><div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_60%)]"></div></div>
+  <div class="relative max-w-7xl mx-auto px-6 sm:px-8 py-20 md:py-28"><div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center"><div><p class="text-xs uppercase tracking-[0.3em] text-paper/50 mb-4">Loja Online Biobrassica</p><h1 class="text-4xl sm:text-5xl md:text-6xl font-serif italic leading-tight mb-6">Produtos biológicos, entregues com cuidado</h1><p class="text-paper/70 text-lg leading-relaxed mb-10 max-w-lg">Do campo para a sua porta. Encomende online e receba em casa ou levante nas nossas lojas em Braga e Guimarães.</p><a href="{{ route('catalog.products') }}" class="inline-block px-8 py-3.5 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">Ver Produtos</a></div><div class="hidden md:block"><img src="{{ asset('images/people/002.jpg') }}" alt="Equipa Biobrassica" class="w-full h-auto rounded-sm shadow-2xl"></div></div></div>
+</section>
 
-    @if($featuredCategories->isNotEmpty())
-        <section class="py-12">
-            <h2 class="font-serif text-3xl font-bold text-forest text-center mb-8">Categorias</h2>
+<section class="bg-forest/5 py-10"><div class="max-w-7xl mx-auto px-6 sm:px-8"><div class="grid grid-cols-3 gap-6 text-center">@foreach([['100% Biológico','Certificado Certiplanet'],['Levantamento na loja','Braga ou Guimarães'],['Pagamento seguro','MB WAY']] as $badge)<div class="flex items-center justify-center gap-3"><div class="w-10 h-10 rounded-full bg-forest/10 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296A3.746 3.746 0 019.932 4.593 3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg></div><div class="text-left"><p class="text-sm font-medium text-forest">{{ $badge[0] }}</p><p class="text-xs text-muted">{{ $badge[1] }}</p></div></div>@endforeach</div></div></section>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                @foreach($featuredCategories as $category)
-                    <a href="{{ route('catalog.category', $category->slug) }}"
-                       class="group relative bg-white rounded-lg border border-stone/40 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        <div class="aspect-square overflow-hidden bg-paper">
-                            @if($category->image)
-                                <img src="{{ asset('storage/' . $category->image) }}"
-                                     alt="{{ $category->name }}"
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                     loading="lazy">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center bg-paper">
-                                    <svg class="w-12 h-12 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                                    </svg>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                            <h3 class="font-serif text-white font-semibold text-lg">{{ $category->name }}</h3>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        </section>
-    @endif
+@if($highlights->isNotEmpty())<section class="max-w-7xl mx-auto px-6 sm:px-8 py-24"><div class="text-center mb-14"><p class="text-xs uppercase tracking-[0.3em] text-muted mb-3">Seleção especial</p><h2 class="text-3xl md:text-4xl font-serif italic text-forest">Produtos em destaque</h2></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">@foreach($highlights as $product)<x-product-card :product="$product" />@endforeach</div><div class="text-center mt-12"><a href="{{ route('catalog.products') }}" class="inline-block px-8 py-3 border border-forest text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-forest hover:text-paper transition-colors">Ver todos os produtos</a></div></section>@endif
 
-    @if($highlightedProducts->isNotEmpty())
-        <section class="py-12">
-            <h2 class="font-serif text-3xl font-bold text-forest text-center mb-2">Produtos em Destaque</h2>
-            <p class="text-center text-muted mb-8">Os nossos produtos mais especiais</p>
+@if($categories->isNotEmpty())<section class="bg-forest/5 py-24"><div class="max-w-7xl mx-auto px-6 sm:px-8"><div class="text-center mb-14"><p class="text-xs uppercase tracking-[0.3em] text-muted mb-3">Explore</p><h2 class="text-3xl md:text-4xl font-serif italic text-forest">As nossas categorias</h2></div><div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">@foreach($categories as $category)<a href="{{ route('catalog.products', ['categoria' => $category->slug]) }}" class="group text-center"><div class="aspect-square rounded-lg overflow-hidden mb-3 border border-stone/30 group-hover:border-forest/60 transition-colors"><div class="w-full h-full bg-stone/10 flex items-center justify-center"><svg class="w-8 h-8 text-muted/30" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div></div><p class="text-xs uppercase tracking-widest text-muted group-hover:text-forest transition-colors font-medium">{{ $category->name }}</p></a>@endforeach</div></div></section>@endif
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                @foreach($highlightedProducts as $product)
-                    <x-product-card :product="$product" />
-                @endforeach
-            </div>
+@if($latest_products->isNotEmpty())<section class="max-w-7xl mx-auto px-6 sm:px-8 py-24"><div class="text-center mb-14"><p class="text-xs uppercase tracking-[0.3em] text-muted mb-3">Novidades</p><h2 class="text-3xl md:text-4xl font-serif italic text-forest">Adicionados recentemente</h2></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">@foreach($latest_products as $product)<x-product-card :product="$product" />@endforeach</div></section>@endif
 
-            <div class="text-center mt-8">
-                <a href="{{ route('catalog.products') }}"
-                   class="inline-flex items-center px-6 py-3 border border-forest text-forest rounded-md hover:bg-forest hover:text-white transition-colors font-medium">
-                    Ver todos os produtos
-                    <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </a>
-            </div>
-        </section>
-    @endif
-
-    @if(isset($contactLocations) && $contactLocations->isNotEmpty())
-        <section class="py-12 border-t border-stone/40">
-            <h2 class="font-serif text-3xl font-bold text-forest text-center mb-8">Onde nos Encontrar</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($contactLocations as $location)
-                    <div class="bg-white rounded-lg border border-stone/40 p-6 shadow-sm">
-                        <h3 class="font-serif text-lg font-bold text-forest mb-2">{{ $location->name }}</h3>
-                        @if($location->address)
-                            <p class="text-sm text-muted mb-1">{{ $location->address }}</p>
-                        @endif
-                        @if($location->phone)
-                            <p class="text-sm text-muted mb-1">
-                                <a href="tel:{{ $location->phone }}" class="hover:text-terracotta transition-colors">{{ $location->phone }}</a>
-                            </p>
-                        @endif
-                        @if($location->email)
-                            <p class="text-sm text-muted mb-1">
-                                <a href="mailto:{{ $location->email }}" class="hover:text-terracotta transition-colors">{{ $location->email }}</a>
-                            </p>
-                        @endif
-                        @if($location->opening_hours)
-                            <p class="text-xs text-muted mt-3">{{ $location->opening_hours }}</p>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-</div>
+<section class="bg-forest text-paper py-20"><div class="max-w-3xl mx-auto px-6 sm:px-8 text-center"><h2 class="text-2xl md:text-3xl font-serif italic mb-5">Visite-nos</h2><p class="text-paper/60 mb-8 leading-relaxed">Prefere ver e escolher pessoalmente? Visite as nossas lojas em Braga e Guimarães. Teremos todo o gosto em recebê-lo.</p><div class="flex flex-col sm:flex-row items-center justify-center gap-4"><a href="{{ route('website.contacts') }}" class="inline-block px-8 py-3.5 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">Ver Localizações</a><a href="{{ route('website.home') }}" class="inline-block px-8 py-3.5 border border-paper/40 text-paper text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/10 transition-colors">biobrassica.pt</a></div></div></section>
 @endsection

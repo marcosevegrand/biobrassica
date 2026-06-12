@@ -1,89 +1,39 @@
 @extends('layouts.shop')
 
-@section('title', 'Produtos')
+@section('title', 'Produtos | Biobrassica')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex flex-col md:flex-row gap-8">
+<section class="max-w-7xl mx-auto px-6 sm:px-8 py-12">
+  <h1 class="font-serif text-4xl md:text-5xl italic text-center mb-4">Produtos</h1>
+  <p class="text-muted text-center mb-12">A nossa montra digital. Encomende online, levante na loja.</p>
 
-        <aside class="w-full md:w-64 flex-shrink-0">
-            <div class="bg-white rounded-lg border border-stone/40 p-6 sticky top-24">
-                <h3 class="font-serif text-lg font-bold text-forest mb-4">Categorias</h3>
+  <div class="flex flex-col md:flex-row gap-4 mb-10">
+    <form method="get" action="{{ route('catalog.products') }}" class="flex-1">
+      @if($current_category)<input type="hidden" name="categoria" value="{{ $current_category }}">@endif
+      <div class="relative"><input type="text" name="q" value="{{ $search_query }}" placeholder="Pesquisar produtos..." class="w-full px-4 py-3 border border-stone/40 rounded-sm focus:outline-none focus:border-forest text-sm"><button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-forest"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></button></div>
+    </form>
+  </div>
 
-                <form method="GET" action="{{ route('catalog.products') }}" id="filter-form">
-                    <div class="space-y-2">
-                        <a href="{{ route('catalog.products') }}"
-                           class="block px-3 py-2 rounded-md text-sm {{ !request('category') ? 'bg-forest text-white' : 'text-forest hover:bg-paper' }} transition-colors">
-                            Todas
-                        </a>
+  @if($categories->isNotEmpty())
+  <div class="flex flex-wrap gap-2 mb-12" id="category-filters">
+    @foreach($categories as $category)
+      @php($active = $current_category === $category->slug)
+      <a href="{{ $active ? route('catalog.products', $search_query ? ['q' => $search_query] : []) : route('catalog.products', array_filter(['categoria' => $category->slug, 'q' => $search_query])) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-200 {{ $active ? 'bg-forest text-paper' : 'bg-stone/15 text-forest hover:bg-forest/10' }}" data-category-tag><span>{{ $category->name }}</span>@if($active)<svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>@endif</a>
+    @endforeach
+  </div>
+  @endif
 
-                        @foreach($categories as $cat)
-                            <a href="{{ route('catalog.products', ['category' => $cat->id]) }}"
-                               class="block px-3 py-2 rounded-md text-sm {{ request('category') == $cat->id ? 'bg-forest text-white' : 'text-forest hover:bg-paper' }} transition-colors">
-                                {{ $cat->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </form>
+  <div id="product-grid">
+    @if($products->count())
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">@foreach($products as $product)<x-product-card :product="$product" />@endforeach</div>
+      <div class="mt-10">{{ $products->links() }}</div>
+    @else
+      <div class="text-center py-24"><p class="text-muted text-lg">Nenhum produto encontrado.</p></div>
+    @endif
+  </div>
+</section>
+@endsection
 
-                <div class="mt-6 pt-6 border-t border-stone/40">
-                    <h4 class="font-serif text-sm font-bold text-forest mb-3">Procurar</h4>
-                    <form method="GET" action="{{ route('catalog.products') }}">
-                        @if(request('category'))
-                            <input type="hidden" name="category" value="{{ request('category') }}">
-                        @endif
-                        <input type="text" name="q" value="{{ request('q') }}"
-                               placeholder="Pesquisar produtos..."
-                               class="w-full px-3 py-2 border border-stone/40 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-forest/30">
-                        <button type="submit" class="mt-2 w-full bg-forest text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-forest/90 transition-colors">
-                            Buscar
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </aside>
-
-        <div class="flex-1">
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="font-serif text-2xl font-bold text-forest">
-                    @if(request('category'))
-                        @php $activeCategory = $categories->firstWhere('id', request('category')); @endphp
-                        {{ $activeCategory ? $activeCategory->name : 'Produtos' }}
-                    @elseif(request('q'))
-                        Resultados para "{{ request('q') }}"
-                    @else
-                        Todos os Produtos
-                    @endif
-                </h1>
-
-                <span class="text-sm text-muted">{{ $products->total() }} produto(s)</span>
-            </div>
-
-            @if($products->isEmpty())
-                <div class="bg-white rounded-lg border border-stone/40 p-12 text-center">
-                    <svg class="w-16 h-16 text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                    </svg>
-                    <h3 class="font-serif text-lg font-semibold text-forest mb-2">Nenhum produto encontrado</h3>
-                    <p class="text-muted text-sm">Tente ajustar os filtros ou voltar mais tarde.</p>
-                    <a href="{{ route('catalog.products') }}" class="inline-block mt-4 text-terracotta hover:underline text-sm font-medium">
-                        Ver todos os produtos
-                    </a>
-                </div>
-            @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($products as $product)
-                        <x-product-card :product="$product" />
-                    @endforeach
-                </div>
-
-                <div class="mt-8">
-                    {{ $products->appends(request()->query())->links() }}
-                </div>
-            @endif
-        </div>
-
-    </div>
-</div>
+@section('extra_js')
+@if($current_category)<script src="{{ asset('js/product_list.js') }}" defer></script>@endif
 @endsection

@@ -1,196 +1,31 @@
 @extends('layouts.website')
 
-@section('title', 'Quem Somos - BioBrassica')
-@section('meta_description', 'Conheça a história da BioBrassica, a nossa equipa e o nosso compromisso com a agricultura biológica certificada.')
+@section('title', 'Quem Somos | Biobrassica')
+@section('meta_description', 'Conheça a história da Biobrassica, uma empresa familiar dedicada à agricultura biológica no Minho.')
 
 @section('content')
-@php
-    $teamImage = isset($websiteContent) && $websiteContent->about_image
-        ? asset('storage/' . $websiteContent->about_image)
-        : null;
-@endphp
-
-<section class="relative h-[70vh] flex items-center justify-center overflow-hidden">
-    @if($teamImage)
-        <img src="{{ $teamImage }}" alt="Equipa BioBrassica" class="absolute inset-0 w-full h-full object-cover">
-    @else
-        <div class="absolute inset-0 bg-gradient-to-br from-forest via-forest/90 to-forest/70"></div>
-    @endif
-    <div class="absolute inset-0 bg-forest/50"></div>
-
-    <div class="relative z-10 text-center px-4">
-        <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-            {{ $websiteContent->about_title ?? 'Do campo à sua mesa, com quem conhece a terra' }}
-        </h1>
-        <p class="text-lg md:text-xl text-white/80 font-light max-w-2xl mx-auto">
-            Pessoas reais, produtos de confiança
-        </p>
-    </div>
+<section class="relative h-screen flex items-center justify-center overflow-hidden">
+  <img src="{{ asset('images/people/003.jpg') }}" alt="A equipa Biobrassica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+  <div class="relative z-10 text-center text-paper px-6 sm:px-8 max-w-5xl xl:max-w-6xl pt-20 sm:pt-24 md:pt-28">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif leading-tight">Do campo à sua mesa, com quem conhece a terra</h1>
+    <p class="mt-6 text-lg sm:text-xl md:text-2xl text-paper/90 max-w-2xl mx-auto">Pessoas reais, produtos de confiança</p>
+  </div>
 </section>
 
-@if(isset($websiteContent) && $websiteContent->about_content)
-<section class="py-20 bg-paper">
-    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div class="prose prose-lg max-w-none text-muted font-light">
-            {!! Str::markdown($websiteContent->about_content) !!}
-        </div>
-    </div>
+<section class="max-w-7xl mx-auto px-6 sm:px-8 pt-24 pb-12">
+  <div class="space-y-16">
+    <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4"><h2 class="font-serif text-3xl md:text-4xl italic">O que significa "Biobrassica"</h2><p class="text-muted leading-relaxed">O nome "Biobrassica" junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden"><img src="{{ asset('images/products/002.jpg') }}" alt="Produtos biológicos Biobrassica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
+    <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4 md:order-2"><h2 class="font-serif text-3xl md:text-4xl italic">Como escolhemos os produtos</h2><p class="text-muted leading-relaxed">Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em frescura, origem e consistência, trabalhando com fornecedores e produtores de confiança alinhados com os nossos valores. A qualidade é acompanhada diariamente em loja, desde a receção ao acondicionamento e à exposição, para garantir produtos frescos, seguros e com origem clara para os nossos clientes.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden md:order-1"><img src="{{ asset('images/products/001.jpg') }}" alt="Produção biológica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
+  </div>
 </section>
-@else
-<section class="py-20 bg-paper">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row items-center gap-12 mb-20">
-            <div class="lg:w-1/2">
-                <img src="{{ asset('images/people/001.jpg') }}"
-                     alt="O significado de BioBrassica"
-                     class="w-full rounded-lg shadow-lg object-cover aspect-[4/3]">
-            </div>
-            <div class="lg:w-1/2">
-                <h2 class="font-serif text-3xl md:text-4xl font-bold text-forest mb-4">
-                    O significado de BioBrassica
-                </h2>
-                <div class="w-20 h-1 bg-terracotta mb-6"></div>
-                <p class="text-muted leading-relaxed mb-4">
-                    O nome BioBrassica nasce da união entre "Bio" — de biológico — e "Brassica", o género botânico que inclui
-                    culturas como os brócolos, couves e nabos, tão presentes na agricultura portuguesa.
-                </p>
-                <p class="text-muted leading-relaxed mb-4">
-                    Representa o nosso compromisso com uma agricultura que respeita os ciclos da natureza, preserva a
-                    biodiversidade e oferece alimentos saudáveis, saborosos e certificados.
-                </p>
-                <p class="text-muted leading-relaxed">
-                    Cada produto que sai da nossa horta carrega consigo o saber de gerações, adaptado às exigências
-                    e padrões de qualidade da agricultura biológica moderna.
-                </p>
-            </div>
-        </div>
 
-        <div class="flex flex-col lg:flex-row-reverse items-center gap-12 mb-20">
-            <div class="lg:w-1/2">
-                <img src="{{ asset('images/people/002.jpg') }}"
-                     alt="Seleção rigorosa"
-                     class="w-full rounded-lg shadow-lg object-cover aspect-[4/3]">
-            </div>
-            <div class="lg:w-1/2">
-                <h2 class="font-serif text-3xl md:text-4xl font-bold text-forest mb-4">
-                    Seleção Rigorosa
-                </h2>
-                <div class="w-20 h-1 bg-terracotta mb-6"></div>
-                <p class="text-muted leading-relaxed mb-4">
-                    Na BioBrassica, cada produto é cuidadosamente selecionado. Trabalhamos apenas com
-                    produtores que partilham os nossos valores e que são certificados para o modo de produção biológico.
-                </p>
-                <p class="text-muted leading-relaxed mb-4">
-                    A qualidade começa na semente e termina no prato. Por isso, acompanhamos de perto
-                    todo o processo — desde a seleção das variedades mais adaptadas ao nosso clima, até ao
-                    momento da colheita e distribuição.
-                </p>
-                <p class="text-muted leading-relaxed">
-                    Acreditamos que comer bem é um direito de todos, e que a agricultura biológica
-                    é o caminho para uma alimentação mais consciente e sustentável.
-                </p>
-            </div>
-        </div>
-
-        <div class="flex flex-col lg:flex-row items-center gap-12">
-            <div class="lg:w-1/2">
-                <img src="{{ asset('images/people/003.jpg') }}"
-                     alt="A nossa exploração"
-                     class="w-full rounded-lg shadow-lg object-cover aspect-[4/3]">
-            </div>
-            <div class="lg:w-1/2">
-                <h2 class="font-serif text-3xl md:text-4xl font-bold text-forest mb-4">
-                    A Nossa Exploração
-                </h2>
-                <div class="w-20 h-1 bg-terracotta mb-6"></div>
-                <p class="text-muted leading-relaxed mb-4">
-                    A nossa exploração agrícola está localizada em Guimarães, no coração do Minho,
-                    uma região de tradição agrícola rica e solos férteis.
-                </p>
-                <p class="text-muted leading-relaxed mb-4">
-                    Cultivamos uma grande variedade de hortícolas, frutas e ervas aromáticas,
-                    sempre respeitando os princípios da agricultura biológica: rotação de culturas,
-                    compostagem natural, controlo biológico de pragas e proteção da biodiversidade.
-                </p>
-                <p class="text-muted leading-relaxed">
-                    Acreditamos que a transparência é fundamental. Por isso, convidamo-lo a conhecer
-                    a nossa exploração e a ver de perto como cultivamos os alimentos que chegam à sua mesa.
-                </p>
-            </div>
-        </div>
-    </div>
+<section class="max-w-7xl mx-auto px-6 sm:px-8 pt-12 pb-12">
+  <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4"><h2 class="font-serif text-3xl md:text-4xl italic">A nossa quinta biológica</h2><p class="text-muted leading-relaxed">A nossa quinta biológica é um projeto complementar, em pequena escala, que apoia a atividade da loja. Serve para reforçar alguns produtos e manter ligação direta à terra, sem substituir a nossa atividade principal: selecionar e disponibilizar, em loja, produtos de qualidade para a comunidade.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden"><img src="{{ asset('images/people/001.jpg') }}" alt="Quinta biológica da Biobrassica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
 </section>
+
+@if(isset($teamMembers) && $teamMembers->isNotEmpty())
+<section class="max-w-7xl mx-auto px-6 sm:px-8 pt-6 pb-16"><div class="flex flex-col gap-4 text-center"><p class="text-xs uppercase tracking-[0.3em] text-muted">A equipa Biobrassica</p><h2 class="font-serif text-3xl md:text-4xl italic">Pessoas reais, produtos de confiança</h2><p class="mx-auto max-w-2xl text-muted">Conheça a equipa que acompanha diariamente o atendimento, o aprovisionamento e a curadoria da loja.</p></div><div class="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">@foreach($teamMembers as $member)<article class="overflow-hidden rounded-2xl border border-stone/20 bg-paper shadow-sm"><div class="aspect-4/5 overflow-hidden bg-forest/5">@php($photo = $member->photo && str_starts_with($member->photo, 'images/') ? asset($member->photo) : ($member->photo ? asset('storage/'.$member->photo) : asset('images/people/006.jpg')))<img src="{{ $photo }}" alt="{{ $member->name }}" class="h-full w-full object-cover" loading="lazy"></div><div class="space-y-2 p-5 text-center"><h3 class="font-serif text-2xl italic text-forest">{{ $member->name }}</h3><p class="text-sm uppercase tracking-[0.22em] text-muted">{{ $member->role }}</p></div></article>@endforeach</div></section>
 @endif
 
-@if($teamMembers->isNotEmpty())
-<section class="py-20 bg-white">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-14">
-            <h2 class="font-serif text-3xl md:text-4xl font-bold text-forest mb-4">
-                A Nossa Equipa
-            </h2>
-            <div class="w-20 h-1 bg-terracotta mb-6 mx-auto"></div>
-            <p class="text-muted font-light max-w-2xl mx-auto">
-                Pessoas apaixonadas que tornam a BioBrassica possível, todos os dias.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            @foreach($teamMembers as $member)
-                <div class="text-center group">
-                    <div class="w-40 h-40 mx-auto rounded-full overflow-hidden bg-paper mb-4 border-2 border-terracotta/20 group-hover:border-terracotta/50 transition-colors shadow-md">
-                        @php($memberPhoto = $member->photo ? (str_starts_with($member->photo, 'images/') ? asset($member->photo) : asset('storage/' . $member->photo)) : asset('images/people/001.jpg'))
-                        <img src="{{ $memberPhoto }}"
-                             alt="{{ $member->name }}"
-                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                             loading="lazy">
-                    </div>
-                    <h3 class="font-serif text-lg font-semibold text-forest">{{ $member->name }}</h3>
-                    <p class="text-terracotta text-sm font-medium">{{ $member->role }}</p>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-<section class="px-6 sm:px-8 py-20 bg-paper">
-    <div class="max-w-4xl mx-auto bg-forest rounded-2xl p-6 sm:p-10">
-        <p class="text-xs uppercase tracking-[0.3em] text-paper/50 mb-3 text-center">As nossas lojas</p>
-        <h2 class="text-2xl md:text-3xl font-serif italic text-paper text-center mb-8">Conheça os nossos espaços</h2>
-        <div class="rounded-lg overflow-hidden shadow-2xl mb-10">
-            <video class="w-full" controls preload="metadata" poster="{{ asset('images/brand/logo-white-no-bg.png') }}">
-                <source src="{{ asset('videos/video_brassica.mp4') }}" type="video/mp4">
-                O seu navegador não suporta vídeo.
-            </video>
-        </div>
-        <div class="text-center">
-            <p class="text-paper/70 mb-8">Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa.</p>
-            <a href="{{ route('website.contacts') }}"
-               class="inline-block px-8 py-3 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">
-                Ver Localizações
-            </a>
-        </div>
-    </div>
-</section>
-
-<section class="py-20 bg-forest">
-    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="font-serif text-3xl md:text-4xl font-bold text-white mb-6">
-            Venha Conhecer-nos
-        </h2>
-        <p class="text-white/70 font-light max-w-2xl mx-auto mb-10">
-            Visite a nossa exploração, conheça a nossa equipa e descubra o sabor autêntico
-            dos produtos biológicos da BioBrassica.
-        </p>
-        <a href="{{ route('website.contacts') }}"
-           class="inline-flex items-center gap-2 bg-terracotta text-white px-8 py-3 rounded-full font-medium hover:bg-terracotta/90 transition-colors shadow-lg">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-            Contacte-nos
-        </a>
-    </div>
-</section>
+<section class="px-6 sm:px-8 pb-24"><div class="max-w-4xl mx-auto bg-forest rounded-2xl p-6 sm:p-10"><p class="text-xs uppercase tracking-[0.3em] text-paper/50 mb-3 text-center">As nossas lojas</p><h2 class="text-2xl md:text-3xl font-serif italic text-paper text-center mb-8">Conheça os nossos espaços</h2><div class="rounded-lg overflow-hidden shadow-2xl mb-10"><video class="w-full" controls preload="metadata" poster="{{ asset('images/brand/logo-white-no-bg.png') }}"><source src="{{ asset('videos/video_brassica.mp4') }}" type="video/mp4">O seu navegador não suporta vídeo.</video></div><div class="text-center"><p class="text-paper/70 mb-8">Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa.</p><a href="{{ route('website.contacts') }}" class="inline-block px-8 py-3 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">Ver Localizações</a></div></div></section>
 @endsection
