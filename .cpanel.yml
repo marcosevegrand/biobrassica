@@ -17,8 +17,8 @@ deployment:
     - /bin/cp public_html/index.php $PUBLICPATH/index.php
     - /bin/cp public_html/.htaccess $PUBLICPATH/.htaccess
     - /bin/cp public_html/.user.ini $PUBLICPATH/.user.ini
-    - test -f $APPPATH/vendor/autoload.php
-    - test -f $APPPATH/.env
+    - test -f $APPPATH/vendor/autoload.php && echo "vendor/ OK" || echo "ERROR: vendor/ missing, upload it to $APPPATH/vendor/"
+    - test -f $APPPATH/.env && echo ".env OK" || echo "ERROR: .env missing, create it at $APPPATH/.env"
     - cd $APPPATH && $PHPBIN artisan optimize:clear 2>&1
     - cd $APPPATH && $PHPBIN artisan migrate --force 2>&1
     - cd $APPPATH && $PHPBIN artisan db:seed --force 2>&1
