@@ -1,35 +1,53 @@
 <?php
 
 /**
- * Manual .env loader — bypasses Dotenv incompatibility on this host.
+ * cPanel-safe .env loader.
  *
- * Dotenv's createImmutable() fails to find the .env file even when
- * open_basedir allows access. This file reads .env directly and
- * populates $_ENV, $_SERVER, and putenv() before Laravel boots.
+ * Laravel's Dotenv file reader fails on this host, but plain file reads work.
+ * So we read the file ourselves and let Dotenv parse the content string.
  */
 
-$envFile = __DIR__ . '/../.env';
+$envFile = dirname(__DIR__).'/.env';
 
-if (file_exists($envFile) && is_readable($envFile)) {
-    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+if (! is_file($envFile) || ! is_readable($envFile)) {
+    return;
+}
+
+$contents = file_get_contents($envFile);
+
+if ($contents === false) {
+    return;
+}
+
+try {
+    $variables = class_exists(\Dotenv\Dotenv::class)
+        ? \Dotenv\Dotenv::parse($contents)
+        : [];
+} catch (Throwable) {
+    $variables = [];
+}
+
+if ($variables === []) {
+    foreach (preg_split('/\r\n|\r|\n/', $contents) ?: [] as $line) {
         $line = trim($line);
 
-        // Skip comments and empty lines
-        if ($line === '' || $line[0] === '#') {
+        if ($line === '' || str_starts_with($line, '#') || ! str_contains($line, '=')) {
             continue;
         }
 
-        // Split on first =
-        $pos = strpos($line, '=');
-        if ($pos === false) {
-            continue;
-        }
-
-        $key = trim(substr($line, 0, $pos));
-        $value = trim(substr($line, $pos + 1), " \t\n\r\0\x0B\"'");
-
-        putenv("$key=$value");
-        $_ENV[$key] = $value;
-        $_SERVER[$key] = $value;
+        [$key, $value] = explode('=', $line, 2);
+        $variables[trim($key)] = trim($value, " \t\n\r\0\x0B\"'");
     }
+}
+
+foreach ($variables as $key => $value) {
+    if ($key === '') {
+        continue;
+    }
+
+    $value = (string) $value;
+
+    putenv($key.'='.$value);
+    $_ENV[$key] = $value;
+    $_SERVER[$key] = $value;
 }
