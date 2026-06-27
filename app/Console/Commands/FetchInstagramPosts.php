@@ -9,18 +9,14 @@ class FetchInstagramPosts extends Command
 {
     protected $signature = 'instagram:fetch {shortcodes?* : Instagram post shortcodes to activate}';
 
-    protected $description = 'Refresh the curated Instagram post list from arguments or INSTAGRAM_POST_SHORTCODES.';
+    protected $description = 'Refresh the curated Instagram post list from supplied shortcode arguments.';
 
     public function handle(): int
     {
         $shortcodes = $this->argument('shortcodes');
 
         if (empty($shortcodes)) {
-            $shortcodes = array_filter(array_map('trim', explode(',', (string) env('INSTAGRAM_POST_SHORTCODES', ''))));
-        }
-
-        if (empty($shortcodes)) {
-            $this->warn('No Instagram shortcodes supplied.');
+            $this->warn('No Instagram shortcodes supplied. Manage Instagram posts in the admin panel, or pass shortcodes as command arguments.');
 
             return self::SUCCESS;
         }
