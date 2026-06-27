@@ -2,12 +2,15 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        $this->deduplicateProductSlugs();
+
         Schema::table('carts', function (Blueprint $table): void {
             if (! $this->indexExists('carts', 'carts_reserved_until_index')) {
                 $table->index('reserved_until', 'carts_reserved_until_index');
@@ -79,5 +82,34 @@ return new class extends Migration
     private function indexExists(string $table, string $index): bool
     {
         return collect(Schema::getIndexes($table))->contains(fn (array $existingIndex): bool => ($existingIndex['name'] ?? null) === $index);
+    }
+
+    private function deduplicateProductSlugs(): void
+    {
+        if (! Schema::hasColumn('products', 'slug')) {
+            return;
+        }
+
+        $duplicates = DB::table('products')
+            ->select('slug')
+            ->whereNotNull('slug')
+            ->groupBy('slug')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('slug');
+
+        foreach ($duplicates as $slug) {
+            $products = DB::table('products')
+                ->where('slug', $slug)
+                ->orderBy('id')
+                ->get(['id', 'slug']);
+
+            foreach ($products->slice(1) as $product) {
+                DB::table('products')
+                    ->where('id', $product->id)
+                    ->update([
+                        'slug' => mb_substr($product->slug.'-'.$product->id, 0, 255),
+                    ]);
+            }
+        }
     }
 };

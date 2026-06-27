@@ -1,23 +1,4 @@
 ---
 deployment:
   tasks:
-    - export APPPATH=$HOME/biobrassica
-    - export PUBLICPATH=$HOME/public_html
-    - /bin/mkdir -p $PUBLICPATH
-    - /bin/mkdir -p $PUBLICPATH/storage
-    - /bin/mkdir -p $APPPATH/bootstrap/cache
-    - /bin/mkdir -p $APPPATH/storage/app/public
-    - /bin/mkdir -p $APPPATH/storage/framework/cache/data
-    - /bin/mkdir -p $APPPATH/storage/framework/sessions
-    - /bin/mkdir -p $APPPATH/storage/framework/views
-    - /bin/mkdir -p $APPPATH/storage/logs
-    - /bin/cp -R public/. $PUBLICPATH
-    - /bin/cp public_html/index.php $PUBLICPATH/index.php
-    - /bin/cp public_html/.htaccess $PUBLICPATH/.htaccess
-    - /bin/cp public_html/.user.ini $PUBLICPATH/.user.ini
-    - cd $APPPATH && /usr/local/bin/php artisan optimize:clear
-    - cd $APPPATH && /usr/local/bin/php artisan migrate --force
-    - cd $APPPATH && /usr/local/bin/php artisan db:seed --force
-    - cd $APPPATH && /usr/local/bin/php artisan config:cache
-    - cd $APPPATH && /usr/local/bin/php artisan route:cache
-    - cd $APPPATH && /usr/local/bin/php artisan view:cache
+    - /bin/sh scripts/cpanel-deploy.sh
