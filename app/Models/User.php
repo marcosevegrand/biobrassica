@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -26,6 +27,8 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'preferred_language',
         'nif',
+        'email_verified_at',
+        'is_admin',
     ];
 
     /**
@@ -48,6 +51,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -68,8 +72,6 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        $allowedEmails = config('biobrassica.admin.emails', []);
-
-        return in_array(strtolower($this->email), $allowedEmails, true);
+        return (bool) $this->is_admin && $this->email_verified_at !== null;
     }
 }

@@ -3,15 +3,22 @@
 @section('title', 'Biobrassica')
 
 @section('content')
+@php
+  $homeHeroTitle = $websiteContent?->hero_title ?: 'Tudo que precisa para uma alimentação saudável';
+  $homeHeroSubtitle = $websiteContent?->hero_subtitle ?: 'Produtos biológicos, saudáveis para si, bons para o ambiente.';
+  $homeHeroCtaText = $websiteContent?->hero_cta_text ?: 'Ir para a Loja';
+  $homeHeroCtaUrl = $websiteContent?->hero_cta_url ?: route('shop.home');
+@endphp
 <section class="relative h-screen flex items-center justify-center overflow-hidden">
   <img src="{{ asset('images/products/003.jpg') }}" alt="Biobrassica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
   <div class="relative z-10 text-center text-paper px-6 sm:px-8 w-full max-w-6xl xl:max-w-7xl mx-auto">
     <img src="{{ asset('images/brand/logo-white-no-bg.png') }}" alt="Biobrassica" class="h-16 md:h-20 mx-auto mb-8">
     <h1 class="font-serif text-3xl sm:text-4xl md:text-6xl lg:text-7xl leading-tight mb-6">
-      <span class="block">Tudo que precisa para uma</span>
-      <span class="block">alimentação saudável</span>
+      @foreach(preg_split('/\r\n|\r|\n/', wordwrap($homeHeroTitle, 28)) as $line)
+        <span class="block">{{ $line }}</span>
+      @endforeach
     </h1>
-    <p class="text-sm md:text-base uppercase tracking-widest text-paper/80">Produtos biológicos, saudáveis para si, bons para o ambiente.</p>
+    <p class="text-sm md:text-base uppercase tracking-widest text-paper/80">{{ $homeHeroSubtitle }}</p>
   </div>
 </section>
 
@@ -32,6 +39,25 @@
   </div>
 </section>
 
+@if(isset($featuredRecipes) && $featuredRecipes->isNotEmpty())
+<section class="bg-paper py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <div>
+        <p class="text-xs uppercase tracking-[0.3em] text-terracotta mb-3">Receitas</p>
+        <h2 class="font-serif text-3xl md:text-4xl italic text-forest">Inspiração para cozinhar bio</h2>
+      </div>
+      <a href="{{ route('content.recipes') }}" class="text-xs uppercase tracking-widest text-forest hover:text-terracotta transition-colors">Ver todas</a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      @foreach($featuredRecipes as $recipe)
+        @include('content.partials.recipe-card', ['recipe' => $recipe, 'locale' => $locale ?? app()->getLocale()])
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
 <section class="relative bg-forest text-paper py-24 overflow-hidden">
   <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
     <img src="{{ asset('images/arts/broccoli.svg') }}" alt="" class="absolute w-14 md:w-16 opacity-[0.22] rotate-8 svg-filter-hero top-[6%] left-[9%]">
@@ -47,7 +73,7 @@
     <p class="text-xs uppercase tracking-[0.3em] text-paper/60 mb-4">Loja Online</p>
     <h2 class="text-3xl md:text-4xl font-serif italic mb-6">Descubra os nossos produtos</h2>
     <p class="text-paper/70 mb-10 max-w-xl mx-auto">Entrega em todo o Portugal continental ou levantamento nas nossas lojas em Braga e Guimarães.</p>
-    <a href="{{ route('shop.home') }}" class="inline-block px-10 py-4 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">Ir para a Loja</a>
+    <a href="{{ $homeHeroCtaUrl }}" class="inline-block px-10 py-4 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">{{ $homeHeroCtaText }}</a>
   </div>
 </section>
 

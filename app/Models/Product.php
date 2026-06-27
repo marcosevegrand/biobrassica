@@ -61,4 +61,17 @@ class Product extends Model
     {
         return $this->hasMany(CartItem::class);
     }
+
+    public function hasFulfillmentMethod(): bool
+    {
+        return (bool) $this->allow_shipping || (bool) $this->allow_pickup;
+    }
+
+    public function canBePurchasedOnline(): bool
+    {
+        return $this->is_active
+            && ! $this->is_preview
+            && (int) $this->stock > 0
+            && $this->hasFulfillmentMethod();
+    }
 }

@@ -17,7 +17,13 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Configuração';
+    protected static ?string $navigationGroup = 'Clientes';
+
+    protected static ?string $navigationLabel = 'Utilizadores';
+
+    protected static ?string $modelLabel = 'utilizador';
+
+    protected static ?string $pluralModelLabel = 'utilizadores';
 
     public static function form(Form $form): Form
     {
@@ -43,11 +49,16 @@ class UserResource extends Resource
                         'en' => 'English',
                     ])
                     ->default('pt'),
+                Forms\Components\DateTimePicker::make('email_verified_at')
+                    ->label('Email verificado em'),
+                Forms\Components\Toggle::make('is_admin')
+                    ->label('Administrador')
+                    ->helperText('Só utilizadores administradores com email verificado podem aceder ao backoffice.'),
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
-                    ->dehydrated(fn($state) => filled($state))
-                    ->required(fn(string $context): bool => $context === 'create'),
+                    ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create'),
             ]);
     }
 
@@ -61,6 +72,9 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
+                Tables\Columns\IconColumn::make('is_admin')
+                    ->label('Admin')
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

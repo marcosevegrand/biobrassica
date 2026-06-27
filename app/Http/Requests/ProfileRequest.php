@@ -19,7 +19,7 @@ class ProfileRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', new PortuguesePhone],
             'nif' => ['nullable', 'string', new Nif],
-            'preferred_language' => ['required', 'string', 'in:pt,en'],
+            'preferred_language' => ['required', 'string', 'in:pt,en,fr'],
         ];
     }
 

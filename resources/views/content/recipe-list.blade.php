@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="bg-terracotta/5 border-b border-stone/40">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16">
         <h1 class="font-serif text-4xl font-bold text-forest">Receitas</h1>
         @if($currentTag)
             <p class="mt-3 text-muted">

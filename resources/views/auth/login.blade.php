@@ -5,7 +5,8 @@
 @section('content')
 <div class="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
     <h1 class="font-serif text-3xl font-bold text-forest text-center">Entrar</h1>
-    <p class="mt-2 text-center text-muted">Ainda não tem conta? <a href="{{ route('shop.register') }}" class="text-terracotta hover:underline">Registar</a></p>
+    @php($intendedUrl = session('url.intended'))
+    <p class="mt-2 text-center text-muted">Ainda não tem conta? <a href="{{ route('shop.register', is_string($intendedUrl) ? ['next' => $intendedUrl] : []) }}" class="text-terracotta hover:underline">Registar</a></p>
 
     <form action="{{ route('login') }}" method="POST" class="mt-8 space-y-6">
         @csrf

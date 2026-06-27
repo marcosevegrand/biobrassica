@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Kernel;
+use App\Http\Middleware\LocaleMiddleware;
 use App\Http\Middleware\ShopBrevementeMiddleware;
 use App\Http\Middleware\SubdomainMiddleware;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
@@ -45,6 +47,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SubdomainMiddleware::class,
+            LocaleMiddleware::class,
             ShopBrevementeMiddleware::class,
         ]);
     })
@@ -53,7 +56,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-$app->singleton(HttpKernel::class, App\Http\Kernel::class);
+$app->singleton(HttpKernel::class, Kernel::class);
 $app->singleton(ConsoleKernel::class, App\Console\Kernel::class);
 
 return $app;

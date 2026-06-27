@@ -16,9 +16,11 @@ return new class extends Migration
             $table->boolean('is_shop_active')->default(true);
             $table->boolean('is_shop_brevemente')->default(false);
             $table->decimal('min_order_total', 10, 2)->nullable();
+            $table->decimal('shipping_flat_rate', 10, 2)->default(0);
+            $table->decimal('free_shipping_min_subtotal', 10, 2)->nullable();
             $table->boolean('mbway_enabled')->default(true);
             $table->integer('payment_timeout_minutes')->default(30);
-            $table->integer('checkout_reservation_minutes')->default(15);
+            $table->integer('checkout_reservation_minutes')->default(30);
             $table->boolean('bank_transfer_enabled')->default(true);
             $table->timestamps();
         });

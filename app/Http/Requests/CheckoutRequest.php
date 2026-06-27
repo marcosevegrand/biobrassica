@@ -6,6 +6,7 @@ use App\Rules\Nif;
 use App\Rules\PortuguesePhone;
 use App\Rules\PortuguesePostalCode;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CheckoutRequest extends FormRequest
 {
@@ -21,13 +22,17 @@ class CheckoutRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', new PortuguesePhone],
             'nif' => ['nullable', 'string', new Nif],
-            'payment_method' => ['required', 'string', 'in:mbway,bank_transfer'],
+            'payment_method' => ['required', 'string', 'in:mbway,multibanco'],
             'fulfillment_method' => ['required', 'string', 'in:pickup,shipping'],
-            'pickup_location' => ['required_if:fulfillment_method,pickup', 'exists:locations,id'],
-            'shipping_address_line1' => ['required_if:fulfillment_method,shipping', 'string', 'max:255'],
+            'pickup_location' => [
+                'required_if:fulfillment_method,pickup',
+                'nullable',
+                Rule::exists('locations', 'id')->where('is_active', true),
+            ],
+            'shipping_address_line1' => ['required_if:fulfillment_method,shipping', 'nullable', 'string', 'max:255'],
             'shipping_address_line2' => ['nullable', 'string', 'max:255'],
-            'shipping_city' => ['required_if:fulfillment_method,shipping', 'string', 'max:255'],
-            'shipping_postal_code' => ['required_if:fulfillment_method,shipping', 'string', 'max:20', new PortuguesePostalCode],
+            'shipping_city' => ['required_if:fulfillment_method,shipping', 'nullable', 'string', 'max:255'],
+            'shipping_postal_code' => ['required_if:fulfillment_method,shipping', 'nullable', 'string', 'max:20', new PortuguesePostalCode],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

@@ -16,9 +16,13 @@ class LocationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
-    protected static ?string $navigationGroup = 'Website';
+    protected static ?string $navigationGroup = 'Loja';
 
-    protected static ?string $navigationLabel = 'Pickup Locations';
+    protected static ?string $navigationLabel = 'Locais de levantamento';
+
+    protected static ?string $modelLabel = 'local de levantamento';
+
+    protected static ?string $pluralModelLabel = 'locais de levantamento';
 
     public static function form(Form $form): Form
     {
@@ -40,6 +44,8 @@ class LocationResource extends Resource
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('image')
                     ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                    ->maxSize(4096)
                     ->directory('locations')
                     ->imageEditor(),
                 Forms\Components\KeyValue::make('opening_hours')
@@ -52,6 +58,13 @@ class LocationResource extends Resource
                     ->helperText('e.g., "Monday - Friday" => "09:00 - 18:00"'),
                 Forms\Components\Textarea::make('map_embed_url')
                     ->helperText('Google Maps embed URL')
+                    ->rules([
+                        fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
+                            if (! Location::isAllowedMapEmbedUrl($value)) {
+                                $fail('Indique um URL HTTPS de Google Maps válido.');
+                            }
+                        },
+                    ])
                     ->columnSpanFull(),
                 Forms\Components\Toggle::make('is_active')
                     ->default(true),

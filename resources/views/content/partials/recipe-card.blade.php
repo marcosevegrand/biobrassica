@@ -6,7 +6,8 @@
     <a href="{{ route('content.recipe-detail', $recipe->slug) }}" class="block">
         <div class="aspect-[16/10] overflow-hidden bg-paper">
             @if($recipe->cover_image)
-                <img src="{{ asset('storage/' . $recipe->cover_image) }}"
+                @php($recipeImage = str_starts_with($recipe->cover_image, 'images/') ? asset($recipe->cover_image) : asset('storage/' . $recipe->cover_image))
+                <img src="{{ $recipeImage }}"
                      alt="{{ $t?->title }}"
                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                      loading="lazy">

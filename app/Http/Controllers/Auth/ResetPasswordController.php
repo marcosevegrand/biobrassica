@@ -19,6 +19,11 @@ class ResetPasswordController extends Controller
         ]);
     }
 
+    public function showCompletePage()
+    {
+        return view('auth.passwords.complete');
+    }
+
     public function reset(Request $request)
     {
         $request->validate([
@@ -41,7 +46,7 @@ class ResetPasswordController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
+            ? redirect()->route('password.complete')->with('status', __($status))
             : back()->withErrors(['email' => [__($status)]]);
     }
 }

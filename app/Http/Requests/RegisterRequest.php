@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class RegisterRequest extends FormRequest
 {
@@ -31,5 +32,16 @@ class RegisterRequest extends FormRequest
             'password.min' => 'A palavra-passe deve ter pelo menos 8 caracteres.',
             'password.confirmed' => 'As palavras-passe não coincidem.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $email = strtolower(trim((string) $this->input('email')));
+
+            if ($email !== '' && in_array($email, config('biobrassica.admin.emails', []), true)) {
+                $validator->errors()->add('email', 'Este email não pode ser usado no registo público.');
+            }
+        });
     }
 }

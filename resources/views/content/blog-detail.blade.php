@@ -6,7 +6,8 @@
 <article>
     <div class="relative h-64 md:h-96 bg-forest/10">
         @if($post->cover_image)
-            <img src="{{ asset('storage/' . $post->cover_image) }}"
+            @php($postImage = str_starts_with($post->cover_image, 'images/') ? asset($post->cover_image) : asset('storage/' . $post->cover_image))
+            <img src="{{ $postImage }}"
                  alt="{{ $translation?->title }}"
                  class="w-full h-full object-cover">
         @else

@@ -20,81 +20,8 @@
             </a>
         </div>
     @else
-        <div class="space-y-4">
-            @foreach($cart->items as $item)
-                <div class="bg-white rounded-lg border border-stone/40 p-4 sm:p-6 flex flex-col sm:flex-row items-start gap-4">
-                    <a href="{{ route('catalog.product', $item->product->slug) }}" class="flex-shrink-0">
-                        <div class="w-20 h-20 bg-paper rounded-md overflow-hidden">
-                            @if($item->product->image)
-                                <img src="{{ asset('storage/' . $item->product->image) }}"
-                                     alt="{{ $item->product->name }}"
-                                     class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                            @endif
-                        </div>
-                    </a>
-
-                    <div class="flex-1 min-w-0">
-                        <a href="{{ route('catalog.product', $item->product->slug) }}"
-                           class="font-serif text-forest font-semibold hover:text-terracotta transition-colors">
-                            {{ $item->product->name }}
-                        </a>
-                        @if($item->product->brand)
-                            <p class="text-xs text-muted mt-0.5">{{ $item->product->brand }}</p>
-                        @endif
-
-                        <div class="mt-2 flex items-center gap-4">
-                            <div class="flex items-center gap-2">
-                                <button class="w-8 h-8 rounded border border-stone/40 flex items-center justify-center text-forest hover:bg-paper transition-colors"
-                                        hx-post="{{ route('cart.update', $item->id) }}"
-                                        hx-target="#cart-items-container"
-                                        hx-swap="innerHTML"
-                                        hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'
-                                        hx-vals='{"quantity": {{ $item->quantity - 1 }}}'
-                                        {{ $item->quantity <= 1 ? 'disabled' : '' }}>
-                                    -
-                                </button>
-                                <span class="w-10 text-center text-sm font-medium">{{ $item->quantity }}</span>
-                                <button class="w-8 h-8 rounded border border-stone/40 flex items-center justify-center text-forest hover:bg-paper transition-colors"
-                                        hx-post="{{ route('cart.update', $item->id) }}"
-                                        hx-target="#cart-items-container"
-                                        hx-swap="innerHTML"
-                                        hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'
-                                        hx-vals='{"quantity": {{ $item->quantity + 1 }}}'>
-                                    +
-                                </button>
-                            </div>
-
-                            <button class="text-sm text-terracotta hover:underline"
-                                    hx-post="{{ route('cart.remove', $item->id) }}"
-                                    hx-target="#cart-items-container"
-                                    hx-swap="innerHTML"
-                                    hx-headers='{"X-CSRF-TOKEN": "{{ csrf_token() }}"}'>
-                                Remover
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="text-right flex-shrink-0">
-                        <p class="font-bold text-forest">
-                            &euro;{{ number_format($item->quantity * $item->product->price, 2) }}
-                        </p>
-                        <p class="text-xs text-muted">
-                            &euro;{{ number_format($item->product->price, 2) }} / un
-                        </p>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
         <div id="cart-items-container">
-            @include('cart.partials.cart-summary', ['cart' => $cart, 'total' => $total, 'count' => $count])
+            @include('cart.partials.cart-content', ['cart' => $cart, 'total' => $total, 'count' => $count])
         </div>
     @endif
 </div>

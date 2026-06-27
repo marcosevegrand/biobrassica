@@ -6,9 +6,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_PREPARING = 'preparing';
+
+    public const STATUS_READY = 'ready';
+
+    public const STATUS_IN_TRANSIT = 'in_transit';
+
+    public const STATUS_DELIVERED = 'delivered';
+
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const PAYMENT_PENDING = 'pending';
+
+    public const PAYMENT_CONFIRMED = 'confirmed';
+
+    public const PAYMENT_CANCELLED = 'cancelled';
+
+    public const PAYMENT_REFUNDED = 'refunded';
+
     protected $fillable = [
         'user_id',
-        'access_token',
         'email',
         'phone',
         'nif',
@@ -23,6 +42,7 @@ class Order extends Model
         'shipping_postal_code',
         'language',
         'subtotal',
+        'shipping_cost',
         'total',
         'notes',
     ];
@@ -31,6 +51,7 @@ class Order extends Model
     {
         return [
             'subtotal' => 'decimal:2',
+            'shipping_cost' => 'decimal:2',
             'total' => 'decimal:2',
         ];
     }
@@ -48,5 +69,32 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->payment_state === self::PAYMENT_CONFIRMED;
+    }
+
+    public static function statusLabels(): array
+    {
+        return [
+            self::STATUS_PENDING => 'Pendente',
+            self::STATUS_PREPARING => 'Em preparação',
+            self::STATUS_READY => 'Pronta para levantamento',
+            self::STATUS_IN_TRANSIT => 'Em distribuição',
+            self::STATUS_DELIVERED => 'Entregue',
+            self::STATUS_CANCELLED => 'Cancelada',
+        ];
+    }
+
+    public static function paymentStateLabels(): array
+    {
+        return [
+            self::PAYMENT_PENDING => 'Pendente',
+            self::PAYMENT_CONFIRMED => 'Confirmado',
+            self::PAYMENT_CANCELLED => 'Cancelado',
+            self::PAYMENT_REFUNDED => 'Reembolsado',
+        ];
     }
 }

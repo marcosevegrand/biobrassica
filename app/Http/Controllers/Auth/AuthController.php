@@ -7,34 +7,60 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Order;
+use App\Models\User;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function showRegister()
+    public function __construct(
+        private readonly CartService $cartService,
+    ) {}
+
+    public function showRegister(Request $request)
     {
+        if ($request->filled('next')) {
+            if ($intended = $this->normalizeIntendedUrl($request, (string) $request->input('next'))) {
+                $request->session()->put('url.intended', $intended);
+            } else {
+                $request->session()->forget('url.intended');
+            }
+        }
+
         return view('auth.register');
     }
 
     public function register(RegisterRequest $request)
     {
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password,
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate();
+        $warnings = $this->cartService->mergeGuestCartIntoUserCart($request, $user);
 
-        return redirect()->route('shop.home');
+        $intended = $request->session()->pull('url.intended');
+
+        if (is_string($intended) && $safeUrl = $this->normalizeIntendedUrl($request, $intended)) {
+            return redirect()->to($safeUrl)->with('warning', implode(' ', $warnings));
+        }
+
+        return redirect()->route('shop.home')
+            ->with('warning', implode(' ', $warnings));
     }
 
     public function showLogin(Request $request)
     {
         if ($request->filled('next')) {
-            $request->session()->put('url.intended', $request->input('next'));
+            if ($intended = $this->normalizeIntendedUrl($request, (string) $request->input('next'))) {
+                $request->session()->put('url.intended', $intended);
+            } else {
+                $request->session()->forget('url.intended');
+            }
         }
 
         return view('auth.login');
@@ -46,8 +72,16 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
+            $warnings = $this->cartService->mergeGuestCartIntoUserCart($request, $request->user());
 
-            return redirect()->intended(route('shop.home'));
+            $intended = $request->session()->pull('url.intended');
+
+            if (is_string($intended) && $safeUrl = $this->normalizeIntendedUrl($request, $intended)) {
+                return redirect()->to($safeUrl)->with('warning', implode(' ', $warnings));
+            }
+
+            return redirect()->route('shop.home')
+                ->with('warning', implode(' ', $warnings));
         }
 
         return back()->withErrors([
@@ -94,5 +128,37 @@ class AuthController extends Controller
             ->paginate(10);
 
         return view('auth.order-history', compact('orders'));
+    }
+
+    private function normalizeIntendedUrl(Request $request, string $url): ?string
+    {
+        $url = trim($url);
+
+        if ($url === '' || preg_match('/[\x00-\x1F\x7F]/', $url)) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+
+        if ($parts === false) {
+            return null;
+        }
+
+        if (isset($parts['host'])) {
+            if (! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || ! hash_equals($request->getHost(), $parts['host'])) {
+                return null;
+            }
+        } elseif (isset($parts['scheme']) || str_starts_with($url, '//')) {
+            return null;
+        }
+
+        $path = '/'.ltrim($parts['path'] ?? '/', '/');
+        $shopPrefix = '/'.trim((string) config('biobrassica.paths.shop', 'loja'), '/');
+
+        if ($shopPrefix !== '/' && $path !== $shopPrefix && ! str_starts_with($path, $shopPrefix.'/')) {
+            return null;
+        }
+
+        return $path.(isset($parts['query']) ? '?'.$parts['query'] : '');
     }
 }

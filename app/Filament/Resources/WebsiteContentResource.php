@@ -7,7 +7,6 @@ use App\Models\WebsiteContent;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 
 class WebsiteContentResource extends Resource
@@ -62,6 +61,8 @@ class WebsiteContentResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\FileUpload::make('about_image')
                                     ->image()
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                                    ->maxSize(4096)
                                     ->directory('website')
                                     ->imageEditor(),
                             ]),
@@ -73,6 +74,8 @@ class WebsiteContentResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\FileUpload::make('agriculture_image')
                                     ->image()
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                                    ->maxSize(4096)
                                     ->directory('website')
                                     ->imageEditor(),
                             ]),
@@ -144,12 +147,6 @@ class WebsiteContentResource extends Resource
                                 Forms\Components\TextInput::make('google_tag_manager_id')
                                     ->maxLength(255)
                                     ->placeholder('GTM-XXXXXXX'),
-                                Forms\Components\Textarea::make('custom_css')
-                                    ->maxLength(65535)
-                                    ->columnSpanFull(),
-                                Forms\Components\Textarea::make('custom_js')
-                                    ->maxLength(65535)
-                                    ->columnSpanFull(),
                             ]),
                     ])
                     ->columnSpanFull(),

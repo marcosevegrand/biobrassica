@@ -6,7 +6,8 @@
     <a href="{{ route('content.blog-detail', $post->slug) }}" class="block">
         <div class="aspect-[16/10] overflow-hidden bg-paper">
             @if($post->cover_image)
-                <img src="{{ asset('storage/' . $post->cover_image) }}"
+                @php($postImage = str_starts_with($post->cover_image, 'images/') ? asset($post->cover_image) : asset('storage/' . $post->cover_image))
+                <img src="{{ $postImage }}"
                      alt="{{ $t?->title }}"
                      class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                      loading="lazy">

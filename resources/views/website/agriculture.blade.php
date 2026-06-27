@@ -4,11 +4,18 @@
 @section('meta_description', 'Saiba como praticamos agricultura biológica certificada no Minho, com respeito pela biodiversidade e pelos ciclos naturais.')
 
 @section('content')
+@php
+  $agricultureTitle = $websiteContent?->agriculture_title ?: 'Agricultura Biológica';
+  $agricultureContent = $websiteContent?->agriculture_content ? trim(strip_tags($websiteContent->agriculture_content)) : 'A agricultura biológica é um sistema de produção que respeita os ciclos naturais, promove a biodiversidade e proíbe o uso de pesticidas e fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o coração de tudo o que fazemos.';
+  $agricultureImage = $websiteContent?->agriculture_image
+    ? (str_starts_with($websiteContent->agriculture_image, 'images/') ? asset($websiteContent->agriculture_image) : asset('storage/'.$websiteContent->agriculture_image))
+    : asset('images/products/006.jpg');
+@endphp
 <section class="relative h-screen flex items-center justify-center overflow-hidden">
-  <img src="{{ asset('images/products/006.jpg') }}" alt="Campo de agricultura biológica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+  <img src="{{ $agricultureImage }}" alt="Campo de agricultura biológica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
   <div class="relative z-10 text-center text-forest px-8 sm:px-10 md:px-12 py-10 max-w-4xl xl:max-w-5xl rounded-sm bg-paper/80 backdrop-blur-sm">
-    <h1 class="font-serif text-4xl md:text-6xl italic mb-6">Agricultura Biológica</h1>
-    <p class="text-base md:text-lg leading-relaxed text-forest/75 max-w-2xl mx-auto">A agricultura biológica é um sistema de produção que respeita os ciclos naturais, promove a biodiversidade e proíbe o uso de pesticidas e fertilizantes químicos de síntese. Na Biobrassica, estas práticas são o coração de tudo o que fazemos.</p>
+    <h1 class="font-serif text-4xl md:text-6xl italic mb-6">{{ $agricultureTitle }}</h1>
+    <p class="text-base md:text-lg leading-relaxed text-forest/75 max-w-2xl mx-auto">{{ $agricultureContent }}</p>
   </div>
 </section>
 

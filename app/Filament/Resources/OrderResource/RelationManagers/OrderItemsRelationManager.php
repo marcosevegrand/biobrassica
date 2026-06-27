@@ -12,27 +12,35 @@ class OrderItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'items';
 
-    protected static ?string $title = 'Order Items';
+    protected static ?string $title = 'Produtos da encomenda';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('product_id')
+                    ->label('Produto')
                     ->relationship('product', 'name')
                     ->searchable()
                     ->preload()
+                    ->disabled()
                     ->required(),
                 Forms\Components\TextInput::make('product_name')
+                    ->label('Nome do produto')
+                    ->disabled()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('price')
+                    ->label('Preço')
                     ->required()
                     ->numeric()
+                    ->disabled()
                     ->prefix('€'),
                 Forms\Components\TextInput::make('quantity')
+                    ->label('Quantidade')
                     ->required()
                     ->numeric()
+                    ->disabled()
                     ->default(1),
             ]);
     }
@@ -42,27 +50,28 @@ class OrderItemsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('product_name')
             ->columns([
-                Tables\Columns\TextColumn::make('product_name'),
+                Tables\Columns\TextColumn::make('product_name')
+                    ->label('Produto'),
                 Tables\Columns\TextColumn::make('price')
+                    ->label('Preço')
                     ->money('EUR'),
-                Tables\Columns\TextColumn::make('quantity'),
+                Tables\Columns\TextColumn::make('quantity')
+                    ->label('Quantidade'),
                 Tables\Columns\TextColumn::make('subtotal')
-                    ->state(fn($record) => number_format($record->price * $record->quantity, 2) . ' €'),
+                    ->label('Subtotal')
+                    ->state(fn ($record) => number_format($record->price * $record->quantity, 2).' €'),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                // Order items are immutable audit records after checkout.
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                // Use a dedicated audited adjustment flow if order edits are needed later.
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // No bulk destructive actions for order financial lines.
             ]);
     }
 }

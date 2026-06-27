@@ -17,7 +17,7 @@
             @if($order->payment)
                 @if($order->payment->status === 'pending')
                     O pagamento está pendente. Por favor, efetue o pagamento para confirmar a encomenda.
-                @elseif($order->payment->status === 'paid')
+                @elseif($order->payment->status === 'confirmed')
                     O pagamento foi confirmado. Iremos processar a sua encomenda brevemente.
                 @endif
             @endif

@@ -29,16 +29,25 @@
                         </div>
                         <div class="text-right">
                             <p class="text-lg font-semibold text-forest">{{ number_format($order->total, 2, ',', ' ') }} &euro;</p>
+                            @if((float) $order->shipping_cost > 0)
+                                <p class="text-xs text-muted">inclui {{ number_format($order->shipping_cost, 2, ',', ' ') }} &euro; de envio</p>
+                            @endif
                             <span class="inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-medium
                                 @if ($order->status === 'delivered') bg-green-100 text-green-800
                                 @elseif ($order->status === 'cancelled') bg-red-100 text-red-800
-                                @elseif ($order->status === 'processing') bg-blue-100 text-blue-800
-                                @elseif ($order->status === 'shipped') bg-yellow-100 text-yellow-800
+                                @elseif ($order->status === 'preparing') bg-blue-100 text-blue-800
+                                @elseif ($order->status === 'ready') bg-emerald-100 text-emerald-800
+                                @elseif ($order->status === 'in_transit') bg-yellow-100 text-yellow-800
                                 @else bg-stone-100 text-stone-800
                                 @endif
                             ">
-                                {{ $order->status ?? 'Pendente' }}
+                                {{ \App\Models\Order::statusLabels()[$order->status] ?? 'Pendente' }}
                             </span>
+                            @if($order->payment?->refund_state)
+                                <span class="inline-block mt-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                                    Reembolso: {{ \App\Models\Payment::refundStateLabels()[$order->payment->refund_state] ?? $order->payment->refund_state }}
+                                </span>
+                            @endif
                         </div>
                     </div>
 

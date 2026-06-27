@@ -14,6 +14,8 @@ class DeliveryMethodResource extends Resource
 {
     protected static ?string $model = DeliveryMethod::class;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
     protected static ?string $navigationGroup = 'Website';

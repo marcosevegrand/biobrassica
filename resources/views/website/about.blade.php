@@ -4,13 +4,26 @@
 @section('meta_description', 'Conheça a história da Biobrassica, uma empresa familiar dedicada à agricultura biológica no Minho.')
 
 @section('content')
+@php
+  $aboutTitle = $websiteContent?->about_title ?: 'Do campo à sua mesa, com quem conhece a terra';
+  $aboutIntro = $websiteContent?->about_content ? trim(strip_tags($websiteContent->about_content)) : 'Pessoas reais, produtos de confiança';
+  $aboutImage = $websiteContent?->about_image
+    ? (str_starts_with($websiteContent->about_image, 'images/') ? asset($websiteContent->about_image) : asset('storage/'.$websiteContent->about_image))
+    : asset('images/people/003.jpg');
+@endphp
 <section class="relative h-screen flex items-center justify-center overflow-hidden">
-  <img src="{{ asset('images/people/003.jpg') }}" alt="A equipa Biobrassica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+  <img src="{{ $aboutImage }}" alt="A equipa Biobrassica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
   <div class="relative z-10 text-center text-paper px-6 sm:px-8 max-w-5xl xl:max-w-6xl pt-20 sm:pt-24 md:pt-28">
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif leading-tight">Do campo à sua mesa, com quem conhece a terra</h1>
-    <p class="mt-6 text-lg sm:text-xl md:text-2xl text-paper/90 max-w-2xl mx-auto">Pessoas reais, produtos de confiança</p>
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif leading-tight">{{ $aboutTitle }}</h1>
+    <p class="mt-6 text-lg sm:text-xl md:text-2xl text-paper/90 max-w-2xl mx-auto">{{ Str::limit($aboutIntro, 140) }}</p>
   </div>
 </section>
+
+@if($websiteContent?->about_content)
+<section class="max-w-4xl mx-auto px-6 sm:px-8 pt-20">
+  <div class="prose prose-forest max-w-none text-muted leading-relaxed whitespace-pre-line">{{ $aboutIntro }}</div>
+</section>
+@endif
 
 <section class="max-w-7xl mx-auto px-6 sm:px-8 pt-24 pb-12">
   <div class="space-y-16">

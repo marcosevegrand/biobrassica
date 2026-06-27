@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WebsiteController::class, 'home'])->name('website.home');
+Route::post('/idioma/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/quem-somos', [WebsiteController::class, 'about'])->name('website.about');
 Route::get('/agricultura-bio', [WebsiteController::class, 'agriculture'])->name('website.agriculture');
 Route::get('/contactos', [WebsiteController::class, 'contacts'])->name('website.contacts');

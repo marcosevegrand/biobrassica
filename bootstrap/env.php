@@ -1,12 +1,13 @@
 <?php
 
+use Dotenv\Dotenv;
+
 /**
  * cPanel-safe .env loader.
  *
  * Laravel's Dotenv file reader fails on this host, but plain file reads work.
  * So we read the file ourselves and let Dotenv parse the content string.
  */
-
 $envFile = dirname(__DIR__).'/.env';
 
 if (! is_file($envFile) || ! is_readable($envFile)) {
@@ -20,8 +21,8 @@ if ($contents === false) {
 }
 
 try {
-    $variables = class_exists(\Dotenv\Dotenv::class)
-        ? \Dotenv\Dotenv::parse($contents)
+    $variables = class_exists(Dotenv::class)
+        ? Dotenv::parse($contents)
         : [];
 } catch (Throwable) {
     $variables = [];

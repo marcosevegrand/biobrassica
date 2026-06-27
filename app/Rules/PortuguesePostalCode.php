@@ -13,7 +13,7 @@ class PortuguesePostalCode implements ValidationRule
             return;
         }
 
-        if (!preg_match('/^\d{4}-\d{3}$/', (string) $value)) {
+        if (! preg_match('/^\d{4}-\d{3}$/', (string) $value)) {
             $fail('O código postal deve ter o formato 0000-000.');
         }
     }

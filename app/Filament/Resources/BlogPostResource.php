@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BlogPostResource\Pages;
 use App\Filament\Resources\BlogPostResource\RelationManagers;
 use App\Models\BlogPost;
-use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -38,6 +37,8 @@ class BlogPostResource extends Resource
                     ->required(),
                 Forms\Components\FileUpload::make('cover_image')
                     ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                    ->maxSize(4096)
                     ->directory('blog')
                     ->imageEditor(),
                 Forms\Components\Toggle::make('is_published')
@@ -58,6 +59,7 @@ class BlogPostResource extends Resource
                     ->label('Title')
                     ->state(function (BlogPost $record): string {
                         $pt = $record->translations->where('language', 'pt')->first();
+
                         return $pt?->title ?? $record->slug;
                     })
                     ->searchable(query: function ($query, $search) {

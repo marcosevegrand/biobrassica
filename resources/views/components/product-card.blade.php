@@ -1,3 +1,4 @@
+@php($canBuyProduct = $product->canBePurchasedOnline())
 <div class="group border border-stone/40 rounded-sm overflow-hidden bg-paper">
   <a href="{{ route('catalog.product', $product->slug) }}">
     <div class="overflow-hidden">
@@ -24,14 +25,10 @@
 
     @if($product->is_preview)<p class="mb-3 text-[10px] uppercase tracking-widest text-terracotta">Pré-visualização</p>@endif
 
-    @auth
-      <form method="post" action="{{ route('cart.add', $product->id) }}" hx-post="{{ route('cart.add', $product->id) }}" hx-swap="none">
-        @csrf
-        <div class="flex items-center gap-2 mb-3"><div class="flex items-center border border-stone/40 rounded-sm"><button type="button" data-cart-quantity-action="decrement" aria-label="Diminuir quantidade" class="px-2 py-1 text-muted hover:text-forest transition-colors">−</button><input type="number" name="quantity" value="1" min="1" max="{{ min(99, max(1, (int) $product->stock)) }}" class="w-12 text-center border-x border-stone/40 py-1 text-xs focus:outline-none no-spinner"><button type="button" data-cart-quantity-action="increment" aria-label="Aumentar quantidade" class="px-2 py-1 text-muted hover:text-forest transition-colors">+</button></div><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="3" class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">3x</button><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="6" class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">6x</button></div>
-        <button type="submit" class="w-full text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors cursor-pointer {{ $product->stock <= 0 || $product->is_preview ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 || $product->is_preview ? 'disabled' : '' }}>{{ $product->is_preview ? 'Pré-visualização' : ((int) $product->stock > 0 ? 'Adicionar ao carrinho' : 'Esgotado') }}</button>
-      </form>
-    @else
-      <a href="{{ route('login', ['next' => request()->fullUrl()]) }}" class="block w-full text-center text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors">Entrar para comprar</a>
-    @endauth
+    <form method="post" action="{{ route('cart.add', $product->id) }}" hx-post="{{ route('cart.add', $product->id) }}" hx-swap="none">
+      @csrf
+      <div class="flex items-center gap-2 mb-3"><div class="flex items-center border border-stone/40 rounded-sm"><button type="button" data-cart-quantity-action="decrement" aria-label="Diminuir quantidade" class="px-2 py-1 text-muted hover:text-forest transition-colors">−</button><input type="number" name="quantity" value="1" min="1" max="{{ min(99, max(1, (int) $product->stock)) }}" class="w-12 text-center border-x border-stone/40 py-1 text-xs focus:outline-none no-spinner"><button type="button" data-cart-quantity-action="increment" aria-label="Aumentar quantidade" class="px-2 py-1 text-muted hover:text-forest transition-colors">+</button></div><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="3" class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">3x</button><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="6" class="text-[10px] uppercase tracking-widest border border-stone/40 px-2 py-1 rounded-sm hover:border-forest hover:text-forest transition-colors">6x</button></div>
+      <button type="submit" class="w-full text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors cursor-pointer {{ ! $canBuyProduct ? 'opacity-50 cursor-not-allowed' : '' }}" {{ ! $canBuyProduct ? 'disabled' : '' }}>{{ $product->is_preview ? 'Pré-visualização' : (! $product->hasFulfillmentMethod() ? 'Indisponível' : ((int) $product->stock > 0 ? 'Adicionar ao carrinho' : 'Esgotado')) }}</button>
+    </form>
   </div>
 </div>

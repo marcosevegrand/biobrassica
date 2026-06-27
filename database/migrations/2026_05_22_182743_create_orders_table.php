@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('shipping_postal_code')->nullable();
             $table->string('language')->default('pt');
             $table->decimal('subtotal', 10, 2);
+            $table->decimal('shipping_cost', 10, 2)->default(0);
             $table->decimal('total', 10, 2);
             $table->text('notes')->nullable();
             $table->timestamps();

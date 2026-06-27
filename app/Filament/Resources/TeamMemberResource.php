@@ -32,6 +32,8 @@ class TeamMemberResource extends Resource
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('photo')
                     ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                    ->maxSize(4096)
                     ->directory('team')
                     ->imageEditor(),
                 Forms\Components\Toggle::make('is_active')

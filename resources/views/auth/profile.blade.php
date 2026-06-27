@@ -81,6 +81,7 @@
             >
                 <option value="pt" {{ old('preferred_language', $user->preferred_language) === 'pt' ? 'selected' : '' }}>Português</option>
                 <option value="en" {{ old('preferred_language', $user->preferred_language) === 'en' ? 'selected' : '' }}>English</option>
+                <option value="fr" {{ old('preferred_language', $user->preferred_language) === 'fr' ? 'selected' : '' }}>Français</option>
             </select>
             @error('preferred_language')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

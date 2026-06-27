@@ -16,7 +16,8 @@
         <div class="relative">
             @if($category->image)
                 <div class="h-48 md:h-64 overflow-hidden">
-                    <img src="{{ asset('storage/' . $category->image) }}"
+                    @php($categoryImage = str_starts_with($category->image, 'images/') ? asset($category->image) : asset('storage/' . $category->image))
+                    <img src="{{ $categoryImage }}"
                          alt="{{ $category->name }}"
                          class="w-full h-full object-cover">
                 </div>

@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AddressResource\Pages;
 use App\Models\Address;
-use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -17,7 +16,13 @@ class AddressResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
-    protected static ?string $navigationGroup = 'Configuração';
+    protected static ?string $navigationGroup = 'Clientes';
+
+    protected static ?string $navigationLabel = 'Moradas';
+
+    protected static ?string $modelLabel = 'morada';
+
+    protected static ?string $pluralModelLabel = 'moradas';
 
     public static function form(Form $form): Form
     {
@@ -45,7 +50,7 @@ class AddressResource extends Resource
                     ->maxLength(255)
                     ->default('Portugal'),
                 Forms\Components\Toggle::make('is_default')
-                    ->label('Default Address'),
+                    ->label('Morada predefinida'),
             ]);
     }
 

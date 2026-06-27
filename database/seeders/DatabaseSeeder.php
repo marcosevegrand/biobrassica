@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
         $adminEmail = config('biobrassica.admin.email');
         $adminPassword = config('biobrassica.admin.password');
 
-        if (!$adminEmail || !$adminPassword) {
+        if (! $adminEmail || ! $adminPassword) {
             return;
         }
 
@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => config('biobrassica.admin.name', 'Biobrassica Admin'),
                 'password' => $adminPassword,
+                'email_verified_at' => now(),
+                'is_admin' => true,
                 'preferred_language' => 'pt',
             ],
         );

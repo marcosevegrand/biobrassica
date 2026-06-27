@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InstagramPost;
 use App\Models\Location;
+use App\Models\Recipe;
 use App\Models\TeamMember;
 use App\Models\WebsiteContent;
 
@@ -17,8 +18,15 @@ class WebsiteController extends Controller
             ->take(5)
             ->get());
         $teamMembers = $this->getActiveTeamMembers();
+        $featuredRecipes = $this->safeCollection(fn () => Recipe::query()
+            ->with('translations')
+            ->where('is_published', true)
+            ->latest('published_at')
+            ->take(3)
+            ->get());
+        $locale = app()->getLocale();
 
-        return view('website.home', compact('websiteContent', 'instagramPosts', 'teamMembers'));
+        return view('website.home', compact('websiteContent', 'instagramPosts', 'teamMembers', 'featuredRecipes', 'locale'));
     }
 
     public function about()

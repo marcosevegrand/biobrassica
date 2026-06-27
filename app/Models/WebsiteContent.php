@@ -38,8 +38,6 @@ class WebsiteContent extends Model
         'cookies_text',
         'privacy_policy_text',
         'terms_conditions_text',
-        'custom_css',
-        'custom_js',
         'google_analytics_id',
         'google_tag_manager_id',
     ];

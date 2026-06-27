@@ -23,6 +23,16 @@ class Category extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::created(function (Category $category): void {
+            CategoryPosition::firstOrCreate(
+                ['category_id' => $category->id],
+                ['position' => ((int) CategoryPosition::max('position')) + 1],
+            );
+        });
+    }
+
     public function position()
     {
         return $this->hasOne(CategoryPosition::class);

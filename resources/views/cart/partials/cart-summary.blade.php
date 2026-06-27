@@ -15,12 +15,17 @@
 
     <div class="mt-4 pt-4 border-t border-stone/40">
         <div class="flex items-center justify-between">
-            <span class="font-serif text-lg font-bold text-forest">Total</span>
+            <span class="font-serif text-lg font-bold text-forest">Subtotal</span>
             <span class="text-xl font-bold text-forest">&euro;{{ number_format($total, 2) }}</span>
         </div>
+        <p class="mt-2 text-xs text-muted">Custos de envio calculados no checkout.</p>
     </div>
 
     <div class="mt-6 flex flex-col sm:flex-row gap-3">
+        <a href="{{ route('checkout') }}"
+           class="flex-1 text-center py-3 px-6 bg-forest text-white rounded-md font-medium hover:bg-forest/90 transition-colors">
+            Finalizar compra
+        </a>
         <a href="{{ route('catalog.products') }}"
            class="flex-1 text-center py-3 px-6 border border-forest text-forest rounded-md font-medium hover:bg-forest hover:text-white transition-colors">
             Continuar a Comprar

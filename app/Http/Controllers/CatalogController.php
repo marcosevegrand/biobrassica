@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Models\CategoryPosition;
 use App\Models\Location;
-use App\Models\LocationPosition;
 use App\Models\Product;
 use App\Models\WebsiteContent;
 use Illuminate\Http\Request;
@@ -71,9 +69,9 @@ class CatalogController extends Controller
             $search = $request->input('q');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('brand', 'like', "%{$search}%")
-                  ->orWhere('bio_code', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%")
+                    ->orWhere('bio_code', 'like', "%{$search}%");
             });
         }
 

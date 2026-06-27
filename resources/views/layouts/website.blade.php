@@ -13,12 +13,35 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/brand/favicon_green.png') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/output.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#FBF9F6',
+                        forest: '#2C3F2D',
+                        terracotta: '#B07850',
+                        stone: '#D1D1CC',
+                        muted: '#6B6B6B',
+                    },
+                    fontFamily: {
+                        serif: ['Lora', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    maxWidth: {
+                        '384': '96rem',
+                        '6xl': '72rem',
+                    },
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="{{ asset('css/biobrassica-overrides.css') }}">
 
     @yield('extra_css')
 </head>
-<body class="min-h-screen flex flex-col bg-paper text-forest font-sans font-light">
+<body class="min-h-screen flex flex-col bg-[#FBF9F6] text-[#2C3F2D] font-light antialiased">
 
     <x-navbar-website />
 
@@ -32,10 +55,6 @@
 
     <script src="{{ asset('js/navbar.js') }}" defer></script>
     @yield('extra_js')
-
-    @if(isset($websiteDefaults) && $websiteDefaults->custom_js)
-        <script>{!! $websiteDefaults->custom_js !!}</script>
-    @endif
 
     @if(isset($websiteDefaults) && $websiteDefaults->google_analytics_id)
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ $websiteDefaults->google_analytics_id }}"></script>

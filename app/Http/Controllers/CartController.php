@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
@@ -17,26 +16,26 @@ class CartController extends Controller
         $this->cartService = $cartService;
     }
 
-    public function count()
+    public function count(Request $request)
     {
-        $cart = $this->getCart();
+        $cart = $this->getCart($request);
         $count = $this->cartService->getCount($cart);
 
         return view('cart.partials.cart-count', compact('count'));
     }
 
-    public function popup()
+    public function popup(Request $request)
     {
-        $cart = $this->getCart();
+        $cart = $this->getCart($request);
         $total = $this->cartService->getTotal($cart);
         $count = $this->cartService->getCount($cart);
 
         return view('cart.partials.cart-popup', compact('cart', 'total', 'count'));
     }
 
-    public function detail()
+    public function detail(Request $request)
     {
-        $cart = $this->getCart();
+        $cart = $this->getCart($request);
         $total = $this->cartService->getTotal($cart);
         $count = $this->cartService->getCount($cart);
 
@@ -47,12 +46,18 @@ class CartController extends Controller
     {
         $product = Product::where('id', $productId)
             ->where('is_active', true)
+            ->where('is_preview', false)
             ->firstOrFail();
 
         $quantity = max(1, (int) $request->input('quantity', 1));
 
-        $cart = $this->getCart();
-        $this->cartService->addItem($cart, $product, $quantity);
+        $cart = $this->getCart($request);
+
+        try {
+            $this->cartService->addItem($cart, $product, $quantity);
+        } catch (ValidationException $exception) {
+            return $this->cartValidationResponse($request, $exception);
+        }
 
         $cart->load('items.product');
         $total = $this->cartService->getTotal($cart);
@@ -73,28 +78,23 @@ class CartController extends Controller
 
     public function update(Request $request, $itemId)
     {
-        $item = CartItem::whereHas('cart', fn ($query) => $query->where('user_id', Auth::id()))->findOrFail($itemId);
+        $cart = $this->getCart($request);
+        $item = $cart->items()->whereKey($itemId)->firstOrFail();
         $quantity = max(0, (int) $request->input('quantity', 1));
 
-        $this->cartService->updateItem($item, $quantity);
+        try {
+            $this->cartService->updateItem($item, $quantity);
+        } catch (ValidationException $exception) {
+            return $this->cartValidationResponse($request, $exception);
+        }
 
-        $cart = $item->cart()->with('items.product')->first();
+        $cart = $cart->refresh()->load('items.product');
         $total = $this->cartService->getTotal($cart);
         $count = $this->cartService->getCount($cart);
 
         if ($request->hasHeader('HX-Request')) {
-            if ($quantity <= 0) {
-                return response()
-                    ->view('cart.partials.cart-popup', compact('cart', 'total', 'count'))
-                    ->withHeaders([
-                        'HX-Trigger-After-Swap' => json_encode([
-                            'cartUpdated' => ['count' => $count, 'total' => number_format($total, 2)],
-                        ]),
-                    ]);
-            }
-
             return response()
-                ->view('cart.partials.cart-summary', compact('cart', 'total', 'count'))
+                ->view('cart.partials.cart-content', compact('cart', 'total', 'count'))
                 ->withHeaders([
                     'HX-Trigger-After-Swap' => json_encode([
                         'cartUpdated' => ['count' => $count, 'total' => number_format($total, 2)],
@@ -105,19 +105,19 @@ class CartController extends Controller
         return redirect()->back();
     }
 
-    public function remove($itemId)
+    public function remove(Request $request, $itemId)
     {
-        $item = CartItem::whereHas('cart', fn ($query) => $query->where('user_id', Auth::id()))->findOrFail($itemId);
-        $cart = $item->cart;
+        $cart = $this->getCart($request);
+        $item = $cart->items()->whereKey($itemId)->firstOrFail();
         $this->cartService->removeItem($item);
 
-        $cart->load('items.product');
+        $cart = $cart->refresh()->load('items.product');
         $total = $this->cartService->getTotal($cart);
         $count = $this->cartService->getCount($cart);
 
-        if (request()->hasHeader('HX-Request')) {
+        if ($request->hasHeader('HX-Request')) {
             return response()
-                ->view('cart.partials.cart-popup', compact('cart', 'total', 'count'))
+                ->view('cart.partials.cart-content', compact('cart', 'total', 'count'))
                 ->withHeaders([
                     'HX-Trigger-After-Swap' => json_encode([
                         'cartUpdated' => ['count' => $count, 'total' => number_format($total, 2)],
@@ -128,10 +128,23 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Produto removido do carrinho.');
     }
 
-    protected function getCart()
+    protected function getCart(Request $request)
     {
-        $user = Auth::user();
+        return $this->cartService->getOrCreateCartForRequest($request);
+    }
 
-        return $this->cartService->getOrCreateCart($user);
+    private function cartValidationResponse(Request $request, ValidationException $exception)
+    {
+        $message = collect($exception->errors())->flatten()->first() ?: 'Não foi possível atualizar o carrinho.';
+
+        if ($request->hasHeader('HX-Request')) {
+            return response($message, 422)->withHeaders([
+                'HX-Trigger' => json_encode([
+                    'cartError' => ['message' => $message],
+                ]),
+            ]);
+        }
+
+        return redirect()->back()->with('error', $message);
     }
 }

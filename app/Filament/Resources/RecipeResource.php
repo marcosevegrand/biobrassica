@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RecipeResource\Pages;
 use App\Filament\Resources\RecipeResource\RelationManagers;
-use App\Models\Product;
 use App\Models\Recipe;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -32,6 +31,8 @@ class RecipeResource extends Resource
                     ->unique(ignoreRecord: true),
                 Forms\Components\FileUpload::make('cover_image')
                     ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                    ->maxSize(4096)
                     ->directory('recipes')
                     ->imageEditor(),
                 Forms\Components\TextInput::make('prep_time')
@@ -74,6 +75,7 @@ class RecipeResource extends Resource
                     ->label('Title')
                     ->state(function (Recipe $record): string {
                         $pt = $record->translations->where('language', 'pt')->first();
+
                         return $pt?->title ?? $record->slug;
                     })
                     ->searchable(query: function ($query, $search) {

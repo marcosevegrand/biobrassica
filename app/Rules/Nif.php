@@ -15,8 +15,9 @@ class Nif implements ValidationRule
 
         $value = (string) $value;
 
-        if (!preg_match('/^\d{9}$/', $value)) {
+        if (! preg_match('/^\d{9}$/', $value)) {
             $fail('O NIF deve conter exatamente 9 dígitos.');
+
             return;
         }
 

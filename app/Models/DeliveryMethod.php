@@ -19,6 +19,16 @@ class DeliveryMethod extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::created(function (DeliveryMethod $deliveryMethod): void {
+            DeliveryMethodPosition::firstOrCreate(
+                ['delivery_method_id' => $deliveryMethod->id],
+                ['position' => ((int) DeliveryMethodPosition::max('position')) + 1],
+            );
+        });
+    }
+
     public function position()
     {
         return $this->hasOne(DeliveryMethodPosition::class);

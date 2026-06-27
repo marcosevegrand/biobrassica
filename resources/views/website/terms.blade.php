@@ -25,7 +25,7 @@
                         prose-strong:text-forest prose-strong:font-medium
                         prose-a:text-terracotta prose-a:no-underline hover:prose-a:underline
                         prose-li:mb-2">
-                {!! Str::markdown($websiteContent->terms_conditions_text) !!}
+                {!! Str::markdown($websiteContent->terms_conditions_text, ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}
             </div>
         @else
             <article class="prose prose-lg max-w-none font-light leading-relaxed text-muted

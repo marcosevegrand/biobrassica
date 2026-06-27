@@ -4,30 +4,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Payment Timeout
+    | IfThenPay Gateway
     |--------------------------------------------------------------------------
+    |
+    | Payments are initiated and validated through the official IfThenPay PHP
+    | SDK. Keep credentials in the environment, never in the database.
+    |
     */
 
-    'timeout_minutes' => env('PAYMENT_TIMEOUT_MINUTES', 30),
-
-    /*
-    |--------------------------------------------------------------------------
-    | MB WAY
-    |--------------------------------------------------------------------------
-    */
-
-    'mbway_phone' => env('MBWAY_PHONE', ''),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Bank Transfer
-    |--------------------------------------------------------------------------
-    */
-
-    'bank_transfer_iban' => env('BANK_TRANSFER_IBAN', ''),
-
-    'bank_transfer_bic' => env('BANK_TRANSFER_BIC', ''),
-
-    'bank_transfer_beneficiary' => env('BANK_TRANSFER_BENEFICIARY', ''),
+    'ifthenpay' => [
+        'backoffice_key' => env('IFTHENPAY_BACKOFFICE_KEY', ''),
+        'anti_phishing_key' => env('IFTHENPAY_ANTI_PHISHING_KEY', ''),
+        'mbway_key' => env('IFTHENPAY_MBWAY_KEY', ''),
+        'multibanco_key' => env('IFTHENPAY_MULTIBANCO_KEY', ''),
+    ],
 
 ];

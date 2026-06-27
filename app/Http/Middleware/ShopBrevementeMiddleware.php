@@ -15,9 +15,13 @@ class ShopBrevementeMiddleware
             return $next($request);
         }
 
-        $shopSettings = ShopSettings::first();
+        try {
+            $shopSettings = ShopSettings::current();
+        } catch (\Throwable) {
+            return $next($request);
+        }
 
-        if (!$shopSettings?->is_shop_brevemente) {
+        if (! $shopSettings?->is_shop_brevemente) {
             return $next($request);
         }
 

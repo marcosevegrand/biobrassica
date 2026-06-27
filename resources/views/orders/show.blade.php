@@ -20,13 +20,21 @@
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                         Pendente
                     </span>
-                @elseif($order->status === 'confirmed')
+                @elseif($order->status === 'preparing')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        Confirmada
+                        Em preparação
                     </span>
-                @elseif($order->status === 'completed')
+                @elseif($order->status === 'ready')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
+                        Pronta para levantamento
+                    </span>
+                @elseif($order->status === 'in_transit')
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-100 text-sky-800">
+                        Em distribuição
+                    </span>
+                @elseif($order->status === 'delivered')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        Concluída
+                        Entregue
                     </span>
                 @elseif($order->status === 'cancelled')
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
@@ -39,13 +47,17 @@
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                             Pagamento Pendente
                         </span>
-                    @elseif($order->payment->status === 'paid')
+                    @elseif($order->payment->status === 'confirmed')
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                            Pago
+                            Pagamento Confirmado
                         </span>
-                    @elseif($order->payment->status === 'failed')
+                    @elseif($order->payment->status === 'cancelled')
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                            Pagamento Falhou
+                            Pagamento Cancelado
+                        </span>
+                    @elseif($order->payment->status === 'refunded')
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                            Pagamento Reembolsado
                         </span>
                     @endif
                 @endif
@@ -67,9 +79,19 @@
                 @endforeach
             </div>
 
-            <div class="mt-4 pt-4 border-t border-stone/40 flex items-center justify-between">
-                <span class="font-serif text-lg font-bold text-forest">Total</span>
-                <span class="text-xl font-bold text-forest">&euro;{{ number_format($order->total, 2) }}</span>
+            <div class="mt-4 pt-4 border-t border-stone/40 space-y-2">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted">Subtotal</span>
+                    <span class="text-forest font-medium">&euro;{{ number_format($order->subtotal, 2) }}</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted">Envio</span>
+                    <span class="text-forest font-medium">&euro;{{ number_format($order->shipping_cost, 2) }}</span>
+                </div>
+                <div class="flex items-center justify-between border-t border-stone/40 pt-3">
+                    <span class="font-serif text-lg font-bold text-forest">Total</span>
+                    <span class="text-xl font-bold text-forest">&euro;{{ number_format($order->total, 2) }}</span>
+                </div>
             </div>
         </div>
 
@@ -107,7 +129,7 @@
                 <h2 class="font-serif text-xl font-bold text-forest mb-4">Pagamento</h2>
                 <p class="text-sm text-forest">
                     <span class="font-medium">Método:</span>
-                    {{ $order->payment->method === 'mbway' ? 'MB WAY' : 'Transferência Bancária' }}
+                    {{ $order->payment->method === 'mbway' ? 'MB WAY' : ($order->payment->method === 'multibanco' ? 'Multibanco' : $order->payment->method) }}
                 </p>
                 <p class="text-sm text-forest mt-1">
                     <span class="font-medium">Valor:</span> &euro;{{ number_format($order->payment->amount, 2) }}
@@ -116,10 +138,10 @@
                     <span class="font-medium">Estado:</span>
                     @if($order->payment->status === 'pending')
                         Pendente
-                    @elseif($order->payment->status === 'paid')
-                        Pago
-                    @elseif($order->payment->status === 'failed')
-                        Falhou
+                    @elseif($order->payment->status === 'confirmed')
+                        Confirmado
+                    @elseif($order->payment->status === 'refunded')
+                        Reembolsado
                     @elseif($order->payment->status === 'cancelled')
                         Cancelado
                     @endif
@@ -129,6 +151,18 @@
                     <p class="text-sm text-muted mt-1">
                         Expira: {{ $order->payment->expires_at->format('d/m/Y H:i') }}
                     </p>
+                @endif
+
+                @if($order->payment->refund_state)
+                    <div class="mt-4 rounded-md bg-paper p-4 text-sm text-forest">
+                        <p class="font-medium">Reembolso: {{ \App\Models\Payment::refundStateLabels()[$order->payment->refund_state] ?? $order->payment->refund_state }}</p>
+                        @if($order->payment->refund_reason)
+                            <p class="mt-1 text-muted">Motivo: {{ $order->payment->refund_reason }}</p>
+                        @endif
+                        @if($order->payment->refunded_at)
+                            <p class="mt-1 text-muted">Concluído em {{ $order->payment->refunded_at->format('d/m/Y H:i') }}</p>
+                        @endif
+                    </div>
                 @endif
 
                 @if($order->payment->status === 'pending')
@@ -145,15 +179,23 @@
         {{-- Actions --}}
         @if($order->status === 'pending')
             <div class="flex gap-4">
-                <a href="{{ route('checkout.confirm', ['order' => $order->id]) }}"
-                   class="px-6 py-2 bg-forest text-white rounded-md font-medium hover:bg-forest/90 transition-colors text-sm">
-                    Confirmar Encomenda
-                </a>
-                <a href="{{ route('checkout.discard', ['order' => $order->id]) }}"
-                   onclick="return confirm('Tem a certeza que deseja cancelar esta encomenda?')"
-                   class="px-6 py-2 border border-red-300 text-red-600 rounded-md font-medium hover:bg-red-50 transition-colors text-sm">
-                    Cancelar Encomenda
-                </a>
+                @if($order->payment && $order->payment->status === 'pending')
+                    <a href="{{ route('payment.show', ['order' => $order->id]) }}"
+                       class="px-6 py-2 bg-forest text-white rounded-md font-medium hover:bg-forest/90 transition-colors text-sm">
+                        Efetuar Pagamento
+                    </a>
+                @else
+                    <a href="{{ route('checkout.confirm', ['order' => $order->id]) }}"
+                       class="px-6 py-2 bg-forest text-white rounded-md font-medium hover:bg-forest/90 transition-colors text-sm">
+                        Ver resumo
+                    </a>
+                @endif
+                <form method="POST" action="{{ route('checkout.discard', ['order' => $order->id]) }}" onsubmit="return confirm('Tem a certeza que deseja cancelar esta encomenda?')">
+                    @csrf
+                    <button type="submit" class="px-6 py-2 border border-red-300 text-red-600 rounded-md font-medium hover:bg-red-50 transition-colors text-sm">
+                        Cancelar Encomenda
+                    </button>
+                </form>
             </div>
         @endif
     </div>

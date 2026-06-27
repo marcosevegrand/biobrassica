@@ -15,7 +15,7 @@ class PortuguesePhone implements ValidationRule
 
         $value = (string) $value;
 
-        if (!preg_match('/^9\d{8}$/', $value)) {
+        if (! preg_match('/^9\d{8}$/', $value)) {
             $fail('O número de telefone deve começar com 9 e conter 9 dígitos.');
         }
     }

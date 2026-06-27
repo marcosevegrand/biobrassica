@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\PaymentService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
@@ -20,7 +19,8 @@ class OrderController extends Controller
             ->findOrFail($orderId);
 
         if ($order->payment) {
-            $this->paymentService->expireIfTimedOut($order->payment);
+            $this->paymentService->refreshProviderStatus($order->payment);
+            $this->paymentService->expireIfTimedOut($order->payment->refresh());
             $order->refresh()->load(['items.product', 'payment']);
         }
 
@@ -34,7 +34,8 @@ class OrderController extends Controller
             ->findOrFail($orderId);
 
         if ($order->payment) {
-            $this->paymentService->expireIfTimedOut($order->payment);
+            $this->paymentService->refreshProviderStatus($order->payment);
+            $this->paymentService->expireIfTimedOut($order->payment->refresh());
             $order->refresh()->load('payment');
         }
 
