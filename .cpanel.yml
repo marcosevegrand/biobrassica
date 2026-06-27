@@ -1,4 +1,4 @@
 ---
 deployment:
   tasks:
-    - /bin/sh scripts/cpanel-deploy.sh
+    - /bin/sh -c 'APPPATH="$HOME/biobrassica" PUBLICPATH="$HOME/public_html" /bin/sh "$(pwd)/scripts/cpanel-deploy.sh"'
