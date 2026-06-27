@@ -28,6 +28,10 @@ class PaymentService
     {
         $this->ensureConfigured($method);
 
+        if ($this->fakePaymentsEnabled()) {
+            return $this->createFakePayment($order, $method);
+        }
+
         $payment = Payment::create([
             'order_id' => $order->id,
             'method' => $method,
@@ -112,6 +116,14 @@ class PaymentService
 
     public function refreshProviderStatus(Payment $payment): void
     {
+        if ($this->fakePaymentsEnabled()) {
+            if ($payment->status === Payment::STATUS_PENDING && $this->fakePaymentsAutoConfirm()) {
+                $this->confirmPayment($payment);
+            }
+
+            return;
+        }
+
         if ($payment->status !== Payment::STATUS_PENDING || $payment->method !== 'mbway' || ! $payment->provider_payment_id) {
             return;
         }
@@ -500,6 +512,10 @@ class PaymentService
 
     public function methodIsConfigured(string $method): bool
     {
+        if ($this->fakePaymentsEnabled()) {
+            return in_array($method, ['mbway', 'multibanco'], true);
+        }
+
         if (! filled(config('payments.ifthenpay.backoffice_key')) || ! filled(config('payments.ifthenpay.anti_phishing_key'))) {
             return false;
         }
@@ -660,6 +676,10 @@ class PaymentService
 
     private function paymentIsPaidAtProvider(Payment $payment): ?bool
     {
+        if ($this->fakePaymentsEnabled()) {
+            return true;
+        }
+
         if (! $payment->provider_payment_id) {
             return false;
         }
@@ -701,6 +721,47 @@ class PaymentService
             $order->notes = trim(implode("\n", array_filter([$order->notes, $reviewMessage])));
             $order->save();
         });
+    }
+
+    private function createFakePayment(Order $order, string $method): Payment
+    {
+        if (! in_array($method, ['mbway', 'multibanco'], true)) {
+            throw new RuntimeException('Método de pagamento inválido.');
+        }
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'method' => $method,
+            'status' => Payment::STATUS_PENDING,
+            'amount' => $order->total,
+            'provider_reference' => $method === 'multibanco' ? str_pad((string) $order->id, 9, '0', STR_PAD_LEFT) : null,
+            'provider_payment_id' => 'FAKE-'.$method.'-'.$order->id.'-'.now()->format('YmdHis'),
+            'provider_data' => [
+                'fake' => true,
+                'orderId' => $this->providerOrderId($order),
+                'amount' => $this->formatAmount($order->total),
+                'entity' => $method === 'multibanco' ? '99999' : null,
+                'mobileNumber' => $method === 'mbway' ? $order->phone : null,
+            ],
+            'expires_at' => Carbon::now()->addMinutes($this->paymentTimeoutMinutes()),
+        ]);
+
+        if ($this->fakePaymentsAutoConfirm()) {
+            $this->confirmPayment($payment);
+        }
+
+        return $payment->refresh();
+    }
+
+    private function fakePaymentsEnabled(): bool
+    {
+        return (bool) config('payments.fake.enabled', false)
+            && ! app()->environment('production');
+    }
+
+    private function fakePaymentsAutoConfirm(): bool
+    {
+        return (bool) config('payments.fake.auto_confirm', true);
     }
 
     private function mbwayModelFromPayment(Payment $payment): Mbway

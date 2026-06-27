@@ -109,6 +109,34 @@ class CheckoutOrderAdminFlowTest extends TestCase
         $this->assertSame('24.50', $order->payment->amount);
     }
 
+    public function test_fake_payments_allow_non_production_checkout_without_ifthenpay_keys(): void
+    {
+        config([
+            'payments.ifthenpay.backoffice_key' => '',
+            'payments.ifthenpay.anti_phishing_key' => '',
+            'payments.ifthenpay.mbway_key' => '',
+            'payments.ifthenpay.multibanco_key' => '',
+            'payments.fake.enabled' => true,
+            'payments.fake.auto_confirm' => true,
+        ]);
+
+        $user = User::factory()->create();
+        $product = $this->createProduct(price: 10, stock: 10);
+        $this->createLocation();
+        $this->createCart($user, $product, 1);
+        $this->settings();
+
+        $this->actingAs($user)
+            ->post(route('checkout.store'), $this->checkoutPayload())
+            ->assertRedirect();
+
+        $order = Order::firstOrFail();
+
+        $this->assertSame(Order::PAYMENT_CONFIRMED, $order->payment_state);
+        $this->assertSame(Payment::STATUS_CONFIRMED, $order->payment->status);
+        $this->assertStringStartsWith('FAKE-mbway-', $order->payment->provider_payment_id);
+    }
+
     public function test_free_shipping_threshold_and_malicious_shipping_input_are_ignored(): void
     {
         $this->fakePaymentCreation();
