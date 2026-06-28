@@ -201,6 +201,14 @@ class CheckoutOrderAdminFlowTest extends TestCase
         $this->actingAs($admin)->get('/admin')->assertOk();
     }
 
+    public function test_admin_singleton_settings_pages_render_in_admin_panel(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'email_verified_at' => now()]);
+
+        $this->actingAs($admin)->get('/admin/shop-settings')->assertOk();
+        $this->actingAs($admin)->get('/admin/website-content')->assertOk();
+    }
+
     public function test_refund_workflow_tracks_request_completion_and_restock(): void
     {
         [$admin, $order, $payment, $product] = $this->createOrderWithPayment(paymentStatus: Payment::STATUS_CONFIRMED, paymentState: Order::PAYMENT_CONFIRMED, withProduct: true);

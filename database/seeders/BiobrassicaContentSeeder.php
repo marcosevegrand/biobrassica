@@ -10,8 +10,6 @@ use App\Models\Location;
 use App\Models\LocationPosition;
 use App\Models\Product;
 use App\Models\ShopSettings;
-use App\Models\TeamMember;
-use App\Models\TeamMemberPosition;
 use App\Models\WebsiteContent;
 use Illuminate\Database\Seeder;
 
@@ -136,13 +134,6 @@ class BiobrassicaContentSeeder extends Seeder
             ]);
             DeliveryMethodPosition::query()->updateOrCreate(['delivery_method_id' => $method->id], ['position' => $name === 'Levantamento em loja' ? 1 : 2]);
         }
-
-        $member = TeamMember::query()->updateOrCreate(['name' => 'Engª Ângela Pereira'], [
-            'role' => 'Fundadora',
-            'photo' => 'images/people/006.jpg',
-            'is_active' => true,
-        ]);
-        TeamMemberPosition::query()->updateOrCreate(['team_member_id' => $member->id], ['position' => 1]);
     }
 
     private function aboutContent(): string

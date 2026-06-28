@@ -10,6 +10,14 @@ class ManageWebsiteContent extends EditRecord
 {
     protected static string $resource = WebsiteContentResource::class;
 
+    public function mount(int|string $record = ''): void
+    {
+        $this->record = $this->getRecord();
+
+        $this->authorizeAccess();
+        $this->fillForm();
+    }
+
     protected function getHeaderActions(): array
     {
         return [];
@@ -17,11 +25,21 @@ class ManageWebsiteContent extends EditRecord
 
     public function getRecord(): WebsiteContent
     {
-        return WebsiteContent::firstOrCreate(['id' => 1]);
+        return WebsiteContent::current();
+    }
+
+    protected function getRedirectUrl(): ?string
+    {
+        return static::getResource()::getUrl('index');
+    }
+
+    public static function shouldRegisterNavigation(array $parameters = []): bool
+    {
+        return true;
     }
 
     public function getTitle(): string
     {
-        return 'Website Content';
+        return 'Conteúdo do website';
     }
 }

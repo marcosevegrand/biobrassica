@@ -10,6 +10,14 @@ class ManageShopSettings extends EditRecord
 {
     protected static string $resource = ShopSettingsResource::class;
 
+    public function mount(int|string $record = ''): void
+    {
+        $this->record = $this->getRecord();
+
+        $this->authorizeAccess();
+        $this->fillForm();
+    }
+
     protected function getHeaderActions(): array
     {
         return [];
@@ -25,6 +33,16 @@ class ManageShopSettings extends EditRecord
     public function getRecord(): ShopSettings
     {
         return ShopSettings::current();
+    }
+
+    protected function getRedirectUrl(): ?string
+    {
+        return static::getResource()::getUrl('index');
+    }
+
+    public static function shouldRegisterNavigation(array $parameters = []): bool
+    {
+        return true;
     }
 
     public function getTitle(): string

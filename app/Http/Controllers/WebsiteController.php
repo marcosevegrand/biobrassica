@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\InstagramPost;
 use App\Models\Location;
 use App\Models\Recipe;
-use App\Models\TeamMember;
 use App\Models\WebsiteContent;
 
 class WebsiteController extends Controller
@@ -17,7 +16,6 @@ class WebsiteController extends Controller
             ->orderBy('sort_order')
             ->take(5)
             ->get());
-        $teamMembers = $this->getActiveTeamMembers();
         $featuredRecipes = $this->safeCollection(fn () => Recipe::query()
             ->with('translations')
             ->where('is_published', true)
@@ -26,15 +24,14 @@ class WebsiteController extends Controller
             ->get());
         $locale = app()->getLocale();
 
-        return view('website.home', compact('websiteContent', 'instagramPosts', 'teamMembers', 'featuredRecipes', 'locale'));
+        return view('website.home', compact('websiteContent', 'instagramPosts', 'featuredRecipes', 'locale'));
     }
 
     public function about()
     {
         $websiteContent = $this->websiteContent();
-        $teamMembers = $this->getActiveTeamMembers();
 
-        return view('website.about', compact('websiteContent', 'teamMembers'));
+        return view('website.about', compact('websiteContent'));
     }
 
     public function agriculture()
@@ -69,16 +66,6 @@ class WebsiteController extends Controller
         $websiteContent = $this->websiteContent();
 
         return view('website.terms', compact('websiteContent'));
-    }
-
-    private function getActiveTeamMembers()
-    {
-        return $this->safeCollection(fn () => TeamMember::query()
-            ->select('team_members.*')
-            ->join('team_member_positions', 'team_members.id', '=', 'team_member_positions.team_member_id')
-            ->where('team_members.is_active', true)
-            ->orderBy('team_member_positions.position')
-            ->get());
     }
 
     private function websiteContent(): ?WebsiteContent

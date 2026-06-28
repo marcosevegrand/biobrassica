@@ -24,6 +24,8 @@ class AddressResource extends Resource
 
     protected static ?string $pluralModelLabel = 'moradas';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function form(Form $form): Form
     {
         return $form

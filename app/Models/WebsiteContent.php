@@ -6,6 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebsiteContent extends Model
 {
+    public static function defaults(): array
+    {
+        return [
+            'company_legal_name' => config('app.name', 'Biobrassica'),
+            'support_email' => config('mail.from.address', 'hello@example.com'),
+        ];
+    }
+
+    public static function current(): self
+    {
+        return self::firstOrCreate(['id' => 1], self::defaults());
+    }
+
     protected $fillable = [
         'company_legal_name',
         'company_address',
