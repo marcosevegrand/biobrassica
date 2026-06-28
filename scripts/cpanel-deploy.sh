@@ -8,6 +8,40 @@ APPPATH="${APPPATH:-$(pwd)}"
 PUBLICPATH="${PUBLICPATH:-$HOME/public_html}"
 SOURCEPATH="${SOURCEPATH:-$(pwd)}"
 
+DEPLOY_WARNINGS=0
+
+log() {
+    echo "$1"
+
+    if [ -n "${LOGFILE:-}" ]; then
+        echo "$1" >> "$LOGFILE"
+    fi
+}
+
+warn() {
+    DEPLOY_WARNINGS=1
+    log "WARNING: $1"
+}
+
+write_status() {
+    message="$1"
+
+    if [ -n "${STATUSFILE:-}" ]; then
+        echo "$message" > "$STATUSFILE" 2>/dev/null || true
+    fi
+}
+
+finish() {
+    if [ "$DEPLOY_WARNINGS" -eq 0 ]; then
+        write_status "Biobrassica deployment completed successfully at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+    else
+        write_status "Biobrassica deployment completed with warnings at $(date -u '+%Y-%m-%d %H:%M:%S UTC'). Check storage/logs/cpanel-deploy.log."
+    fi
+
+    log "== Biobrassica cPanel deployment completed =="
+    exit 0
+}
+
 if [ ! -d "$APPPATH" ]; then
     echo "Application path does not exist; creating: $APPPATH"
     mkdir -p "$APPPATH" || exit 1
@@ -60,6 +94,7 @@ mkdir -p "$PUBLICPATH" \
 
 LOGFILE="$APPPATH/storage/logs/cpanel-deploy.log"
 STATUSFILE="$PUBLICPATH/deploy-status.txt"
+write_status "Biobrassica deployment started at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 
 {
     echo ""
@@ -70,19 +105,30 @@ STATUSFILE="$PUBLICPATH/deploy-status.txt"
 } >> "$LOGFILE"
 
 if [ -d "$APPPATH/public" ]; then
-    cp -R "$APPPATH/public/." "$PUBLICPATH/"
+    log "Copying public assets"
+    if command -v rsync >/dev/null 2>&1; then
+        rsync -a --exclude='storage' "$APPPATH/public/." "$PUBLICPATH/" >> "$LOGFILE" 2>&1 || warn "public asset rsync failed"
+    else
+        (cd "$APPPATH/public" && tar --exclude='./storage' -cf - .) | (cd "$PUBLICPATH" && tar -xf -) >> "$LOGFILE" 2>&1 || warn "public asset copy failed"
+    fi
+else
+    warn "public directory not found at $APPPATH/public"
 fi
 
 if [ -f "$APPPATH/public_html/index.php" ]; then
-    cp "$APPPATH/public_html/index.php" "$PUBLICPATH/index.php"
+    cp "$APPPATH/public_html/index.php" "$PUBLICPATH/index.php" >> "$LOGFILE" 2>&1 || warn "could not copy public_html/index.php"
+else
+    warn "public_html/index.php not found in repository"
 fi
 
 if [ -f "$APPPATH/public_html/.htaccess" ]; then
-    cp "$APPPATH/public_html/.htaccess" "$PUBLICPATH/.htaccess"
+    cp "$APPPATH/public_html/.htaccess" "$PUBLICPATH/.htaccess" >> "$LOGFILE" 2>&1 || warn "could not copy public_html/.htaccess"
+else
+    warn "public_html/.htaccess not found in repository"
 fi
 
 if [ -f "$APPPATH/public_html/.user.ini" ]; then
-    cp "$APPPATH/public_html/.user.ini" "$PUBLICPATH/.user.ini"
+    cp "$APPPATH/public_html/.user.ini" "$PUBLICPATH/.user.ini" >> "$LOGFILE" 2>&1 || warn "could not copy public_html/.user.ini"
 fi
 
 PHP_BIN="${PHP_BIN:-}"
@@ -106,43 +152,42 @@ if [ -z "$PHP_BIN" ] && command -v php >/dev/null 2>&1; then
 fi
 
 if [ -z "$PHP_BIN" ]; then
-    echo "ERROR: Could not find a PHP binary. Set PHP_BIN in cPanel deployment environment."
-    exit 1
+    warn "Could not find a PHP binary. Public files were copied, but migrations/cache were skipped."
+    finish
 fi
 
-echo "Using PHP: $PHP_BIN"
-"$PHP_BIN" -v
+log "Using PHP: $PHP_BIN"
+"$PHP_BIN" -v >> "$LOGFILE" 2>&1 || warn "PHP binary exists but php -v failed"
 
 if [ ! -f "$APPPATH/artisan" ]; then
-    echo "ERROR: artisan not found in $APPPATH"
-    exit 1
+    warn "artisan not found in $APPPATH. Public files were copied, but migrations/cache were skipped."
+    finish
 fi
 
 if [ ! -f "$APPPATH/vendor/autoload.php" ]; then
     if command -v composer >/dev/null 2>&1; then
-        echo "vendor/autoload.php missing; running composer install"
-        composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts || exit 1
-        "$PHP_BIN" artisan package:discover --ansi || exit 1
+        log "vendor/autoload.php missing; running composer install"
+        composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts >> "$LOGFILE" 2>&1 || warn "composer install failed"
+        if [ -f "$APPPATH/vendor/autoload.php" ]; then
+            "$PHP_BIN" artisan package:discover --ansi >> "$LOGFILE" 2>&1 || warn "package discovery failed"
+        fi
     else
-        echo "ERROR: vendor/autoload.php missing and composer is not available."
-        exit 1
+        warn "vendor/autoload.php missing and composer is not available. Public files were copied, but Laravel cannot boot until dependencies are installed."
+        finish
     fi
 fi
-
-DEPLOY_WARNINGS=0
 
 run_artisan() {
     label="$1"
     shift
 
-    echo "Running: php artisan $*"
+    log "Running: php artisan $*"
     if "$PHP_BIN" artisan "$@" >> "$LOGFILE" 2>&1; then
-        echo "OK: $label"
+        log "OK: $label"
         return 0
     fi
 
-    DEPLOY_WARNINGS=1
-    echo "WARNING: $label failed. Check $LOGFILE in cPanel File Manager."
+    warn "$label failed. Check $LOGFILE in cPanel File Manager."
     return 0
 }
 
@@ -154,11 +199,4 @@ run_artisan "config cache" config:cache
 run_artisan "route cache" route:cache
 run_artisan "view cache" view:cache
 
-if [ "$DEPLOY_WARNINGS" -eq 0 ]; then
-    echo "Biobrassica deployment completed successfully at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > "$STATUSFILE"
-else
-    echo "Biobrassica deployment completed with warnings at $(date -u '+%Y-%m-%d %H:%M:%S UTC'). Check storage/logs/cpanel-deploy.log." > "$STATUSFILE"
-fi
-
-echo "== Biobrassica cPanel deployment completed =="
-exit 0
+finish
