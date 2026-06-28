@@ -194,6 +194,37 @@ if [ ! -f "$APPPATH/vendor/autoload.php" ]; then
         COMPOSER_BIN="$(command -v composer)"
     fi
 
+    if [ -z "$COMPOSER_BIN" ]; then
+        mkdir -p "$APPPATH/storage/.composer"
+        COMPOSER_BIN="$APPPATH/storage/.composer/composer.phar"
+
+        if [ ! -f "$COMPOSER_BIN" ]; then
+            log "Composer not found on host; attempting to download local composer.phar"
+
+            "$PHP_BIN" -r '
+                $sig = @file_get_contents("https://composer.github.io/installer.sig");
+                $installer = @file_get_contents("https://getcomposer.org/installer");
+
+                if ($sig === false || $installer === false) {
+                    fwrite(STDERR, "Could not download Composer installer or signature.\n");
+                    exit(1);
+                }
+
+                $path = "storage/.composer/composer-setup.php";
+                file_put_contents($path, $installer);
+
+                if (! hash_equals(trim($sig), hash_file("sha384", $path))) {
+                    @unlink($path);
+                    fwrite(STDERR, "Composer installer signature verification failed.\n");
+                    exit(1);
+                }
+            ' >> "$LOGFILE" 2>&1 || fatal "Composer is not installed and automatic Composer download failed"
+
+            "$PHP_BIN" "$APPPATH/storage/.composer/composer-setup.php" --install-dir="$APPPATH/storage/.composer" --filename=composer.phar >> "$LOGFILE" 2>&1 || fatal "Composer installer failed"
+            rm -f "$APPPATH/storage/.composer/composer-setup.php"
+        fi
+    fi
+
     if [ -n "$COMPOSER_BIN" ]; then
         mkdir -p "$APPPATH/storage/.composer"
         export COMPOSER_HOME="$APPPATH/storage/.composer"
