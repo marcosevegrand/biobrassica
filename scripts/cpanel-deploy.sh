@@ -23,6 +23,16 @@ warn() {
     log "WARNING: $1"
 }
 
+fatal() {
+    log "ERROR: $1"
+
+    if [ -n "${STATUSFILE:-}" ]; then
+        echo "Biobrassica deployment failed at $(date -u '+%Y-%m-%d %H:%M:%S UTC'): $1. Check storage/logs/cpanel-deploy.log." > "$STATUSFILE" 2>/dev/null || true
+    fi
+
+    exit 1
+}
+
 write_status() {
     message="$1"
 
@@ -135,45 +145,73 @@ PHP_BIN="${PHP_BIN:-}"
 
 if [ -z "$PHP_BIN" ]; then
     for candidate in \
-        /usr/local/bin/php \
+        /opt/cpanel/ea-php84/root/usr/bin/php \
         /opt/cpanel/ea-php83/root/usr/bin/php \
         /opt/cpanel/ea-php82/root/usr/bin/php \
+        /opt/cpanel/ea-php81/root/usr/bin/php \
+        /usr/local/bin/php \
         /usr/bin/php
     do
-        if [ -x "$candidate" ]; then
+        if [ -x "$candidate" ] && "$candidate" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
             PHP_BIN="$candidate"
             break
         fi
     done
 fi
 
-if [ -z "$PHP_BIN" ] && command -v php >/dev/null 2>&1; then
+if [ -z "$PHP_BIN" ] && command -v php >/dev/null 2>&1 && php -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
     PHP_BIN="$(command -v php)"
 fi
 
 if [ -z "$PHP_BIN" ]; then
-    warn "Could not find a PHP binary. Public files were copied, but migrations/cache were skipped."
-    finish
+    fatal "Could not find PHP 8.2+ for CLI. Laravel requires PHP 8.2+. Ask hosting/cPanel to enable ea-php82 or ea-php83 CLI."
 fi
 
 log "Using PHP: $PHP_BIN"
-"$PHP_BIN" -v >> "$LOGFILE" 2>&1 || warn "PHP binary exists but php -v failed"
+"$PHP_BIN" -v >> "$LOGFILE" 2>&1 || fatal "PHP binary exists but php -v failed"
 
 if [ ! -f "$APPPATH/artisan" ]; then
-    warn "artisan not found in $APPPATH. Public files were copied, but migrations/cache were skipped."
-    finish
+    fatal "artisan not found in $APPPATH. The Laravel app checkout is incomplete."
 fi
 
 if [ ! -f "$APPPATH/vendor/autoload.php" ]; then
-    if command -v composer >/dev/null 2>&1; then
+    COMPOSER_BIN="${COMPOSER_BIN:-}"
+
+    if [ -z "$COMPOSER_BIN" ]; then
+        for candidate in \
+            /opt/cpanel/composer/bin/composer \
+            /usr/local/bin/composer \
+            /usr/bin/composer
+        do
+            if [ -f "$candidate" ] || [ -x "$candidate" ]; then
+                COMPOSER_BIN="$candidate"
+                break
+            fi
+        done
+    fi
+
+    if [ -z "$COMPOSER_BIN" ] && command -v composer >/dev/null 2>&1; then
+        COMPOSER_BIN="$(command -v composer)"
+    fi
+
+    if [ -n "$COMPOSER_BIN" ]; then
+        mkdir -p "$APPPATH/storage/.composer"
+        export COMPOSER_HOME="$APPPATH/storage/.composer"
         log "vendor/autoload.php missing; running composer install"
-        composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts >> "$LOGFILE" 2>&1 || warn "composer install failed"
+
+        if [ -f "$COMPOSER_BIN" ]; then
+            "$PHP_BIN" "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts >> "$LOGFILE" 2>&1 || fatal "composer install failed"
+        else
+            "$COMPOSER_BIN" install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts >> "$LOGFILE" 2>&1 || fatal "composer install failed"
+        fi
+
         if [ -f "$APPPATH/vendor/autoload.php" ]; then
-            "$PHP_BIN" artisan package:discover --ansi >> "$LOGFILE" 2>&1 || warn "package discovery failed"
+            "$PHP_BIN" artisan package:discover --ansi >> "$LOGFILE" 2>&1 || fatal "package discovery failed"
+        else
+            fatal "composer install finished but vendor/autoload.php is still missing"
         fi
     else
-        warn "vendor/autoload.php missing and composer is not available. Public files were copied, but Laravel cannot boot until dependencies are installed."
-        finish
+        fatal "vendor/autoload.php is missing and Composer was not found. Install dependencies with Composer or configure COMPOSER_BIN."
     fi
 fi
 
