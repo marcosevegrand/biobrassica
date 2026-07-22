@@ -2,7 +2,6 @@
 
 use App\Http\Kernel;
 use App\Http\Middleware\LocaleMiddleware;
-use App\Http\Middleware\ShopBrevementeMiddleware;
 use App\Http\Middleware\SubdomainMiddleware;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -48,7 +47,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SubdomainMiddleware::class,
             LocaleMiddleware::class,
-            ShopBrevementeMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

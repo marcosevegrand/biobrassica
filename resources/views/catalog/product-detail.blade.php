@@ -3,22 +3,56 @@
 @section('title', $product->name . ' | Biobrassica')
 
 @section('content')
-@php($canBuyProduct = $product->canBePurchasedOnline())
 <section class="max-w-7xl mx-auto px-6 py-12">
   <nav class="text-xs uppercase tracking-widest text-muted mb-8"><a href="{{ route('catalog.products') }}" class="hover:text-forest transition-colors">Produtos</a><span class="mx-2">/</span><span class="text-forest">{{ $product->name }}</span></nav>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
     <div>@if($product->image)@php($productImage = str_starts_with($product->image, 'images/') ? asset($product->image) : asset('storage/' . $product->image))<img src="{{ $productImage }}" alt="{{ $product->name }}" class="w-full aspect-square object-cover rounded-sm" loading="eager">@else<div class="w-full aspect-square bg-stone/20 rounded-sm flex items-center justify-center"><span class="text-muted">Sem imagem</span></div>@endif</div>
     <div>
-      <p class="text-[10px] uppercase tracking-widest text-muted mb-2">{{ $product->category?->name }}</p><h1 class="font-serif text-3xl md:text-4xl italic mb-4">{{ $product->name }}</h1><p class="text-sm uppercase tracking-[0.2em] text-muted mb-3">{{ $product->brand }}</p>
-      <div class="mb-8 inline-flex flex-col bg-terracotta/6 px-4 py-4"><span class="text-[10px] uppercase tracking-[0.18em] text-terracotta">Preço</span><span class="mt-2 font-serif text-4xl md:text-5xl italic leading-none text-forest">€{{ number_format((float) $product->price, 2, ',', ' ') }}</span><span class="mt-2 text-sm uppercase tracking-[0.14em] text-muted">{{ $product->quantity }}</span></div>
-      <div class="flex flex-wrap gap-2 mb-6">@if($product->allow_pickup && $product->pickupLocations->isNotEmpty())@foreach($product->pickupLocations as $loc)<span class="text-[10px] uppercase tracking-widest text-muted border border-stone/30 px-3 py-1 rounded-sm">{{ $loc->name }}</span>@endforeach @endif<span class="text-[10px] uppercase tracking-widest border px-3 py-1 rounded-sm {{ $product->allow_shipping ? 'text-forest border-forest/30' : 'text-muted border-stone/30' }}">{{ $product->allow_shipping && $product->allow_pickup ? 'Envio e recolha' : ($product->allow_shipping ? 'Apenas envio' : ($product->allow_pickup ? 'Apenas recolha' : 'Sem modo disponível')) }}</span></div>
-      @if($product->is_preview)<p class="mb-6 text-xs uppercase tracking-widest text-terracotta">Produto em pré-visualização</p>@endif
-      <form method="post" action="{{ route('cart.add', $product->id) }}" hx-post="{{ route('cart.add', $product->id) }}" hx-swap="none" class="flex items-center gap-4 mb-8">@csrf<div class="flex items-center border border-stone/40 rounded-sm"><button type="button" data-cart-quantity-action="decrement" aria-label="Diminuir quantidade" class="px-3 py-2 text-muted hover:text-forest transition-colors">−</button><input type="number" name="quantity" value="1" min="1" max="{{ min(99, max(1, (int) $product->stock)) }}" class="w-12 text-center border-x border-stone/40 py-2 text-sm focus:outline-none no-spinner"><button type="button" data-cart-quantity-action="increment" aria-label="Aumentar quantidade" class="px-3 py-2 text-muted hover:text-forest transition-colors">+</button></div><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="3" class="text-[10px] uppercase tracking-widest border border-stone/40 px-3 py-2 rounded-sm hover:border-forest hover:text-forest transition-colors">3x</button><button type="button" data-cart-quantity-action="set" data-cart-quantity-value="6" class="text-[10px] uppercase tracking-widest border border-stone/40 px-3 py-2 rounded-sm hover:border-forest hover:text-forest transition-colors">6x</button><button type="submit" class="flex-1 text-xs uppercase tracking-widest bg-forest text-paper px-6 py-3 rounded-sm hover:bg-terracotta transition-colors {{ ! $canBuyProduct ? 'opacity-50 cursor-not-allowed' : '' }}" {{ ! $canBuyProduct ? 'disabled' : '' }}>{{ $product->is_preview ? 'Pré-visualização' : (! $product->hasFulfillmentMethod() ? 'Indisponível' : ((int) $product->stock > 0 ? 'Adicionar ao carrinho' : 'Esgotado')) }}</button></form>
-      @if($product->is_preview)<p class="text-xs text-terracotta">Disponível para consulta no catálogo, sem compra online de momento.</p>@elseif(! $product->hasFulfillmentMethod())<p class="text-xs text-red-600">Este produto ainda não tem método de entrega disponível.</p>@elseif($product->stock > 0)<p class="text-xs text-terracotta">Em stock</p>@else<p class="text-xs text-red-600">De momento esgotado</p>@endif
+      <p class="text-[10px] uppercase tracking-widest text-muted mb-2">{{ $product->category?->name }}</p>
+      <h1 class="font-serif text-3xl md:text-4xl italic mb-4">{{ $product->name }}</h1>
+      @if($product->brand)<p class="text-sm uppercase tracking-[0.2em] text-muted mb-3">{{ $product->brand }}</p>@endif
+
+      @if($product->quantity)
+      <div class="mb-8 inline-flex flex-col bg-terracotta/6 px-4 py-4">
+        <span class="text-[10px] uppercase tracking-[0.18em] text-terracotta">Formato</span>
+        <span class="mt-2 text-sm uppercase tracking-[0.14em] text-muted">{{ $product->quantity }}</span>
+        @if($product->bio_code)<span class="mt-2 text-xs text-muted">Código BIO: {{ $product->bio_code }}</span>@endif
+      </div>
+      @endif
+
+      <div class="flex items-center gap-3 mb-6">
+        @if($product->bio_code)
+        <div class="flex items-center gap-2">
+          <img src="{{ asset('images/certs/eu-bio-logo.jpg') }}" alt="EU Bio Logo" class="h-12 w-12 object-contain">
+        </div>
+        @endif
+      </div>
     </div>
-    @if($product->description)<div class="text-sm text-muted leading-relaxed"><h2 class="font-serif text-lg italic mb-4 text-forest">Descrição</h2>{!! \App\Services\HtmlSanitizer::sanitize($product->description) !!}</div>@endif
-    <dl class="space-y-6"><div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Marca</dt><dd class="text-sm text-forest">{{ $product->brand }}</dd></div><div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Alergénicos</dt><dd class="text-sm text-forest">{{ $product->allergens }}</dd></div><div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Quantidade</dt><dd class="text-sm text-forest">{{ $product->quantity }}</dd></div><div class="flex items-center gap-3"><div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Código Bio</dt><dd class="text-sm text-forest">{{ $product->bio_code }}</dd></div><img src="{{ asset('images/certs/eu-bio-logo.jpg') }}" alt="EU Bio Logo" class="h-12 w-12 object-contain"></div></dl>
+
+    @if($product->description)
+    <div class="lg:col-span-2 text-sm text-muted leading-relaxed">
+      <h2 class="font-serif text-lg italic mb-4 text-forest">Descrição</h2>
+      {!! \App\Services\HtmlSanitizer::sanitize($product->description) !!}
+    </div>
+    @endif
+
+    <dl class="space-y-6 lg:col-span-2">
+      @if($product->brand)<div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Marca</dt><dd class="text-sm text-forest">{{ $product->brand }}</dd></div>@endif
+      @if($product->allergens)<div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Alergénicos</dt><dd class="text-sm text-forest">{{ $product->allergens }}</dd></div>@endif
+      @if($product->quantity)<div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Quantidade</dt><dd class="text-sm text-forest">{{ $product->quantity }}</dd></div>@endif
+      @if($product->bio_code)<div><dt class="text-[10px] uppercase tracking-widest text-muted mb-2">Código Bio</dt><dd class="text-sm text-forest">{{ $product->bio_code }}</dd><img src="{{ asset('images/certs/eu-bio-logo.jpg') }}" alt="EU Bio Logo" class="h-12 w-12 object-contain"></div>@endif
+    </dl>
   </div>
-  @if($relatedProducts->isNotEmpty())<div class="mt-24"><h2 class="font-serif text-2xl italic mb-8">Produtos relacionados</h2><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">@foreach($relatedProducts as $related)<x-product-card :product="$related" />@endforeach</div></div>@endif
+
+  @if($relatedProducts->isNotEmpty())
+  <div class="mt-24">
+    <h2 class="font-serif text-2xl italic mb-8">Produtos relacionados</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      @foreach($relatedProducts as $related)
+        <x-product-card :product="$related" />
+      @endforeach
+    </div>
+  </div>
+  @endif
 </section>
 @endsection

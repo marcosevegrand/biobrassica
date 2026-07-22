@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Models\Location;
 use App\Models\Product;
 use App\Models\WebsiteContent;
 use Illuminate\Http\Request;
@@ -26,19 +25,11 @@ class CatalogController extends Controller
             ->take(8)
             ->get();
 
-        $contactLocations = Location::query()
-            ->select('locations.*')
-            ->join('location_positions', 'locations.id', '=', 'location_positions.location_id')
-            ->where('locations.is_active', true)
-            ->orderBy('location_positions.position')
-            ->get();
-
         $websiteDefaults = WebsiteContent::first();
 
         return view('catalog.shop-home', compact(
             'featuredCategories',
             'highlightedProducts',
-            'contactLocations',
             'websiteDefaults'
         ) + [
             'categories' => $featuredCategories,
@@ -89,7 +80,7 @@ class CatalogController extends Controller
 
     public function productDetail($slug)
     {
-        $product = Product::with(['category', 'pickupLocations'])
+        $product = Product::with('category')
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();

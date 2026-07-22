@@ -12,9 +12,8 @@ class CreateProduct extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data = static::getResource()::mapVisibilityToBooleans($data);
-        $data = static::getResource()::mapDeliveryToBooleans($data);
 
-        unset($data['visibility'], $data['delivery']);
+        unset($data['visibility']);
 
         return $data;
     }

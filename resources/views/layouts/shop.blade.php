@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Loja | Biobrassica')</title>
+    <title>@yield('title', 'Catálogo | Biobrassica')</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/brand/favicon_green.png') }}">
-    <meta name="description" content="@yield('meta_description', $websiteDefaults->seo_description ?? 'Loja online Biobrassica — produtos biológicos de Braga e Guimarães.')">
+    <meta name="description" content="@yield('meta_description', $websiteDefaults->seo_description ?? 'Catálogo Biobrassica — produtos biológicos de Braga e Guimarães.')">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -31,7 +31,6 @@
         }
     </script>
     <link rel="stylesheet" href="{{ asset('css/biobrassica-overrides.css') }}">
-    <script src="{{ asset('js/htmx.min.js') }}" defer></script>
     @yield('head_extra')
 </head>
 <body class="min-h-screen flex flex-col bg-[#FBF9F6] text-[#2C3F2D] font-light antialiased">
@@ -45,13 +44,6 @@
     <x-footer-shop />
 
     <script src="{{ asset('js/navbar.js') }}" defer></script>
-    <script src="{{ asset('js/quantity-controls.js') }}" defer></script>
-    <script>
-        document.body.addEventListener('cartError', function (event) {
-            const message = event.detail && event.detail.message ? event.detail.message : 'Não foi possível atualizar o carrinho.';
-            window.alert(message);
-        });
-    </script>
     @yield('extra_js')
 </body>
 </html>

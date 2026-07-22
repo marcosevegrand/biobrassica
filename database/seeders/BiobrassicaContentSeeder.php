@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\CategoryPosition;
-use App\Models\DeliveryMethod;
-use App\Models\DeliveryMethodPosition;
 use App\Models\Location;
 use App\Models\LocationPosition;
 use App\Models\Product;
@@ -33,7 +31,7 @@ class BiobrassicaContentSeeder extends Seeder
             'agriculture_content' => $this->agricultureContent(),
             'contacts_title' => 'Encontre-nos',
             'contacts_content' => 'Visite-nos nas nossas lojas ou entre em contacto por telefone e email.',
-            'footer_about' => 'Produtos biológicos selecionados no Minho. Encomende online e levante na nossa loja de Braga ou Guimarães.',
+            'footer_about' => 'Produtos biológicos selecionados no Minho.',
             'footer_address' => 'Lojas em Braga e Guimarães',
             'footer_email' => 'geral@biobrassica.pt',
             'footer_phone' => '+351 938 722 638',
@@ -48,17 +46,6 @@ class BiobrassicaContentSeeder extends Seeder
         ShopSettings::query()->updateOrCreate(['id' => 1], [
             'is_shop_active' => true,
             'is_shop_brevemente' => false,
-            'min_order_total' => 0,
-            'shipping_flat_rate' => 0,
-            'free_shipping_min_subtotal' => null,
-            'mbway_enabled' => true,
-            'bank_transfer_enabled' => true,
-            'payment_timeout_minutes' => 30,
-            'payment_expiry_grace_minutes' => 10,
-            'mbway_minutes_to_expire' => 4,
-            'multibanco_days_to_expire' => 3,
-            'staff_notification_emails' => null,
-            'checkout_reservation_minutes' => 30,
         ]);
 
         $locations = [
@@ -101,10 +88,10 @@ class BiobrassicaContentSeeder extends Seeder
         }
 
         $products = [
-            ['category' => 'frescos-biologicos', 'slug' => 'tomate-bio', 'name' => 'Tomate Bio', 'description' => 'Tomate biológico de época, selecionado pela frescura e sabor.', 'price' => 2.95, 'quantity' => '1 kg', 'stock' => 25, 'image' => 'images/products/001.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'brocolos-bio', 'name' => 'Brócolos Bio', 'description' => 'Brócolos biológicos frescos, ideais para refeições nutritivas.', 'price' => 3.20, 'quantity' => 'unidade', 'stock' => 18, 'image' => 'images/products/002.jpg'],
-            ['category' => 'mercearia-bio', 'slug' => 'massa-bio-500g', 'name' => 'Massa Bio', 'description' => 'Massa biológica para a sua mercearia do dia-a-dia.', 'price' => 4.50, 'quantity' => '500 g', 'stock' => 30, 'image' => 'images/products/003.jpg'],
-            ['category' => 'cabazes', 'slug' => 'cabaz-sazonal-bio', 'name' => 'Cabaz Sazonal Bio', 'description' => 'Cabaz com produtos biológicos selecionados de acordo com a época.', 'price' => 18.00, 'quantity' => 'cabaz', 'stock' => 10, 'image' => 'images/products/006.jpg'],
+            ['category' => 'frescos-biologicos', 'slug' => 'tomate-bio', 'name' => 'Tomate Bio', 'description' => 'Tomate biológico de época, selecionado pela frescura e sabor.', 'quantity' => '1 kg', 'image' => 'images/products/001.jpg'],
+            ['category' => 'frescos-biologicos', 'slug' => 'brocolos-bio', 'name' => 'Brócolos Bio', 'description' => 'Brócolos biológicos frescos, ideais para refeições nutritivas.', 'quantity' => 'unidade', 'image' => 'images/products/002.jpg'],
+            ['category' => 'mercearia-bio', 'slug' => 'massa-bio-500g', 'name' => 'Massa Bio', 'description' => 'Massa biológica para a sua mercearia do dia-a-dia.', 'quantity' => '500 g', 'image' => 'images/products/003.jpg'],
+            ['category' => 'cabazes', 'slug' => 'cabaz-sazonal-bio', 'name' => 'Cabaz Sazonal Bio', 'description' => 'Cabaz com produtos biológicos selecionados de acordo com a época.', 'quantity' => 'cabaz', 'image' => 'images/products/006.jpg'],
         ];
 
         foreach ($products as $row) {
@@ -115,24 +102,11 @@ class BiobrassicaContentSeeder extends Seeder
                 'bio_code' => 'PT-BIO-03',
                 'description' => $row['description'],
                 'allergens' => 'Sem indicação de alergénicos',
-                'price' => $row['price'],
                 'quantity' => $row['quantity'],
-                'stock' => $row['stock'],
                 'is_active' => true,
                 'is_highlight' => true,
-                'is_preview' => false,
-                'allow_shipping' => true,
-                'allow_pickup' => true,
                 'image' => $row['image'],
             ]);
-        }
-
-        foreach (['Levantamento em loja' => 'No horário de funcionamento da loja', 'Envio para Portugal Continental' => 'Entrega estimada em 24–72h úteis'] as $name => $eta) {
-            $method = DeliveryMethod::query()->updateOrCreate(['name' => $name], [
-                'estimated_delivery_time' => $eta,
-                'is_active' => true,
-            ]);
-            DeliveryMethodPosition::query()->updateOrCreate(['delivery_method_id' => $method->id], ['position' => $name === 'Levantamento em loja' ? 1 : 2]);
         }
     }
 
@@ -175,6 +149,6 @@ MARKDOWN;
 
     private function termsText(): string
     {
-        return 'Ao utilizar o website e a loja online Biobrassica aceita as condições de compra, pagamento manual, disponibilidade de stock, levantamento em loja e/ou envio indicadas durante o processo de checkout.';
+        return 'Ao utilizar o website e o catálogo Biobrassica aceita as condições de utilização indicadas.';
     }
 }

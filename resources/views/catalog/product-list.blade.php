@@ -5,7 +5,7 @@
 @section('content')
 <section class="max-w-7xl mx-auto px-6 sm:px-8 py-12">
   <h1 class="font-serif text-4xl md:text-5xl italic text-center mb-4">Produtos</h1>
-  <p class="text-muted text-center mb-12">A nossa montra digital. Encomende online, levante na loja.</p>
+  <p class="text-muted text-center mb-12">Conheça a nossa seleção de produtos biológicos.</p>
 
   <div class="flex flex-col md:flex-row gap-4 mb-10">
     <form method="get" action="{{ route('catalog.products') }}" class="flex-1">
@@ -32,8 +32,4 @@
     @endif
   </div>
 </section>
-@endsection
-
-@section('extra_js')
-@if($current_category)<script src="{{ asset('js/product_list.js') }}" defer></script>@endif
 @endsection

@@ -20,9 +20,8 @@ class EditProduct extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $data = static::getResource()::mapVisibilityToBooleans($data);
-        $data = static::getResource()::mapDeliveryToBooleans($data);
 
-        unset($data['visibility'], $data['delivery']);
+        unset($data['visibility']);
 
         return $data;
     }

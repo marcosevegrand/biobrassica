@@ -11,8 +11,5 @@ class LocationPosition extends Model
         'position',
     ];
 
-    public function location()
-    {
-        return $this->belongsTo(Location::class);
-    }
+    public $timestamps = false;
 }

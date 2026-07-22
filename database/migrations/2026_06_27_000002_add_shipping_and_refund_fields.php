@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Payment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -67,10 +66,10 @@ return new class extends Migration
         DB::table('orders')->whereNull('shipping_cost')->update(['shipping_cost' => 0]);
 
         DB::table('payments')
-            ->where('status', Payment::STATUS_REFUNDED)
+            ->where('status', 'refunded')
             ->whereNull('refund_state')
             ->update([
-                'refund_state' => Payment::REFUND_COMPLETED,
+                'refund_state' => 'completed',
                 'refund_amount' => DB::raw('amount'),
                 'refunded_at' => DB::raw('updated_at'),
             ]);

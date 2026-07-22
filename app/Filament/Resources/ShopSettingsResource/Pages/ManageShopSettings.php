@@ -56,6 +56,6 @@ class ManageShopSettings extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Definições da loja';
+        return 'Definições do catálogo';
     }
 }

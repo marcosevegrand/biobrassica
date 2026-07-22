@@ -11,8 +11,5 @@ class CategoryPosition extends Model
         'position',
     ];
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
+    public $timestamps = false;
 }

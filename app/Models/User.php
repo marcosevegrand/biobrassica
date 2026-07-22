@@ -55,21 +55,6 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-    public function addresses()
-    {
-        return $this->hasMany(Address::class);
-    }
-
-    public function cart()
-    {
-        return $this->hasOne(Cart::class);
-    }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
-
     public function canAccessPanel(Panel $panel): bool
     {
         return (bool) $this->is_admin && $this->email_verified_at !== null;

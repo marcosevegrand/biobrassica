@@ -4,9 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Location;
-use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -66,103 +64,6 @@ class RenderingFixesTest extends TestCase
     }
 
     // -----------------------------------------------------------------
-    // 2) Order history pickup location name (not raw ID)
-    // -----------------------------------------------------------------
-
-    public function test_order_history_shows_pickup_location_name_not_raw_id(): void
-    {
-        $user = User::factory()->create();
-        $location = Location::create([
-            'name' => 'Quinta de Braga',
-            'address' => 'Rua da Quinta, Braga',
-            'is_active' => true,
-        ]);
-
-        $order = Order::create([
-            'user_id' => $user->id,
-            'email' => 'cliente@example.com',
-            'phone' => '912345678',
-            'name' => 'Cliente Teste',
-            'status' => Order::STATUS_PENDING,
-            'payment_state' => Order::PAYMENT_PENDING,
-            'fulfillment_method' => 'pickup',
-            'pickup_location' => $location->id,
-            'language' => 'pt',
-            'subtotal' => 10.00,
-            'shipping_cost' => 0,
-            'total' => 10.00,
-        ]);
-
-        $response = $this->actingAs($user)
-            ->get(route('shop.orders'));
-
-        $response->assertOk()
-            ->assertSee('Quinta de Braga', false)
-            ->assertSee('Rua da Quinta, Braga', false)
-            // The important check: the location name appears next to "Levantamento em:"
-            ->assertSeeText('Levantamento em:');
-    }
-
-    public function test_order_history_shows_fallback_when_pickup_location_deleted(): void
-    {
-        $user = User::factory()->create();
-
-        $order = Order::create([
-            'user_id' => $user->id,
-            'email' => 'cliente@example.com',
-            'phone' => '912345678',
-            'name' => 'Cliente Teste',
-            'status' => Order::STATUS_PENDING,
-            'payment_state' => Order::PAYMENT_PENDING,
-            'fulfillment_method' => 'pickup',
-            'pickup_location' => 99999,
-            'language' => 'pt',
-            'subtotal' => 10.00,
-            'shipping_cost' => 0,
-            'total' => 10.00,
-        ]);
-
-        $response = $this->actingAs($user)
-            ->get(route('shop.orders'));
-
-        $response->assertOk()
-            ->assertSee('Local indisponível', false)
-            ->assertDontSee('99999');
-    }
-
-    public function test_order_detail_shows_location_name_via_relationship(): void
-    {
-        $user = User::factory()->create();
-        $location = Location::create([
-            'name' => 'Loja Centro',
-            'address' => 'Praça Central',
-            'is_active' => true,
-        ]);
-
-        $order = Order::create([
-            'user_id' => $user->id,
-            'email' => 'cliente@example.com',
-            'phone' => '912345678',
-            'name' => 'Cliente Teste',
-            'status' => Order::STATUS_PENDING,
-            'payment_state' => Order::PAYMENT_PENDING,
-            'fulfillment_method' => 'pickup',
-            'pickup_location' => $location->id,
-            'language' => 'pt',
-            'subtotal' => 10.00,
-            'shipping_cost' => 0,
-            'total' => 10.00,
-        ]);
-
-        $response = $this->actingAs($user)
-            ->get(route('order.show', ['order' => $order->id]));
-
-        $response->assertOk()
-            ->assertSee('Loja Centro', false)
-            ->assertSee('Praça Central', false);
-    }
-
-    // -----------------------------------------------------------------
     // 3) Product description rich HTML
     // -----------------------------------------------------------------
 
@@ -178,8 +79,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'maca-bio',
             'name' => 'Maçã Bio',
-            'price' => 2.50,
-            'stock' => 10,
             'is_active' => true,
             'description' => '<p>Maçã <strong>biológica</strong> da região.</p><ul><li>Sem pesticidas</li><li>Colheita manual</li></ul>',
         ]);
@@ -206,8 +105,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'pera-bio',
             'name' => 'Pera Bio',
-            'price' => 3.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => null,
         ]);
@@ -230,8 +127,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'xss-1',
             'name' => 'XSS Test',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<p>Hello</p><script>alert("xss")</script><p>World</p>',
         ]);
@@ -256,8 +151,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'xss-2',
             'name' => 'XSS Test 2',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<p onerror="console.log(\'XSS_EVENT_PAYLOAD_1\')">Bad</p><div onclick="console.log(\'XSS_EVENT_PAYLOAD_2\')">Click</div>',
         ]);
@@ -284,8 +177,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'xss-3',
             'name' => 'XSS Test 3',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<a href="javascript:alert(1)">Click</a><a href="https://safe.com">Safe</a>',
         ]);
@@ -317,8 +208,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'rich-test',
             'name' => 'Rich Test',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => $desc,
         ]);
@@ -354,8 +243,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'xss-iframe',
             'name' => 'Iframe Test',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<p>Before</p><iframe src="evil"></iframe><object data="evil"></object><p>After</p>',
         ]);
@@ -381,8 +268,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'target-blank',
             'name' => 'Target Blank',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<a href="https://ext.com" target="_blank">External</a>',
         ]);
@@ -405,8 +290,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'mailto-tel',
             'name' => 'Mailto and Tel',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<a href="mailto:info@example.com">Email</a> <a href="tel:+351123456789">Call</a>',
         ]);
@@ -437,8 +320,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'unwrap-xss-script',
             'name' => 'Unwrap Script XSS',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<custom><script>' . $payload . '</script></custom>',
         ]);
@@ -466,8 +347,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'unwrap-xss-iframe',
             'name' => 'Unwrap Iframe XSS',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<x><iframe src="' . $iframePayload . '"></iframe><object data="' . $objectPayload . '"></object><style>' . $stylePayload . '</style></x>',
         ]);
@@ -494,8 +373,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'unwrap-xss-event',
             'name' => 'Unwrap Event XSS',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<x><div onclick="' . $payload . '">click</div></x>',
         ]);
@@ -522,8 +399,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'unwrap-xss-js-href',
             'name' => 'Unwrap JS Href XSS',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<x><a href="javascript:' . $payload . '">link</a></x>',
         ]);
@@ -550,8 +425,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'unwrap-xss-nested',
             'name' => 'Unwrap Nested XSS',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<x><y><script>' . $payload . '</script></y></x>',
         ]);
@@ -574,8 +447,6 @@ class RenderingFixesTest extends TestCase
             'category_id' => $category->id,
             'slug' => 'unwrap-safe-text',
             'name' => 'Unwrap Safe Text',
-            'price' => 1.00,
-            'stock' => 5,
             'is_active' => true,
             'description' => '<custom>Hello <b>World</b></custom>',
         ]);
