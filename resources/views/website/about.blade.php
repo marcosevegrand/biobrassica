@@ -6,7 +6,7 @@
 @section('content')
 @php
   $aboutTitle = $websiteContent?->about_title ?: 'Do campo à sua mesa, com quem conhece a terra';
-  $aboutIntro = $websiteContent?->about_content ? trim(strip_tags($websiteContent->about_content)) : 'Pessoas reais, produtos de confiança';
+  $aboutIntro = 'Pessoas reais, produtos de confiança. Conheça a história e os valores que movem a Biobrassica.';
   $aboutImage = $websiteContent?->about_image
     ? (str_starts_with($websiteContent->about_image, 'images/') ? asset($websiteContent->about_image) : asset('storage/'.$websiteContent->about_image))
     : asset('images/people/003.jpg');
