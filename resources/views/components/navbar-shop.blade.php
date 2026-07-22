@@ -1,6 +1,6 @@
 <header id="site-header" class="fixed top-0 left-0 right-0 z-50 bg-forest text-paper transition-all duration-300">
   <nav class="max-w-7xl mx-auto px-6 py-3 flex items-center gap-8">
-    <a href="{{ route('shop.home') }}" class="block shrink-0" aria-label="Biobrassica">
+    <a href="{{ route('website.home') }}" class="block shrink-0" aria-label="Biobrassica">
       <img id="logo-white" src="{{ asset('images/brand/logo-white-no-bg.png') }}" alt="Biobrassica" class="hidden-logo-state h-[68px] max-h-[68px] w-auto max-w-[280px] object-contain block">
       <img id="logo-green" src="{{ asset('images/brand/logo-green-no-bg.png') }}" alt="Biobrassica" class="hidden hidden-logo-state h-[68px] max-h-[68px] w-auto max-w-[280px] object-contain">
     </a>
