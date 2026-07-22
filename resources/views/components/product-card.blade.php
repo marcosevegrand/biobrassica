@@ -21,8 +21,9 @@
       <p class="text-xs text-muted">{{ $product->brand }}</p>
     @endif
 
-    <a href="{{ route('catalog.product', $product->slug) }}" class="mt-4 inline-block w-full text-center text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors">
-      Ver detalhes
+    <a href="{{ route('catalog.product', $product->slug) }}" class="mt-3 inline-flex items-center gap-1 text-xs text-muted hover:text-forest transition-colors">
+      <span class="text-[10px] leading-none">↗</span>
+      <span class="underline underline-offset-2">Ver detalhes</span>
     </a>
   </div>
 </div>
