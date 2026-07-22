@@ -123,7 +123,7 @@ class AuthController extends Controller
     public function orderHistory()
     {
         $orders = Order::where('user_id', Auth::id())
-            ->with(['items', 'payment'])
+            ->with(['items', 'payment', 'pickupLocation'])
             ->latest()
             ->paginate(10);
 

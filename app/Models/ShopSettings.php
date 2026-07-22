@@ -63,4 +63,16 @@ class ShopSettings extends Model
             'checkout_reservation_minutes' => 'integer',
         ];
     }
+
+    public function getModeLabelAttribute(): string
+    {
+        if ($this->is_shop_brevemente) {
+            return 'Brevemente';
+        }
+        if (! $this->is_shop_active) {
+            return 'Inativa';
+        }
+
+        return 'Ativada';
+    }
 }

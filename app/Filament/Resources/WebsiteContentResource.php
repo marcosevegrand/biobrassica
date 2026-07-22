@@ -15,6 +15,8 @@ class WebsiteContentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationGroup = 'Website';
 
     protected static ?string $navigationLabel = 'Website Content';

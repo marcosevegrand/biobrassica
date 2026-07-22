@@ -1,9 +1,5 @@
 @php
-    try {
-        $footerLocations = \App\Models\Location::where('is_active', true)->orderBy('name')->get();
-    } catch (\Throwable) {
-        $footerLocations = collect();
-    }
+    $footerLocations = \App\Models\Location::stores();
     $whatsapp = preg_replace('/\D+/', '', $websiteDefaults->whatsapp_number ?? '+351938722638');
 @endphp
 <footer class="bg-forest text-paper">

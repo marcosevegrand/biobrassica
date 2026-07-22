@@ -11,7 +11,6 @@
     </ul>
 
     <div class="hidden lg:flex items-center gap-4 ml-auto">
-      @include('components.language-selector')
       <div class="relative">
         <a href="{{ route('cart.detail') }}" id="cart-trigger" class="inline-flex items-center justify-center text-current opacity-90 hover:opacity-100 transition-colors relative" aria-label="Carrinho">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386a1.125 1.125 0 011.09.852l.383 1.53m0 0L6.75 12h10.5l1.643-6.618a.75.75 0 00-.727-.93H5.109zm0 0L4.5 15.75A1.5 1.5 0 006 17.25h12m-10.5 3a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25zm9 0a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z" /></svg>
@@ -33,7 +32,6 @@
         </button>
         <div id="user-menu" class="hidden absolute right-0 top-full mt-3 w-56 bg-paper border border-stone/30 rounded-sm shadow-sm z-50 p-3">
           <div class="space-y-1 mb-3">
-            <div class="px-3 py-2 text-forest">@include('components.language-selector')</div>
             @auth
               <a href="{{ route('shop.profile') }}" class="block px-3 py-2 text-sm hover:bg-forest/5 rounded-sm text-forest">Perfil</a>
               <a href="{{ route('shop.orders') }}" class="block px-3 py-2 text-sm hover:bg-forest/5 rounded-sm text-forest">Encomendas</a>
@@ -56,7 +54,6 @@
       <li><a href="{{ route('shop.home') }}" class="text-sm uppercase tracking-widest hover:text-terracotta transition-colors">Início</a></li>
       <li><a href="{{ route('catalog.products') }}" class="text-sm uppercase tracking-widest hover:text-terracotta transition-colors">Produtos</a></li>
       <li><a href="{{ route('cart.detail') }}" class="text-sm uppercase tracking-widest hover:text-terracotta transition-colors">Carrinho</a></li>
-      <li>@include('components.language-selector')</li>
       @auth<li><a href="{{ route('shop.profile') }}" class="text-sm uppercase tracking-widest hover:text-terracotta transition-colors">Conta</a></li>@else<li><a href="{{ route('login') }}" class="text-sm uppercase tracking-widest hover:text-terracotta transition-colors font-semibold text-forest">Entrar</a></li>@endauth
     </ul>
   </div>

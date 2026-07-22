@@ -8,6 +8,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class ShopSettingsResource extends Resource
 {
@@ -29,12 +30,60 @@ class ShopSettingsResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Estado da loja')
                     ->schema([
-                        Forms\Components\Toggle::make('is_shop_active')
-                            ->label('Loja ativa')
-                            ->default(true),
-                        Forms\Components\Toggle::make('is_shop_brevemente')
-                            ->label('Modo “brevemente”')
-                            ->default(false),
+                        Forms\Components\Select::make('shop_mode')
+                            ->label('Modo')
+                            ->options([
+                                'brevemente' => 'Brevemente',
+                                'inativa' => 'Inativa',
+                                'ativada' => 'Ativada',
+                            ])
+                            ->default('ativada')
+                            ->required()
+                            ->reactive()
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?ShopSettings $record): void {
+                                if (! $record) {
+                                    $component->state('ativada');
+
+                                    return;
+                                }
+                                if ($record->is_shop_brevemente) {
+                                    $component->state('brevemente');
+                                } elseif (! $record->is_shop_active) {
+                                    $component->state('inativa');
+                                } else {
+                                    $component->state('ativada');
+                                }
+                            })
+                            ->afterStateUpdated(function (Forms\Set $set, $state): void {
+                                match ($state) {
+                                    'brevemente' => tap($set, function ($set) {
+                                        $set('is_shop_active', true);
+                                        $set('is_shop_brevemente', true);
+                                    }),
+                                    'inativa' => tap($set, function ($set) {
+                                        $set('is_shop_active', false);
+                                        $set('is_shop_brevemente', false);
+                                    }),
+                                    'ativada' => tap($set, function ($set) {
+                                        $set('is_shop_active', true);
+                                        $set('is_shop_brevemente', false);
+                                    }),
+                                    default => null,
+                                };
+                            })
+                            ->helperText(new HtmlString('
+                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    <strong>Brevemente</strong>: página de lançamento.
+                                    <strong>Inativa</strong>: permite navegar e adicionar ao carrinho, mas bloqueia finalização.
+                                    <strong>Ativada</strong>: loja totalmente operacional.
+                                </span>
+                            ')),
+                        Forms\Components\Hidden::make('is_shop_active')
+                            ->default(true)
+                            ->dehydrated(true),
+                        Forms\Components\Hidden::make('is_shop_brevemente')
+                            ->default(false)
+                            ->dehydrated(true),
                     ]),
                 Forms\Components\Section::make('Encomendas e envio')
                     ->schema([
@@ -78,33 +127,33 @@ class ShopSettingsResource extends Resource
                             ->label('Credenciais IfThenPay')
                             ->content('Por segurança, as chaves IfThenPay são lidas apenas do ficheiro .env.'),
                         Forms\Components\TextInput::make('payment_timeout_minutes')
-                            ->label('Tempo limite local')
+                            ->label('Timeout local de pagamento')
                             ->numeric()
-                            ->suffix('minutes')
+                            ->suffix('minutos')
                             ->minValue(1)
                             ->default(30)
-                            ->helperText('Tempo local antes de um pagamento pendente poder ser cancelado.'),
+                            ->helperText('Tempo (em minutos) que o sistema aguarda antes de considerar um pagamento pendente como expirado e poder cancelá-lo automaticamente. Controlo local, independente da IfThenPay.'),
                         Forms\Components\TextInput::make('payment_expiry_grace_minutes')
-                            ->label('Margem após expiração')
+                            ->label('Margem de segurança local')
                             ->numeric()
-                            ->suffix('minutes')
+                            ->suffix('minutos')
                             ->minValue(0)
                             ->default(10)
-                            ->helperText('Margem de segurança após expiração no fornecedor antes de cancelamento local.'),
+                            ->helperText('Minutos extra adicionados ao timeout local e/ou expiração do fornecedor como margem de segurança antes do cancelamento. Evita cancelar um pagamento que ainda possa ser confirmado.'),
                         Forms\Components\TextInput::make('mbway_minutes_to_expire')
-                            ->label('Expiração MB WAY')
+                            ->label('Expiração MB WAY (IfThenPay)')
                             ->numeric()
-                            ->suffix('minutes')
+                            ->suffix('minutos')
                             ->minValue(1)
                             ->default(4)
-                            ->helperText('Expiração do pedido MB WAY enviada para a IfThenPay.'),
+                            ->helperText('Prazo de expiração enviado à IfThenPay para pedidos MB WAY. O cliente terá este tempo para confirmar na app. Independente do timeout local.'),
                         Forms\Components\TextInput::make('multibanco_days_to_expire')
-                            ->label('Expiração Multibanco')
+                            ->label('Expiração Multibanco (IfThenPay)')
                             ->numeric()
-                            ->suffix('days')
+                            ->suffix('dias')
                             ->minValue(1)
                             ->default(3)
-                            ->helperText('Expiração da referência Multibanco enviada para a IfThenPay.'),
+                            ->helperText('Prazo em dias enviado à IfThenPay para referências Multibanco. A referência expira após este número de dias. Independente do timeout local.'),
                         Forms\Components\Textarea::make('staff_notification_emails')
                             ->label('Emails de notificação')
                             ->rows(2)
@@ -133,5 +182,29 @@ class ShopSettingsResource extends Resource
         return [
             'index' => Pages\ManageShopSettings::route('/'),
         ];
+    }
+
+    /**
+     * Derive is_shop_active, is_shop_brevemente from the virtual shop_mode select.
+     */
+    public static function mapShopModeToBooleans(array $data): array
+    {
+        $state = $data['shop_mode'] ?? 'ativada';
+
+        return match ($state) {
+            'brevemente' => array_merge($data, [
+                'is_shop_active' => true,
+                'is_shop_brevemente' => true,
+            ]),
+            'inativa' => array_merge($data, [
+                'is_shop_active' => false,
+                'is_shop_brevemente' => false,
+            ]),
+            'ativada' => array_merge($data, [
+                'is_shop_active' => true,
+                'is_shop_brevemente' => false,
+            ]),
+            default => $data,
+        };
     }
 }

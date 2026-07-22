@@ -267,5 +267,6 @@ run_artisan "admin user seed" db:seed --class=Database\\Seeders\\AdminUserSeeder
 run_artisan "config cache" config:cache
 run_artisan "route cache" route:cache
 run_artisan "view cache" view:cache
+run_artisan "ifthenpay webhook registration" ifthenpay:register-webhooks
 
 finish

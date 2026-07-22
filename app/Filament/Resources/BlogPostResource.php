@@ -19,7 +19,7 @@ class BlogPostResource extends Resource
 
     protected static ?string $navigationGroup = 'Conteúdo';
 
-    protected static ?string $navigationLabel = 'Blog Posts';
+    protected static ?string $navigationLabel = 'Artigos';
 
     public static function form(Form $form): Form
     {

@@ -66,7 +66,15 @@
 
                     @if ($order->fulfillment_method === 'pickup' && $order->pickup_location)
                         <div class="mt-4 border-t border-stone/40 pt-4 text-sm text-muted">
-                            Levantamento em: {{ $order->pickup_location }}
+                            Levantamento em:
+                            @if($order->pickupLocation)
+                                <span class="font-medium text-forest">{{ $order->pickupLocation->name }}</span>
+                                @if($order->pickupLocation->address)
+                                    <br><span class="whitespace-pre-line">{{ $order->pickupLocation->address }}</span>
+                                @endif
+                            @else
+                                Local indisponível
+                            @endif
                         </div>
                     @endif
 

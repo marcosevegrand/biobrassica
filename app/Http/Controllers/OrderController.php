@@ -15,7 +15,7 @@ class OrderController extends Controller
     public function show($orderId)
     {
         $order = Order::where('user_id', Auth::id())
-            ->with(['items.product', 'payment'])
+            ->with(['items.product', 'payment', 'pickupLocation'])
             ->findOrFail($orderId);
 
         if ($order->payment) {

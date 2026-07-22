@@ -74,4 +74,31 @@ class Product extends Model
             && (int) $this->stock > 0
             && $this->hasFulfillmentMethod();
     }
+
+    public function getVisibilityLabelAttribute(): string
+    {
+        if (! $this->is_active) {
+            return 'Escondido';
+        }
+        if ($this->is_preview) {
+            return 'Pré-visualização';
+        }
+        if ($this->is_highlight) {
+            return 'Destacado';
+        }
+
+        return 'Normal';
+    }
+
+    public function getDeliveryLabelAttribute(): string
+    {
+        if (! $this->allow_shipping && $this->allow_pickup) {
+            return 'Apenas Levantamento';
+        }
+        if ($this->allow_shipping && ! $this->allow_pickup) {
+            return 'Apenas Envio';
+        }
+
+        return 'Ambos';
+    }
 }

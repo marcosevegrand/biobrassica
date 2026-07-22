@@ -16,7 +16,7 @@ class InstagramPostResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-camera';
 
-    protected static ?string $navigationGroup = 'Website';
+    protected static ?string $navigationGroup = 'Conteúdo';
 
     protected static ?string $navigationLabel = 'Instagram';
 

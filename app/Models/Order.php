@@ -71,6 +71,11 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function pickupLocation()
+    {
+        return $this->belongsTo(Location::class, 'pickup_location');
+    }
+
     public function isPaid(): bool
     {
         return $this->payment_state === self::PAYMENT_CONFIRMED;

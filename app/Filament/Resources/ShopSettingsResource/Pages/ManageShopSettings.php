@@ -30,6 +30,15 @@ class ManageShopSettings extends EditRecord
         return $settings->toArray();
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data = static::getResource()::mapShopModeToBooleans($data);
+
+        unset($data['shop_mode']);
+
+        return $data;
+    }
+
     public function getRecord(): ShopSettings
     {
         return ShopSettings::current();

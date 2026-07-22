@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class ProductResource extends Resource
 {
@@ -84,24 +85,125 @@ class ProductResource extends Resource
                     ->preload(),
                 Forms\Components\Section::make('Visibilidade e entrega')
                     ->schema([
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Visível na loja')
-                            ->default(true),
-                        Forms\Components\Toggle::make('is_highlight')
-                            ->label('Destacar produto')
-                            ->default(false),
-                        Forms\Components\Toggle::make('is_preview')
-                            ->label('Pré-visualização apenas')
-                            ->helperText('Mostra o produto no catálogo, mas impede compra.')
-                            ->default(false),
-                        Forms\Components\Toggle::make('allow_shipping')
-                            ->label('Permitir envio')
-                            ->default(true),
-                        Forms\Components\Toggle::make('allow_pickup')
-                            ->label('Permitir levantamento')
+                        Forms\Components\Select::make('visibility')
+                            ->label('Visibilidade')
+                            ->options([
+                                'hidden' => 'Escondido',
+                                'preview' => 'Pré-visualização',
+                                'normal' => 'Normal',
+                                'highlighted' => 'Destacado',
+                            ])
+                            ->default('normal')
+                            ->required()
+                            ->reactive()
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?Product $record): void {
+                                if (! $record) {
+                                    $component->state('normal');
+
+                                    return;
+                                }
+                                if (! $record->is_active) {
+                                    $component->state('hidden');
+                                } elseif ($record->is_preview) {
+                                    $component->state('preview');
+                                } elseif ($record->is_highlight) {
+                                    $component->state('highlighted');
+                                } else {
+                                    $component->state('normal');
+                                }
+                            })
+                            ->afterStateUpdated(function (Forms\Set $set, $state): void {
+                                match ($state) {
+                                    'hidden' => tap($set, function ($set) {
+                                        $set('is_active', false);
+                                        $set('is_preview', false);
+                                        $set('is_highlight', false);
+                                    }),
+                                    'preview' => tap($set, function ($set) {
+                                        $set('is_active', true);
+                                        $set('is_preview', true);
+                                        $set('is_highlight', false);
+                                    }),
+                                    'normal' => tap($set, function ($set) {
+                                        $set('is_active', true);
+                                        $set('is_preview', false);
+                                        $set('is_highlight', false);
+                                    }),
+                                    'highlighted' => tap($set, function ($set) {
+                                        $set('is_active', true);
+                                        $set('is_preview', false);
+                                        $set('is_highlight', true);
+                                    }),
+                                    default => null,
+                                };
+                            })
+                            ->helperText(new HtmlString('
+                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    <strong>Escondido</strong>: não visível na loja.
+                                    <strong>Pré-vis.</strong>: visível mas sem compra.
+                                    <strong>Normal</strong>: visível, permite compra.
+                                    <strong>Destacado</strong>: visível com destaque na loja.
+                                </span>
+                            ')),
+                        Forms\Components\Select::make('delivery')
+                            ->label('Entrega')
+                            ->options([
+                                'pickup_only' => 'Apenas Levantamento',
+                                'shipping_only' => 'Apenas Envio',
+                                'both' => 'Ambos',
+                            ])
+                            ->default('both')
+                            ->required()
+                            ->reactive()
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?Product $record): void {
+                                if (! $record) {
+                                    $component->state('both');
+
+                                    return;
+                                }
+                                if (! $record->allow_shipping && $record->allow_pickup) {
+                                    $component->state('pickup_only');
+                                } elseif ($record->allow_shipping && ! $record->allow_pickup) {
+                                    $component->state('shipping_only');
+                                } else {
+                                    $component->state('both');
+                                }
+                            })
+                            ->afterStateUpdated(function (Forms\Set $set, $state): void {
+                                match ($state) {
+                                    'pickup_only' => tap($set, function ($set) {
+                                        $set('allow_shipping', false);
+                                        $set('allow_pickup', true);
+                                    }),
+                                    'shipping_only' => tap($set, function ($set) {
+                                        $set('allow_shipping', true);
+                                        $set('allow_pickup', false);
+                                    }),
+                                    'both' => tap($set, function ($set) {
+                                        $set('allow_shipping', true);
+                                        $set('allow_pickup', true);
+                                    }),
+                                    default => null,
+                                };
+                            }),
+                        // Hidden fields that store the actual DB column values.
+                        // Select afterStateUpdated keeps them in sync; Filament dehydrates them on save.
+                        Forms\Components\Hidden::make('is_active')
                             ->default(true)
-                            ->accepted(fn (Forms\Get $get): bool => ! (bool) $get('allow_shipping')),
-                    ])->columns(3),
+                            ->dehydrated(true),
+                        Forms\Components\Hidden::make('is_highlight')
+                            ->default(false)
+                            ->dehydrated(true),
+                        Forms\Components\Hidden::make('is_preview')
+                            ->default(false)
+                            ->dehydrated(true),
+                        Forms\Components\Hidden::make('allow_shipping')
+                            ->default(true)
+                            ->dehydrated(true),
+                        Forms\Components\Hidden::make('allow_pickup')
+                            ->default(true)
+                            ->dehydrated(true),
+                    ])->columns(2),
             ]);
     }
 
@@ -124,18 +226,26 @@ class ProductResource extends Resource
                     ->label('Stock')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Ativo')
-                    ->boolean(),
-                Tables\Columns\IconColumn::make('is_highlight')
-                    ->label('Destaque')
-                    ->boolean(),
+                Tables\Columns\TextColumn::make('visibilityLabel')
+                    ->label('Visibilidade')
+                    ->badge()
+                    ->color(fn ($state): string => match ($state) {
+                        'Escondido' => 'danger',
+                        'Pré-visualização' => 'warning',
+                        'Normal' => 'success',
+                        'Destacado' => 'info',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('deliveryLabel')
+                    ->label('Entrega'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
                     ->relationship('category', 'name'),
-                Tables\Filters\TernaryFilter::make('is_active'),
-                Tables\Filters\TernaryFilter::make('is_highlight'),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Ativo'),
+                Tables\Filters\TernaryFilter::make('is_highlight')
+                    ->label('Destacado'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -161,5 +271,61 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Derive is_active, is_preview, is_highlight from the virtual visibility select.
+     */
+    public static function mapVisibilityToBooleans(array $data): array
+    {
+        $state = $data['visibility'] ?? 'normal';
+
+        return match ($state) {
+            'hidden' => array_merge($data, [
+                'is_active' => false,
+                'is_preview' => false,
+                'is_highlight' => false,
+            ]),
+            'preview' => array_merge($data, [
+                'is_active' => true,
+                'is_preview' => true,
+                'is_highlight' => false,
+            ]),
+            'normal' => array_merge($data, [
+                'is_active' => true,
+                'is_preview' => false,
+                'is_highlight' => false,
+            ]),
+            'highlighted' => array_merge($data, [
+                'is_active' => true,
+                'is_preview' => false,
+                'is_highlight' => true,
+            ]),
+            default => $data,
+        };
+    }
+
+    /**
+     * Derive allow_pickup, allow_shipping from the virtual delivery select.
+     */
+    public static function mapDeliveryToBooleans(array $data): array
+    {
+        $state = $data['delivery'] ?? 'both';
+
+        return match ($state) {
+            'pickup_only' => array_merge($data, [
+                'allow_shipping' => false,
+                'allow_pickup' => true,
+            ]),
+            'shipping_only' => array_merge($data, [
+                'allow_shipping' => true,
+                'allow_pickup' => false,
+            ]),
+            'both' => array_merge($data, [
+                'allow_shipping' => true,
+                'allow_pickup' => true,
+            ]),
+            default => $data,
+        };
     }
 }

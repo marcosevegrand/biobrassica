@@ -104,12 +104,13 @@
             </p>
 
             @if($order->fulfillment_method === 'pickup' && $order->pickup_location)
-                @php $location = \App\Models\Location::find($order->pickup_location); @endphp
-                @if($location)
+                @if($order->pickupLocation)
                     <p class="text-sm text-forest mt-1">
-                        <span class="font-medium">Local:</span> {{ $location->name }}
+                        <span class="font-medium">Local:</span> {{ $order->pickupLocation->name }}
                     </p>
-                    <p class="text-sm text-muted">{{ $location->address }}</p>
+                    <p class="text-sm text-muted">{{ $order->pickupLocation->address }}</p>
+                @else
+                    <p class="text-sm text-muted mt-1">Local indisponível</p>
                 @endif
             @elseif($order->fulfillment_method === 'shipping')
                 <p class="text-sm text-forest mt-1">

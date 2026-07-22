@@ -20,6 +20,12 @@
         <form action="{{ route('checkout.store') }}" method="POST" id="checkout-form">
             @csrf
 
+            @if(!empty($warning))
+            <div class="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6">
+                <p class="text-sm text-amber-800">{{ $warning }}</p>
+            </div>
+            @endif
+
             {{-- User Info --}}
             <div class="bg-white rounded-lg border border-stone/40 p-6 mb-6">
                 <h2 class="font-serif text-xl font-bold text-forest mb-4">Dados Pessoais</h2>

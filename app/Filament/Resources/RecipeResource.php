@@ -19,7 +19,7 @@ class RecipeResource extends Resource
 
     protected static ?string $navigationGroup = 'Conteúdo';
 
-    protected static ?string $navigationLabel = 'Recipes';
+    protected static ?string $navigationLabel = 'Receitas';
 
     public static function form(Form $form): Form
     {

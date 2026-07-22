@@ -28,10 +28,34 @@ class CheckoutController extends Controller
     public function show()
     {
         $user = Auth::user();
+        $settings = $this->settings();
+
+        // Block checkout in Inativa mode (is_shop_active=false, is_shop_brevemente=false).
+        // Brevemente mode is already handled by ShopBrevementeMiddleware which blocks all pages.
+        if (! $settings->is_shop_active && ! $settings->is_shop_brevemente) {
+            return redirect()->route('cart.detail')
+                ->with('error', 'A loja está temporariamente indisponível para novas encomendas. Pode continuar a navegar e a adicionar produtos ao carrinho.');
+        }
+
+        // Block checkout if user already has a pending order with pending payment.
+        $pendingOrder = Order::where('user_id', $user->id)
+            ->where('status', Order::STATUS_PENDING)
+            ->where('payment_state', Order::PAYMENT_PENDING)
+            ->first();
+
+        if ($pendingOrder) {
+            return redirect()->route('payment.show', ['order' => $pendingOrder->id])
+                ->with('error', 'Já tem uma encomenda pendente por pagar. Conclua ou cancele essa encomenda antes de iniciar uma nova.');
+        }
+
         $cart = $this->cartService->getOrCreateCart($user);
+
+        // Release expired reservation and reload cart if needed
+        $reservationWarning = $this->releaseExpiredReservationAndCheckAvailability($cart);
+
         $subtotal = $this->cartService->getTotal($cart);
         $cart->loadMissing('items.product');
-        $pickupShippingCost = $this->shippingService->calculate($subtotal, 'pickup', $settings = $this->settings());
+        $pickupShippingCost = $this->shippingService->calculate($subtotal, 'pickup', $settings);
         $shippingCost = $this->shippingService->calculate($subtotal, 'shipping', $settings);
         $canPickup = $this->cartSupportsFulfillment($cart, 'pickup');
         $canShipping = $this->cartSupportsFulfillment($cart, 'shipping');
@@ -52,20 +76,33 @@ class CheckoutController extends Controller
         return view('checkout.checkout', compact(
             'cart', 'subtotal', 'pickupShippingCost', 'shippingCost', 'total', 'count', 'user', 'locations', 'addresses',
             'settings', 'minOrderTotal', 'paymentMethods', 'canPickup', 'canShipping', 'selectedFulfillmentMethod'
-        ));
+        ))->with('warning', $reservationWarning);
     }
 
     public function store(CheckoutRequest $request)
     {
         $user = Auth::user();
-        $cart = $this->cartService->getOrCreateCart($user);
         $settings = $this->settings();
-        $minOrderTotal = $settings->min_order_total ?? 0;
 
-        if (! $settings->is_shop_active) {
+        // Block checkout in Inativa mode (is_shop_active=false, is_shop_brevemente=false).
+        if (! $settings->is_shop_active && ! $settings->is_shop_brevemente) {
             return redirect()->route('cart.detail')
-                ->with('error', 'A loja está temporariamente indisponível para encomendas.');
+                ->with('error', 'A loja está temporariamente indisponível para novas encomendas. Pode continuar a navegar e a adicionar produtos ao carrinho.');
         }
+
+        // Block checkout if user already has a pending order with pending payment.
+        $pendingOrder = Order::where('user_id', $user->id)
+            ->where('status', Order::STATUS_PENDING)
+            ->where('payment_state', Order::PAYMENT_PENDING)
+            ->first();
+
+        if ($pendingOrder) {
+            return redirect()->route('payment.show', ['order' => $pendingOrder->id])
+                ->with('error', 'Já tem uma encomenda pendente por pagar. Conclua ou cancele essa encomenda antes de iniciar uma nova.');
+        }
+
+        $cart = $this->cartService->getOrCreateCart($user);
+        $minOrderTotal = $settings->min_order_total ?? 0;
 
         if (! $this->paymentMethodIsEnabled($settings, $request->payment_method)) {
             return redirect()->back()
@@ -346,6 +383,39 @@ class CheckoutController extends Controller
                 ? (bool) $product->allow_shipping
                 : (bool) $product->allow_pickup;
         });
+    }
+
+    /**
+     * Release expired reservation stock and check current product availability.
+     * Returns a warning message if items became unavailable, or null.
+     */
+    private function releaseExpiredReservationAndCheckAvailability(Cart $cart): ?string
+    {
+        if ($cart->reserved_until && $cart->reserved_until->isPast()) {
+            $this->cartService->releaseStock($cart);
+
+            // Reload cart from DB after stock release.
+            $cart->refresh();
+            $cart->load('items.product');
+        }
+
+        // Check each item's current availability; collect warnings.
+        $warnings = [];
+
+        foreach ($cart->items as $item) {
+            $product = $item->product;
+
+            if (! $product || ! $product->is_active || $product->is_preview) {
+                $productName = $product?->name ?? 'Um produto';
+                $warnings[] = "{$productName} já não está disponível para compra.";
+            } elseif (! $product->allow_shipping && ! $product->allow_pickup) {
+                $warnings[] = "{$product->name} ainda não tem um método de entrega disponível.";
+            } elseif ((int) $product->stock < (int) $item->quantity) {
+                $warnings[] = "Apenas {$product->stock} unidade(s) disponíveis de {$product->name}. O stock atual é insuficiente para a quantidade no carrinho. Por favor, atualize as quantidades antes de continuar.";
+            }
+        }
+
+        return $warnings !== [] ? implode(' ', $warnings) : null;
     }
 
     private function restoreCartFromOrder(Order $order, int $userId): void

@@ -77,4 +77,36 @@ class Location extends Model
     {
         return self::isAllowedMapEmbedUrl($this->map_embed_url) ? $this->map_embed_url : null;
     }
+
+    /**
+     * Public-facing store locations (Braga and Guimarães).
+     * Always returns hardcoded data; does not query the pickup locations DB.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public static function stores()
+    {
+        return collect([
+            (object) [
+                'name' => 'Loja Braga',
+                'pickup_location_code' => 'braga',
+                'address' => "Avenida Doutor António Palha\nBraga",
+                'image' => 'images/shop/loja-braga.webp',
+                'phone' => '253 271 187',
+                'email' => 'geral@biobrassica.pt',
+                'opening_hours' => "Segunda a Sábado\n9h00 – 19h30",
+                'map_embed_url' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Braga+Avenida+Doutor+Ant%C3%B3nio+Palha&t=&z=16&ie=UTF8&iwloc=&output=embed',
+            ],
+            (object) [
+                'name' => 'Loja Guimarães',
+                'pickup_location_code' => 'guimaraes',
+                'address' => "Rua Calouste Gulbenkian\nGuimarães",
+                'image' => 'images/shop/loja-guima.webp',
+                'phone' => '253 145 388',
+                'email' => 'geral@biobrassica.pt',
+                'opening_hours' => "Segunda a Sábado\n9h00 – 19h30",
+                'map_embed_url' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Guimar%C3%A3es+Rua+Calouste+Gulbenkian&t=&z=16&ie=UTF8&iwloc=&output=embed',
+            ],
+        ]);
+    }
 }
