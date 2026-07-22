@@ -58,7 +58,7 @@ class ProductResource extends Resource
                     ->label('Alergénios')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('quantity')
-                    ->label('Unidade / formato')
+                    ->label('Tamanho / Quantidade')
                     ->maxLength(80)
                     ->helperText('Ex.: 500g, 1kg, molho, caixa 6 un.'),
                 Forms\Components\FileUpload::make('image')

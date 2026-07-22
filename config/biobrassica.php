@@ -7,7 +7,7 @@ return [
     'primary_domain' => $primaryDomain,
 
     'paths' => [
-        'shop' => env('SHOP_PATH', 'loja'),
+        'shop' => env('SHOP_PATH', 'catalogo'),
         'admin' => env('ADMIN_PATH', 'admin'),
     ],
 

@@ -14,7 +14,7 @@
     </ul>
 
     <div class="hidden lg:flex items-center gap-3 xl:gap-4 ml-auto shrink-0">
-      <a id="loja-cta" href="{{ route('shop.home') }}" class="whitespace-nowrap px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-[0.22em] rounded-sm hover:bg-paper/90 transition-colors">Loja Online</a>
+      <a id="catalogo-cta" href="{{ route('shop.home') }}" class="whitespace-nowrap px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-[0.22em] rounded-sm hover:bg-paper/90 transition-colors">Catálogo</a>
     </div>
 
     <div class="flex lg:hidden items-center gap-4 ml-auto">
@@ -33,7 +33,7 @@
       <li><a href="{{ route('content.blog') }}" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Blog</a></li>
       <li><a href="{{ route('content.recipes') }}" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Receitas</a></li>
       <li><a href="{{ route('website.contacts') }}" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Contactos</a></li>
-      <li><a href="{{ route('shop.home') }}" class="px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-widest rounded-sm">Loja Online</a></li>
+      <li><a href="{{ route('shop.home') }}" class="px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-widest rounded-sm">Catálogo</a></li>
     </ul>
   </div>
 </header>

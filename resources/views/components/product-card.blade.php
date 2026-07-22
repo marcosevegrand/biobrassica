@@ -20,9 +20,5 @@
       @if($product->brand)<p class="text-[10px] uppercase tracking-widest text-muted">{{ $product->brand }}</p>@endif
     </div>
     @endif
-
-    <a href="{{ route('catalog.product', $product->slug) }}" class="inline-block w-full text-center text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors">
-      Ver detalhes
-    </a>
   </div>
 </div>

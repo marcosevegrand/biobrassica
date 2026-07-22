@@ -9,7 +9,8 @@ class LocaleController extends Controller
 {
     public function switch(Request $request, string $locale): RedirectResponse
     {
-        abort_unless(in_array($locale, ['pt', 'en', 'fr'], true), 404);
+        // Only Portuguese is supported
+        abort_unless($locale === 'pt', 404);
 
         $request->session()->put('locale', $locale);
 

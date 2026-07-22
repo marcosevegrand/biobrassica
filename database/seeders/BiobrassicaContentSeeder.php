@@ -7,7 +7,6 @@ use App\Models\CategoryPosition;
 use App\Models\Location;
 use App\Models\LocationPosition;
 use App\Models\Product;
-use App\Models\ShopSettings;
 use App\Models\WebsiteContent;
 use Illuminate\Database\Seeder;
 
@@ -24,7 +23,7 @@ class BiobrassicaContentSeeder extends Seeder
             'hero_title' => "Tudo que precisa para uma\nalimentação saudável",
             'hero_subtitle' => 'Produtos biológicos, saudáveis para si, bons para o ambiente.',
             'hero_cta_text' => 'Descubra os nossos produtos',
-            'hero_cta_url' => '/loja',
+            'hero_cta_url' => '/catalogo',
             'about_title' => 'Do campo à sua mesa, com quem conhece a terra',
             'about_content' => $this->aboutContent(),
             'agriculture_title' => 'Agricultura Biológica',
@@ -41,11 +40,6 @@ class BiobrassicaContentSeeder extends Seeder
             'instagram_url' => 'https://www.instagram.com/biobrassica/',
             'privacy_policy_text' => $this->privacyText(),
             'terms_conditions_text' => $this->termsText(),
-        ]);
-
-        ShopSettings::query()->updateOrCreate(['id' => 1], [
-            'is_shop_active' => true,
-            'is_shop_brevemente' => false,
         ]);
 
         $locations = [

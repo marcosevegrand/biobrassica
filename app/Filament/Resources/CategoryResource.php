@@ -17,7 +17,7 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Loja';
+    protected static ?string $navigationGroup = 'Catálogo';
 
     protected static ?string $navigationLabel = 'Categorias';
 
