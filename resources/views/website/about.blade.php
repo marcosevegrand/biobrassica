@@ -19,12 +19,6 @@
   </div>
 </section>
 
-@if($websiteContent?->about_content)
-<section class="max-w-4xl mx-auto px-6 sm:px-8 pt-20">
-  <div class="prose prose-forest max-w-none text-muted leading-relaxed whitespace-pre-line">{{ $aboutIntro }}</div>
-</section>
-@endif
-
 <section class="max-w-7xl mx-auto px-6 sm:px-8 pt-24 pb-12">
   <div class="space-y-16">
     <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4"><h2 class="font-serif text-3xl md:text-4xl italic">O que significa "Biobrassica"</h2><p class="text-muted leading-relaxed">O nome "Biobrassica" junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden"><img src="{{ asset('images/products/002.jpg') }}" alt="Produtos biológicos Biobrassica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
