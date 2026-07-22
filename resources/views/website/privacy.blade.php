@@ -66,16 +66,14 @@
                 <h2>3. Dados Pessoais Recolhidos</h2>
                 <p>Podemos recolher os seguintes tipos de dados pessoais:</p>
                 <ul>
-                    <li><strong>Dados de contacto:</strong> nome, email, telefone, morada</li>
-                    <li><strong>Dados de encomenda:</strong> histórico de compras, produtos adquiridos</li>
+                    <li><strong>Dados de contacto:</strong> nome, email, telefone</li>
                     <li><strong>Dados de navegação:</strong> endereço IP, tipo de browser, páginas visitadas</li>
                 </ul>
 
                 <h2>4. Finalidade do Tratamento</h2>
                 <p>Utilizamos os seus dados pessoais para as seguintes finalidades:</p>
                 <ul>
-                    <li>Processamento e entrega de encomendas</li>
-                    <li>Comunicação sobre o estado das encomendas</li>
+                    <li>Resposta a pedidos de informação e contacto</li>
                     <li>Envio de newsletters e informações promocionais (com o seu consentimento)</li>
                     <li>Melhoria dos nossos serviços e website</li>
                     <li>Cumprimento de obrigações legais</li>
@@ -90,8 +88,7 @@
                 <h2>6. Partilha de Dados</h2>
                 <p>
                     Não partilhamos os seus dados pessoais com terceiros, exceto quando necessário para
-                    a prestação dos nossos serviços (ex.: transportadoras para entrega de encomendas) ou
-                    para cumprimento de obrigações legais.
+                    cumprimento de obrigações legais.
                 </p>
 
                 <h2>7. Direitos do Titular</h2>

@@ -5,7 +5,7 @@
 @section('content')
 @php
   $shopHeroTitle = $websiteDefaults?->hero_title ?: 'Produtos biológicos, selecionados com cuidado';
-  $shopHeroSubtitle = $websiteDefaults?->hero_subtitle ?: 'Do campo para a sua mesa. Conheça a nossa seleção de produtos biológicos disponíveis nas nossas lojas em Braga e Guimarães.';
+  $shopHeroSubtitle = $websiteDefaults?->hero_subtitle ?: 'Conheça a nossa seleção de produtos biológicos disponíveis nas nossas lojas em Braga e Guimarães.';
   $shopHeroCtaText = $websiteDefaults?->hero_cta_text ?: 'Ver Produtos';
 @endphp
 <section class="relative bg-forest text-paper overflow-hidden mt-6">

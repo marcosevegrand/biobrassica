@@ -14,11 +14,15 @@
     <p class="text-[10px] uppercase tracking-widest text-muted mb-1">{{ $product->category?->name }}</p>
     <a href="{{ route('catalog.product', $product->slug) }}" class="block"><h3 class="font-serif text-lg italic mb-3 group-hover:text-terracotta transition-colors">{{ $product->name }}</h3></a>
 
-    @if($product->brand || $product->quantity)
-    <div class="mb-3 space-y-1">
-      @if($product->quantity)<p class="text-xs uppercase tracking-[0.14em] text-terracotta">{{ $product->quantity }}</p>@endif
-      @if($product->brand)<p class="text-[10px] uppercase tracking-widest text-muted">{{ $product->brand }}</p>@endif
-    </div>
+    @if($product->quantity)
+      <p class="text-xs mb-1">{{ $product->quantity }}</p>
     @endif
+    @if($product->brand)
+      <p class="text-xs text-muted">{{ $product->brand }}</p>
+    @endif
+
+    <a href="{{ route('catalog.product', $product->slug) }}" class="mt-4 inline-block w-full text-center text-xs uppercase tracking-widest border border-forest px-4 py-2.5 rounded-sm hover:bg-forest hover:text-paper transition-colors">
+      Ver detalhes
+    </a>
   </div>
 </div>

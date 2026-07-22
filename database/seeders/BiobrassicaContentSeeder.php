@@ -21,7 +21,7 @@ class BiobrassicaContentSeeder extends Seeder
             'support_email' => 'geral@biobrassica.pt',
             'whatsapp_number' => '+351938722638',
             'hero_title' => "Tudo que precisa para uma\nalimentação saudável",
-            'hero_subtitle' => 'Produtos biológicos, saudáveis para si, bons para o ambiente.',
+            'hero_subtitle' => 'Conheça a nossa seleção de produtos biológicos disponíveis nas nossas lojas em Braga e Guimarães.',
             'hero_cta_text' => 'Descubra os nossos produtos',
             'hero_cta_url' => '/catalogo',
             'about_title' => 'Do campo à sua mesa, com quem conhece a terra',
@@ -138,11 +138,11 @@ MARKDOWN;
 
     private function privacyText(): string
     {
-        return 'A Biobrassica trata os dados pessoais de acordo com o Regulamento Geral sobre a Proteção de Dados (RGPD), apenas para gestão de contactos, encomendas e comunicações relacionadas com os nossos serviços.';
+        return 'A Biobrassica trata os dados pessoais de acordo com o Regulamento Geral sobre a Proteção de Dados (RGPD), apenas para gestão de contactos e comunicações relacionadas com os nossos serviços.';
     }
 
     private function termsText(): string
     {
-        return 'Ao utilizar o website e o catálogo Biobrassica aceita as condições de utilização indicadas.';
+        return 'Ao utilizar o website Biobrassica aceita as condições de utilização indicadas. O catálogo de produtos é meramente informativo. Para adquirir produtos, visite as nossas lojas físicas em Braga e Guimarães.';
     }
 }

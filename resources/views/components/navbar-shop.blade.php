@@ -11,7 +11,6 @@
     </ul>
 
     <div class="hidden lg:flex items-center gap-4 ml-auto">
-      <x-language-selector />
     </div>
 
     <div class="flex lg:hidden items-center gap-4 ml-auto">
