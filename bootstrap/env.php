@@ -46,9 +46,14 @@ foreach ($variables as $key => $value) {
         continue;
     }
 
+    // Do not overwrite env vars already set externally (e.g. by phpunit.xml
+    // when using vendor/bin/phpunit, which processes env vars before the app boots).
+    if (getenv($key) !== false) {
+        continue;
+    }
+
     $value = (string) $value;
 
     putenv($key.'='.$value);
     $_ENV[$key] = $value;
-    $_SERVER[$key] = $value;
 }

@@ -1,14 +1,13 @@
 <?php
 
-$primaryDomain = env('PRIMARY_DOMAIN', 'biobrassica.pt');
 $adminEmail = env('ADMIN_EMAIL');
 
 return [
-    'primary_domain' => $primaryDomain,
+    'primary_domain' => env('PRIMARY_DOMAIN', 'biobrassica.pt'),
 
     'paths' => [
-        'shop' => env('SHOP_PATH', 'catalogo'),
-        'admin' => env('ADMIN_PATH', 'admin'),
+        'shop' => 'catalogo',
+        'admin' => 'admin',
     ],
 
     'public_path' => env('APP_PUBLIC_PATH'),
@@ -17,9 +16,5 @@ return [
         'name' => env('ADMIN_NAME', 'Biobrassica Admin'),
         'email' => $adminEmail,
         'password' => env('ADMIN_PASSWORD'),
-        'emails' => array_values(array_unique(array_filter(array_map(
-            static fn (string $email): string => strtolower(trim($email)),
-            array_merge(explode(',', (string) env('ADMIN_EMAILS', '')), [$adminEmail ?: '']),
-        )))),
     ],
 ];
