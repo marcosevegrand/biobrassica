@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\CategoryPosition;
-use App\Models\Location;
-use App\Models\LocationPosition;
 use App\Models\Product;
 use App\Models\WebsiteContent;
 use Illuminate\Database\Seeder;
@@ -42,27 +40,6 @@ class BiobrassicaContentSeeder extends Seeder
             'terms_conditions_text' => $this->termsText(),
         ]);
 
-        $locations = [
-            ['code' => 'braga', 'name' => 'Loja Braga', 'address' => "Avenida Doutor António Palha\nBraga", 'phone' => '253 271 187', 'image' => 'images/shop/loja-braga.webp', 'map' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Braga+Avenida+Doutor+Ant%C3%B3nio+Palha&t=&z=16&ie=UTF8&iwloc=&output=embed'],
-            ['code' => 'guimaraes', 'name' => 'Loja Guimarães', 'address' => "Rua Calouste Gulbenkian\nGuimarães", 'phone' => '253 145 388', 'image' => 'images/shop/loja-guima.webp', 'map' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Guimar%C3%A3es+Rua+Calouste+Gulbenkian&t=&z=16&ie=UTF8&iwloc=&output=embed'],
-        ];
-
-        foreach ($locations as $index => $locationData) {
-            $location = Location::query()->updateOrCreate(['pickup_location_code' => $locationData['code']], [
-                'name' => $locationData['name'],
-                'address' => $locationData['address'],
-                'image' => $locationData['image'],
-                'phone' => $locationData['phone'],
-                'email' => 'geral@biobrassica.pt',
-                'opening_hours' => "Segunda a Sábado\n9h00 – 19h30",
-                'pickup_hours' => null,
-                'map_embed_url' => $locationData['map'],
-                'is_active' => true,
-            ]);
-
-            LocationPosition::query()->updateOrCreate(['location_id' => $location->id], ['position' => $index + 1]);
-        }
-
         $categoryRows = [
             ['slug' => 'frescos-biologicos', 'name' => 'Frescos Biológicos', 'message' => 'Hortícolas e fruta de época selecionados com cuidado.'],
             ['slug' => 'mercearia-bio', 'name' => 'Mercearia Bio', 'message' => 'Essenciais biológicos para a despensa.'],
@@ -82,10 +59,10 @@ class BiobrassicaContentSeeder extends Seeder
         }
 
         $products = [
-            ['category' => 'frescos-biologicos', 'slug' => 'tomate-bio', 'name' => 'Tomate Bio', 'description' => 'Tomate biológico de época, selecionado pela frescura e sabor.', 'quantity' => '1 kg', 'image' => 'images/products/001.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'brocolos-bio', 'name' => 'Brócolos Bio', 'description' => 'Brócolos biológicos frescos, ideais para refeições nutritivas.', 'quantity' => 'unidade', 'image' => 'images/products/002.jpg'],
-            ['category' => 'mercearia-bio', 'slug' => 'massa-bio-500g', 'name' => 'Massa Bio', 'description' => 'Massa biológica para a sua mercearia do dia-a-dia.', 'quantity' => '500 g', 'image' => 'images/products/003.jpg'],
-            ['category' => 'cabazes', 'slug' => 'cabaz-sazonal-bio', 'name' => 'Cabaz Sazonal Bio', 'description' => 'Cabaz com produtos biológicos selecionados de acordo com a época.', 'quantity' => 'cabaz', 'image' => 'images/products/006.jpg'],
+            ['category' => 'frescos-biologicos', 'slug' => 'tomate-bio', 'name' => 'Tomate Bio', 'description' => 'Tomate biológico de época, selecionado pela frescura e sabor.', 'quantity' => '1 kg', 'image' => 'images/products/pexels-alexasfotos-32114560.jpg'],
+            ['category' => 'frescos-biologicos', 'slug' => 'brocolos-bio', 'name' => 'Brócolos Bio', 'description' => 'Brócolos biológicos frescos, ideais para refeições nutritivas.', 'quantity' => 'unidade', 'image' => 'images/products/pexels-brett-sayles-1729386.jpg'],
+            ['category' => 'mercearia-bio', 'slug' => 'massa-bio-500g', 'name' => 'Massa Bio', 'description' => 'Massa biológica para a sua mercearia do dia-a-dia.', 'quantity' => '500 g', 'image' => 'images/products/pexels-photographer-7258925.jpg'],
+            ['category' => 'cabazes', 'slug' => 'cabaz-sazonal-bio', 'name' => 'Cabaz Sazonal Bio', 'description' => 'Cabaz com produtos biológicos selecionados de acordo com a época.', 'quantity' => 'cabaz', 'image' => 'images/products/pexels-designecologist-1367225.jpg'],
         ];
 
         foreach ($products as $row) {

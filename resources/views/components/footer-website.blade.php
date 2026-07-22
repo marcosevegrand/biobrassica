@@ -1,5 +1,8 @@
 @php
-    $footerLocations = \App\Models\Location::stores();
+    $footerLocations = [
+        (object) ['name' => 'Loja Braga', 'address' => "Avenida Doutor António Palha\nBraga", 'phone' => '253 271 187', 'email' => 'geral@biobrassica.pt'],
+        (object) ['name' => 'Loja Guimarães', 'address' => "Rua Calouste Gulbenkian\nGuimarães", 'phone' => '253 145 388', 'email' => 'geral@biobrassica.pt'],
+    ];
     $whatsapp = preg_replace('/\D+/', '', $websiteDefaults->whatsapp_number ?? '+351938722638');
 @endphp
 <footer class="bg-forest text-paper">

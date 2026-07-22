@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\Location;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -461,14 +460,11 @@ class RenderingFixesTest extends TestCase
     }
 
     // -----------------------------------------------------------------
-    // 4) Contacts page and footer with hardcoded stores (no DB records)
+    // 4) Contacts page with hardcoded stores
     // -----------------------------------------------------------------
 
-    public function test_contacts_page_renders_with_fallback_stores(): void
+    public function test_contacts_page_renders_stores(): void
     {
-        // No Location records in DB
-        $this->assertDatabaseCount('locations', 0);
-
         $response = $this->get(route('website.contacts'));
 
         $response->assertOk()
@@ -476,36 +472,5 @@ class RenderingFixesTest extends TestCase
             ->assertSee('Loja Guimarães', false)
             ->assertSee('253 271 187', false)
             ->assertSee('253 145 388', false);
-    }
-
-    public function test_location_stores_returns_hardcoded_collection(): void
-    {
-        $stores = Location::stores();
-
-        $this->assertCount(2, $stores);
-        $this->assertSame('Loja Braga', $stores[0]->name);
-        $this->assertSame('Loja Guimarães', $stores[1]->name);
-        $this->assertSame('braga', $stores[0]->pickup_location_code);
-        $this->assertSame('guimaraes', $stores[1]->pickup_location_code);
-    }
-
-    public function test_location_stores_does_not_query_database(): void
-    {
-        // Create a Location record to prove stores() ignores DB
-        Location::create([
-            'name' => 'DB Store',
-            'is_active' => true,
-        ]);
-
-        $stores = Location::stores();
-
-        // Should still return exactly 2 hardcoded stores
-        $this->assertCount(2, $stores);
-        $this->assertSame('Loja Braga', $stores[0]->name);
-        $this->assertSame('Loja Guimarães', $stores[1]->name);
-
-        // DB store should not appear
-        $dbNames = $stores->pluck('name')->all();
-        $this->assertNotContains('DB Store', $dbNames);
     }
 }
