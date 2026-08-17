@@ -56,12 +56,6 @@ class RecipeResource extends Resource
 
                 Forms\Components\TagsInput::make('tags'),
 
-                Forms\Components\Select::make('products')
-                    ->relationship('products', 'name')
-                    ->multiple()
-                    ->preload()
-                    ->label('Related Products'),
-
                 Forms\Components\Toggle::make('is_published')
                     ->default(false),
             ]);

@@ -28,16 +28,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
         using: function (): void {
             require base_path('routes/health.php');
 
-            $shopPath = trim((string) config('biobrassica.paths.shop', 'loja'), '/');
-
-            Route::middleware('web')
-                ->prefix($shopPath)
-                ->group(base_path('routes/web.php'));
-
-            Route::middleware('web')
-                ->prefix($shopPath)
-                ->group(base_path('routes/shop.php'));
-
             Route::middleware('web')
                 ->group(base_path('routes/website.php'));
         },

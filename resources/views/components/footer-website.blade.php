@@ -31,7 +31,7 @@
       <div>
         <h3 class="font-semibold text-sm uppercase tracking-widest mb-4">Navegação</h3>
         <ul class="space-y-2 text-sm text-paper/70">
-          <li><a href="{{ route('website.about') }}" class="hover:text-paper transition-colors">Quem Somos</a></li><li><a href="{{ route('website.agriculture') }}" class="hover:text-paper transition-colors">Agricultura Bio</a></li><li><a href="{{ route('content.blog') }}" class="hover:text-paper transition-colors">Blog</a></li><li><a href="{{ route('content.recipes') }}" class="hover:text-paper transition-colors">Receitas</a></li><li><a href="{{ route('shop.home') }}" class="hover:text-paper transition-colors">Catálogo</a></li><li><a href="{{ route('website.contacts') }}" class="hover:text-paper transition-colors">Contactos</a></li>
+          <li><a href="{{ route('website.about') }}" class="hover:text-paper transition-colors">Quem Somos</a></li><li><a href="{{ route('website.agriculture') }}" class="hover:text-paper transition-colors">Agricultura Bio</a></li><li><a href="{{ route('content.blog') }}" class="hover:text-paper transition-colors">Blog</a></li><li><a href="{{ route('content.recipes') }}" class="hover:text-paper transition-colors">Receitas</a></li><li><x-shop-cta variant="footer" :shop-cta="$shopCta" /></li><li><a href="{{ route('website.contacts') }}" class="hover:text-paper transition-colors">Contactos</a></li>
         </ul>
       </div>
     </div>

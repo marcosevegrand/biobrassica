@@ -11,6 +11,7 @@ class WebsiteContent extends Model
         return [
             'company_legal_name' => config('app.name', 'Biobrassica'),
             'support_email' => config('mail.from.address', 'hello@example.com'),
+            'shop_coming_soon' => true,
         ];
     }
 
@@ -27,8 +28,6 @@ class WebsiteContent extends Model
         'whatsapp_number',
         'hero_title',
         'hero_subtitle',
-        'hero_cta_text',
-        'hero_cta_url',
         'about_title',
         'about_content',
         'about_image',
@@ -53,5 +52,13 @@ class WebsiteContent extends Model
         'terms_conditions_text',
         'google_analytics_id',
         'google_tag_manager_id',
+        'shop_coming_soon',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'shop_coming_soon' => 'boolean',
+        ];
+    }
 }

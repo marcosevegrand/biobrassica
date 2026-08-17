@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use App\Models\CategoryPosition;
-use App\Models\Product;
 use App\Models\WebsiteContent;
 use Illuminate\Database\Seeder;
 
@@ -20,8 +17,6 @@ class BiobrassicaContentSeeder extends Seeder
             'whatsapp_number' => '+351938722638',
             'hero_title' => "Tudo que precisa para uma\nalimentação saudável",
             'hero_subtitle' => 'Conheça a nossa seleção de produtos biológicos disponíveis nas nossas lojas em Braga e Guimarães.',
-            'hero_cta_text' => 'Descubra os nossos produtos',
-            'hero_cta_url' => '/catalogo',
             'about_title' => 'Do campo à sua mesa, com quem conhece a terra',
             'about_content' => $this->aboutContent(),
             'agriculture_title' => 'Agricultura Biológica',
@@ -38,84 +33,8 @@ class BiobrassicaContentSeeder extends Seeder
             'instagram_url' => 'https://www.instagram.com/biobrassica/',
             'privacy_policy_text' => $this->privacyText(),
             'terms_conditions_text' => $this->termsText(),
+            'shop_coming_soon' => true,
         ]);
-
-        $categoryRows = [
-            [
-                'slug' => 'frescos-biologicos',
-                'name' => 'Frescos Biológicos',
-                'message' => 'Hortícolas e fruta de época selecionados com cuidado.',
-                'image' => 'images/products/pexels-the-glorious-studio-3584518-7093767.jpg',
-            ],
-            [
-                'slug' => 'mercearia-bio',
-                'name' => 'Mercearia Bio',
-                'message' => 'Essenciais biológicos para a despensa.',
-                'image' => 'images/products/pexels-kelvinocta16-7190367.jpg',
-            ],
-            [
-                'slug' => 'cabazes',
-                'name' => 'Cabazes',
-                'message' => 'Seleções sazonais para simplificar a sua semana.',
-                'image' => 'images/products/pexels-zandatsu-29502955.jpg',
-            ],
-        ];
-
-        $categories = [];
-        foreach ($categoryRows as $index => $row) {
-            $category = Category::query()->updateOrCreate(['slug' => $row['slug']], [
-                'name' => $row['name'],
-                'image' => $row['image'],
-                'is_active' => true,
-                'is_special' => $row['slug'] === 'cabazes',
-                'featured_message' => $row['message'],
-            ]);
-            CategoryPosition::query()->updateOrCreate(['category_id' => $category->id], ['position' => $index + 1]);
-            $categories[$row['slug']] = $category;
-        }
-
-        $products = [
-            // Frescos Biológicos (7 products)
-            ['category' => 'frescos-biologicos', 'slug' => 'tomate-bio',            'name' => 'Tomate Bio',         'description' => 'Tomate biológico de época, selecionado pela frescura e sabor.',                          'quantity' => '1 kg',    'image' => 'images/products/pexels-alexasfotos-32114560.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'brocolos-bio',          'name' => 'Brócolos Bio',       'description' => 'Brócolos biológicos frescos, ideais para refeições nutritivas.',                       'quantity' => 'unidade', 'image' => 'images/products/pexels-brett-sayles-1729386.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'alface-bio',            'name' => 'Alface Bio',         'description' => 'Alface biológica fresca, cultivada localmente com métodos tradicionais.',               'quantity' => 'unidade', 'image' => 'images/products/pexels-alokkd1-24702077.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'cenoura-bio',           'name' => 'Cenoura Bio',        'description' => 'Cenoura biológica doce e crocante, ideal para saladas e confeção.',                    'quantity' => '500 g',   'image' => 'images/products/pexels-jose-martin-segura-benites-1422456152-27018343.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'laranja-bio',           'name' => 'Laranja Bio',        'description' => 'Laranja biológica de época, sumarenta e cheia de sabor.',                              'quantity' => '1 kg',    'image' => 'images/products/pexels-jose-martin-segura-benites-1422456152-27174573.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'banana-bio',            'name' => 'Banana Bio',         'description' => 'Banana biológica de comércio justo, doce e cremosa.',                                  'quantity' => '600 g',   'image' => 'images/products/pexels-jose-martin-segura-benites-1422456152-27204302.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'espinafres-bio',        'name' => 'Espinafres Bio',     'description' => 'Espinafres biológicos frescos, ricos em ferro e nutrientes.',                          'quantity' => '200 g',   'image' => 'images/products/pexels-makrufinmuhammad-33537129.jpg'],
-            ['category' => 'frescos-biologicos', 'slug' => 'pera-bio',             'name' => 'Pêra Bio',           'description' => 'Pêra biológica de época, doce e suculenta.',                                          'quantity' => '1 kg',    'image' => 'images/products/pexels-pu-ca-adryan-163345030-31338030.jpg'],
-
-            // Mercearia Bio (7 products)
-            ['category' => 'mercearia-bio',     'slug' => 'massa-bio-500g',        'name' => 'Massa Bio',          'description' => 'Massa biológica para a sua mercearia do dia-a-dia.',                                  'quantity' => '500 g',   'image' => 'images/products/pexels-photographer-7258925.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'azeite-bio',            'name' => 'Azeite Bio',         'description' => 'Azeite virgem extra biológico, prensado a frio.',                                     'quantity' => '500 ml',  'image' => 'images/products/pexels-alex360-7397134.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'arroz-bio',             'name' => 'Arroz Bio',          'description' => 'Arroz biológico de grão longo, ideal para o dia-a-dia.',                              'quantity' => '1 kg',    'image' => 'images/products/pexels-blackcurrant-great-2016663774-31350073.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'feijao-bio',            'name' => 'Feijão Bio',         'description' => 'Feijão biológico seco, rico em proteína e fibra.',                                    'quantity' => '500 g',   'image' => 'images/products/pexels-borta-2790256-30271083.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'grao-de-bico-bio',      'name' => 'Grão-de-bico Bio',   'description' => 'Grão-de-bico biológico, perfeito para saladas e pratos quentes.',                      'quantity' => '500 g',   'image' => 'images/products/pexels-ibrahim-plastic-industry-ipi-336306893-14207016.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'aveia-bio',             'name' => 'Aveia Bio',          'description' => 'Flocos de aveia biológicos integrais, ideais para pequeno-almoço.',                   'quantity' => '400 g',   'image' => 'images/products/pexels-ismaelabdalnabystudio-20387931.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'mel-bio',               'name' => 'Mel Bio',            'description' => 'Mel biológico puro, produzido localmente sem aditivos.',                               'quantity' => '250 g',   'image' => 'images/products/pexels-john-robertson-1100376905-35292476.jpg'],
-            ['category' => 'mercearia-bio',     'slug' => 'cafe-bio',              'name' => 'Café Bio',           'description' => 'Café biológico de comércio justo, moído e aromático.',                                'quantity' => '200 g',   'image' => 'images/products/pexels-supliful-14029291.jpg'],
-
-            // Cabazes (4 products)
-            ['category' => 'cabazes',           'slug' => 'cabaz-sazonal-bio',     'name' => 'Cabaz Sazonal Bio',  'description' => 'Cabaz com produtos biológicos selecionados de acordo com a época.',                    'quantity' => 'cabaz',   'image' => 'images/products/pexels-designecologist-1367225.jpg'],
-            ['category' => 'cabazes',           'slug' => 'cabaz-pequeno-bio',     'name' => 'Cabaz Pequeno Bio',  'description' => 'Cabaz pequeno com uma seleção de frescos e mercearia para a semana.',                 'quantity' => 'cabaz',   'image' => 'images/products/pexels-kunal-lakhotia-781256899-29685045.jpg'],
-            ['category' => 'cabazes',           'slug' => 'cabaz-familia-bio',     'name' => 'Cabaz Família Bio',  'description' => 'Cabaz grande com variedade de produtos para toda a família.',                         'quantity' => 'cabaz',   'image' => 'images/products/pexels-laarkstudio-30982135.jpg'],
-            ['category' => 'cabazes',           'slug' => 'cabaz-organic-box',     'name' => 'Cabaz Orgânico',     'description' => 'Cabaz surpresa com produtos biológicos selecionados criteriosamente pela nossa equipa.', 'quantity' => 'cabaz', 'image' => 'images/products/pexels-mike-van-schoonderwalt-1884800-5484540.jpg'],
-        ];
-
-        foreach ($products as $row) {
-            Product::query()->updateOrCreate(['slug' => $row['slug']], [
-                'category_id' => $categories[$row['category']]->id,
-                'name' => $row['name'],
-                'brand' => 'Biobrassica',
-                'bio_code' => 'PT-BIO-03',
-                'description' => $row['description'],
-                'allergens' => 'Sem indicação de alergénicos',
-                'quantity' => $row['quantity'],
-                'is_active' => true,
-                'is_highlight' => true,
-                'image' => $row['image'],
-            ]);
-        }
     }
 
     private function aboutContent(): string

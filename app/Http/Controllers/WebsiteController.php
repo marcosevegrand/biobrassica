@@ -82,7 +82,7 @@ class WebsiteController extends Controller
                 'address' => "Avenida Doutor António Palha\nBraga",
                 'phone' => '253 271 187',
                 'email' => 'geral@biobrassica.pt',
-                'opening_hours' => "Segunda a Sábado\n9h00 – 19h30",
+                'opening_hours' => "Segunda a Sábado\n9h00 – 20h00",
                 'image' => 'images/shop/loja-braga.webp',
                 'map_embed_url' => 'https://maps.google.com/maps?q=Biobr%C3%A1ssica+Braga+Avenida+Doutor+Ant%C3%B3nio+Palha&t=&z=16&ie=UTF8&iwloc=&output=embed',
             ],

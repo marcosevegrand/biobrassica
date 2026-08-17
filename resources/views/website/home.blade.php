@@ -6,8 +6,6 @@
 @php
   $homeHeroTitle = $websiteContent?->hero_title ?: 'Tudo que precisa para uma alimentação saudável';
   $homeHeroSubtitle = $websiteContent?->hero_subtitle ?: 'Produtos biológicos, saudáveis para si, bons para o ambiente.';
-  $homeHeroCtaText = $websiteContent?->hero_cta_text ?: 'Ir para o Catálogo';
-  $homeHeroCtaUrl = $websiteContent?->hero_cta_url ?: route('shop.home');
 @endphp
 <section class="relative h-screen flex items-center justify-center overflow-hidden">
   <img src="{{ asset('images/products/003.jpg') }}" alt="Biobrassica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
@@ -70,10 +68,10 @@
     <img src="{{ asset('images/arts/strawberry.svg') }}" alt="" class="absolute w-14 md:w-16 opacity-[0.21] rotate-8 svg-filter-hero top-[82%] left-[85%]">
   </div>
   <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
-    <p class="text-xs uppercase tracking-[0.3em] text-paper/60 mb-4">Catálogo</p>
+    <p class="text-xs uppercase tracking-[0.3em] text-paper/60 mb-4">Loja</p>
     <h2 class="text-3xl md:text-4xl font-serif italic mb-6">Descubra os nossos produtos</h2>
     <p class="text-paper/70 mb-10 max-w-xl mx-auto">Conheça a nossa seleção de produtos biológicos disponíveis nas nossas lojas em Braga e Guimarães.</p>
-    <a href="{{ $homeHeroCtaUrl }}" class="inline-block px-10 py-4 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">{{ $homeHeroCtaText }}</a>
+    <x-shop-cta variant="home" label="Descubra os nossos produtos" :shop-cta="$shopCta" />
   </div>
 </section>
 

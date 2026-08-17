@@ -49,11 +49,13 @@ class WebsiteContentResource extends Resource
                                     ->maxLength(255),
                                 Forms\Components\Textarea::make('hero_subtitle')
                                     ->maxLength(65535),
-                                Forms\Components\TextInput::make('hero_cta_text')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('hero_cta_url')
-                                    ->url()
-                                    ->maxLength(255),
+                            ]),
+                        Forms\Components\Tabs\Tab::make('Loja')
+                            ->schema([
+                                Forms\Components\Toggle::make('shop_coming_soon')
+                                    ->label('Modo "Em breve"')
+                                    ->default(true)
+                                    ->helperText('Ativo: o botão "Loja" mostra "Em breve" (esbatido) e não redireciona. Inativo: mostra "Loja" e redireciona para o URL configurado em SHOP_URL.'),
                             ]),
                         Forms\Components\Tabs\Tab::make('About Page')
                             ->schema([

@@ -58,7 +58,7 @@ class ContentController extends Controller
 
     public function recipeDetail($slug)
     {
-        $recipe = Recipe::with(['translations', 'products'])
+        $recipe = Recipe::with('translations')
             ->where('slug', $slug)
             ->where('is_published', true)
             ->firstOrFail();

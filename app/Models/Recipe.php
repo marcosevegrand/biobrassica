@@ -29,9 +29,4 @@ class Recipe extends Model
     {
         return $this->hasMany(RecipeTranslation::class);
     }
-
-    public function products()
-    {
-        return $this->belongsToMany(Product::class, 'recipe_product');
-    }
 }

@@ -130,17 +130,6 @@
             </div>
         @endif
 
-        @if($recipe->products && $recipe->products->isNotEmpty())
-            <section class="mt-12 pt-8 border-t border-stone/40">
-                <h2 class="font-serif text-2xl font-bold text-forest mb-6">Produtos Relacionados</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($recipe->products as $product)
-                        <x-product-card :product="$product" />
-                    @endforeach
-                </div>
-            </section>
-        @endif
-
         <div class="mt-12 pt-8 border-t border-stone/40">
             <a href="{{ route('content.recipes') }}" class="inline-flex items-center gap-2 text-terracotta hover:underline font-medium">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
