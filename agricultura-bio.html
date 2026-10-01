@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Agricultura Biológica | Biobrassica</title>
+    <meta name="description" content="Saiba como praticamos agricultura biológica certificada no Minho, com respeito pela biodiversidade e pelos ciclos naturais.">
+    <meta name="keywords" content="biobrassica, biológico, agricultura biológica, produtos biológicos, Braga, Guimarães">
+
+    <link rel="icon" type="image/png" href="images/brand/favicon_green.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#FBF9F6',
+                        forest: '#2C3F2D',
+                        terracotta: '#B07850',
+                        stone: '#D1D1CC',
+                        muted: '#6B6B6B',
+                    },
+                    fontFamily: {
+                        serif: ['Lora', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    maxWidth: {
+                        '384': '96rem',
+                        '6xl': '72rem',
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/biobrassica-overrides.css">
+</head>
+<body class="min-h-screen flex flex-col bg-[#FBF9F6] text-[#2C3F2D] font-light antialiased">
+
+    <header id="site-header" class="fixed top-0 left-0 right-0 z-50 bg-forest text-paper transition-all duration-300">
+      <nav class="max-w-384 mx-auto px-6 xl:px-8 2xl:px-10 py-3 flex items-center gap-6 xl:gap-8">
+        <a href="index.html" class="block shrink-0" aria-label="Biobrassica">
+          <img id="logo-white" src="images/brand/logo-white-no-bg.webp" alt="Biobrassica" class="hidden-logo-state h-[68px] max-h-[68px] w-auto max-w-[280px] object-contain block">
+          <img id="logo-green" src="images/brand/logo-green-no-bg.webp" alt="Biobrassica" class="hidden hidden-logo-state h-[68px] max-h-[68px] w-auto max-w-[280px] object-contain">
+        </a>
+
+        <ul class="hidden lg:flex flex-1 items-center justify-center gap-5 xl:gap-7 2xl:gap-8 min-w-0">
+          <li><a href="quem-somos.html" class="whitespace-nowrap text-sm uppercase tracking-[0.22em] text-current opacity-80 hover:opacity-100 transition-colors">Quem Somos</a></li>
+          <li><a href="agricultura-bio.html" class="whitespace-nowrap text-sm uppercase tracking-[0.22em] text-current opacity-80 hover:opacity-100 transition-colors">Agricultura Bio</a></li>
+          <li><a href="contactos.html" class="whitespace-nowrap text-sm uppercase tracking-[0.22em] text-current opacity-80 hover:opacity-100 transition-colors">Contactos</a></li>
+        </ul>
+
+        <div class="hidden lg:flex items-center gap-3 xl:gap-4 ml-auto shrink-0">
+          <a id="loja-cta" href="https://biobrassica.pt/loja" class="whitespace-nowrap px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-[0.22em] rounded-sm hover:bg-paper/90 transition-colors">Loja</a>
+        </div>
+
+        <div class="flex lg:hidden items-center gap-4 ml-auto">
+          <button id="mobile-menu-btn" class="flex flex-col gap-1.5 p-1" aria-label="Alternar menu">
+            <span class="block w-6 h-0.5 bg-current transition-transform" id="hamburger-top"></span>
+            <span class="block w-6 h-0.5 bg-current transition-opacity" id="hamburger-mid"></span>
+            <span class="block w-6 h-0.5 bg-current transition-transform" id="hamburger-bot"></span>
+          </button>
+        </div>
+      </nav>
+
+      <div id="mobile-menu" class="lg:hidden hidden bg-forest text-paper border-t border-paper/20">
+        <ul class="flex flex-col items-center gap-6 py-8">
+          <li><a href="quem-somos.html" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Quem Somos</a></li>
+          <li><a href="agricultura-bio.html" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Agricultura Bio</a></li>
+          <li><a href="contactos.html" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Contactos</a></li>
+          <li><a href="https://biobrassica.pt/loja" class="px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-widest rounded-sm">Loja</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="flex-1">
+      <section class="relative h-screen flex items-center justify-center overflow-hidden">
+        <img src="images/products/006.webp" alt="Campo de agricultura biológica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
+        <div class="relative z-10 text-center text-forest px-8 sm:px-10 md:px-12 py-10 max-w-4xl xl:max-w-5xl rounded-sm bg-paper/80 backdrop-blur-sm">
+          <h1 class="font-serif text-4xl md:text-6xl italic mb-6">Agricultura Biológica</h1>
+          <p class="text-base md:text-lg leading-relaxed text-forest/75 max-w-2xl mx-auto">A agricultura biológica respeita os ciclos naturais, promove a biodiversidade e dispensa pesticidas químicos. Conheça os nossos princípios e certificações.</p>
+        </div>
+      </section>
+
+      <section class="bg-paper pb-20 pt-24">
+        <div class="max-w-4xl mx-auto px-6">
+          <div class="text-center mb-14"><h2 class="text-3xl font-serif text-forest mb-4 italic">Os Princípios da Agricultura Bio</h2></div>
+          <div class="grid md:grid-cols-2 gap-8 mb-16">
+            <div class="flex gap-4"><div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center"><span class="text-forest font-serif text-lg">1</span></div><div><h3 class="font-serif text-lg text-forest mb-2">Sem pesticidas sintéticos</h3><p class="text-muted text-sm leading-relaxed">Utilizamos apenas métodos naturais de controlo de pragas: insetos auxiliares, rotação de culturas e preparados biológicos.</p></div></div>
+            <div class="flex gap-4"><div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center"><span class="text-forest font-serif text-lg">2</span></div><div><h3 class="font-serif text-lg text-forest mb-2">Solo vivo</h3><p class="text-muted text-sm leading-relaxed">Alimentamos o solo, não apenas a planta. Compostagem, adubos verdes e coberturas vegetais mantêm a vida microbiana do solo.</p></div></div>
+            <div class="flex gap-4"><div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center"><span class="text-forest font-serif text-lg">3</span></div><div><h3 class="font-serif text-lg text-forest mb-2">Sem OGM</h3><p class="text-muted text-sm leading-relaxed">Não utilizamos organismos geneticamente modificados em nenhuma fase da produção.</p></div></div>
+            <div class="flex gap-4"><div class="shrink-0 w-12 h-12 bg-forest/10 rounded-full flex items-center justify-center"><span class="text-forest font-serif text-lg">4</span></div><div><h3 class="font-serif text-lg text-forest mb-2">Biodiversidade</h3><p class="text-muted text-sm leading-relaxed">Promovemos a diversidade de espécies nas nossas hortas, criando ecossistemas resilientes e equilibrados.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-forest/5 py-24">
+        <div class="max-w-7xl mx-auto px-6">
+          <h2 class="font-serif text-3xl md:text-4xl text-center italic mb-16">As Nossas Certificações</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div class="bg-paper border border-stone/40 rounded-sm p-8 text-center"><img src="images/certs/eu-bio-logo.webp" alt="Euro Leaf" class="h-20 w-auto mx-auto mb-6" loading="lazy"><h3 class="font-serif text-xl italic mb-4">Euro Leaf</h3><p class="text-muted text-sm leading-relaxed">O logótipo europeu de agricultura biológica garante que pelo menos 95% dos ingredientes agrícolas são de produção biológica certificada, seguindo regulamentos rigorosos da UE.</p></div>
+            <div class="bg-paper border border-stone/40 rounded-sm p-8 text-center"><img src="images/certs/certiplanet-logo.webp" alt="Certiplanet" class="h-20 w-auto mx-auto mb-6" loading="lazy"><h3 class="font-serif text-xl italic mb-4">Certiplanet</h3><p class="text-muted text-sm leading-relaxed">Organismo de controlo e certificação reconhecido em Portugal, a Certiplanet verifica e atesta que os nossos métodos de produção cumprem todas as normas de agricultura biológica.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-paper py-20">
+        <div class="max-w-4xl mx-auto px-6">
+          <div class="text-center mb-14"><p class="text-xs uppercase tracking-[0.3em] text-muted mb-2">Da Terra</p><h2 class="text-3xl font-serif text-forest italic">Calendário Sazonal</h2><p class="text-muted mt-3 max-w-xl mx-auto">Respeitamos as estações do ano. Cada época traz os seus sabores únicos.</p></div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20"><span class="text-3xl mb-3 block">🌱</span><h3 class="font-serif text-forest mb-1">Primavera</h3><p class="text-xs text-muted">Ervilhas, favas, alfaces, morangos, ervas aromáticas</p></div>
+            <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20"><span class="text-3xl mb-3 block">☀️</span><h3 class="font-serif text-forest mb-1">Verão</h3><p class="text-xs text-muted">Tomates, pepinos, pimentos, beringelas, melancia</p></div>
+            <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20"><span class="text-3xl mb-3 block">🍂</span><h3 class="font-serif text-forest mb-1">Outono</h3><p class="text-xs text-muted">Abóboras, couves, brócolos, castanhas, cogumelos</p></div>
+            <div class="text-center p-6 bg-white rounded-lg shadow-sm border border-stone/20"><span class="text-3xl mb-3 block">❄️</span><h3 class="font-serif text-forest mb-1">Inverno</h3><p class="text-xs text-muted">Nabiças, grelos, couves, laranjas, tangerinas</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-forest/5 py-24">
+        <div class="max-w-4xl mx-auto px-6"><div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"><div><h2 class="font-serif text-3xl italic mb-6">Porquê biológico?</h2><div class="space-y-4 text-muted text-sm leading-relaxed"><p>A agricultura biológica não é apenas uma forma de produzir alimentos — é uma filosofia de vida que respeita o equilíbrio natural dos ecossistemas. Ao evitar pesticidas e fertilizantes químicos, protegemos a biodiversidade, a qualidade da água e a saúde do solo.</p><p>Para o consumidor, os alimentos biológicos significam mais sabor, mais nutrientes e a garantia de que cada mordida está livre de resíduos químicos. É uma escolha consciente para a saúde da família e do planeta.</p><p>Na região do Minho, a riqueza do solo e o clima atlântico criam condições ideais para a agricultura biológica, permitindo-nos cultivar uma enorme variedade de produtos ao longo do ano.</p></div></div><div class="overflow-hidden rounded-sm"><img src="images/people/006.webp" alt="Solo saudável e plantas biológicas" class="w-full aspect-3/4 object-cover" loading="lazy"></div></div></div>
+      </section>
+
+      <section class="relative bg-paper text-forest py-16 overflow-hidden border-t border-b border-stone/30">
+        <div class="absolute inset-0 pointer-events-none" aria-hidden="true"><img src="images/arts/cabbage.svg" alt="" class="absolute w-14 md:w-16 opacity-[0.18] -rotate-12 svg-filter-cta top-[8%] left-[9%]"><img src="images/arts/avocado.svg" alt="" class="absolute w-14 md:w-16 opacity-[0.16] rotate-6 svg-filter-cta top-[43%] left-[14%]"><img src="images/arts/garlic.svg" alt="" class="absolute w-14 md:w-16 opacity-[0.16] -rotate-8 svg-filter-cta top-[77%] left-[10%]"><img src="images/arts/strawberry.svg" alt="" class="absolute w-14 md:w-16 opacity-[0.18] rotate-11 svg-filter-cta top-[13%] left-[83%]"><img src="images/arts/onion.svg" alt="" class="absolute w-14 md:w-16 opacity-[0.18] rotate-7 svg-filter-cta top-[52%] left-[87%]"><img src="images/arts/broccoli.svg" alt="" class="absolute w-14 md:w-16 opacity-[0.16] -rotate-9 svg-filter-cta top-[74%] left-[82%]"></div>
+        <div class="relative z-10 max-w-3xl mx-auto px-6 text-center"><h2 class="text-2xl font-serif italic mb-4">Prove a diferença do biológico</h2><p class="text-forest/75 mb-8">Consulte a nossa loja online ou visite uma das nossas lojas físicas.</p><a href="https://biobrassica.pt/loja" class="inline-block px-8 py-3 bg-forest text-paper text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-forest/90 transition-colors">Ver Loja</a></div>
+      </section>
+    </main>
+
+    <footer class="bg-forest text-paper">
+      <div class="max-w-7xl mx-auto px-6 py-16">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div>
+            <a href="index.html"><img src="images/brand/logo-white-no-bg.webp" alt="Biobrassica" class="h-10 mb-4"></a>
+            <p class="text-paper/70 text-sm leading-relaxed max-w-xs">Produtos biológicos frescos, selecionados com cuidado no coração do Minho.</p>
+            <div class="flex items-center gap-4 mt-6">
+              <a href="https://www.instagram.com/biobrassica/" target="_blank" rel="noopener" aria-label="Instagram" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg></a>
+              <a href="https://www.facebook.com/biobrassica" target="_blank" rel="noopener" aria-label="Facebook" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+              <a href="https://wa.me/351938722638" target="_blank" rel="noopener" aria-label="WhatsApp" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/></svg></a>
+            </div>
+            <div class="mt-6"><h4 class="font-semibold text-xs uppercase tracking-widest mb-2">Certificações</h4><div class="flex items-center gap-3"><img src="images/certs/eu-bio-logo.webp" alt="EU Organic Logo" class="h-10 object-contain" loading="lazy"><img src="images/certs/certiplanet-logo.webp" alt="Certiplanet" class="h-10 object-contain" loading="lazy"></div></div>
+          </div>
+          <div>
+            <h3 class="font-semibold text-sm uppercase tracking-widest mb-4">As Nossas Lojas</h3>
+            <div class="space-y-6 text-sm text-paper/70">
+              <div><p class="font-medium text-paper">Loja Braga</p><p class="whitespace-pre-line">Avenida Doutor António Palha
+Braga</p><p>253 271 187</p><p>geral@biobrassica.pt</p></div>
+              <div><p class="font-medium text-paper">Loja Guimarães</p><p class="whitespace-pre-line">Rua Calouste Gulbenkian
+Guimarães</p><p>253 145 388</p><p>geral@biobrassica.pt</p></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold text-sm uppercase tracking-widest mb-4">Navegação</h3>
+            <ul class="space-y-2 text-sm text-paper/70">
+              <li><a href="quem-somos.html" class="hover:text-paper transition-colors">Quem Somos</a></li>
+              <li><a href="agricultura-bio.html" class="hover:text-paper transition-colors">Agricultura Bio</a></li>
+              <li><a href="https://biobrassica.pt/loja" class="hover:text-paper transition-colors">Loja</a></li>
+              <li><a href="contactos.html" class="hover:text-paper transition-colors">Contactos</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-12 pt-6 border-t border-paper/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-paper/50">
+          <p>&copy; <span id="year">2026</span> Biobrassica. Todos os direitos reservados.</p>
+          <div class="flex items-center gap-4"><a href="privacidade.html" class="hover:text-paper transition-colors">Política de Privacidade</a><a href="termos.html" class="hover:text-paper transition-colors">Termos e Condições</a></div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/navbar.js" defer></script>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

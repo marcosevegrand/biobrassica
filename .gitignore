@@ -1,41 +1,7 @@
-/.phpunit.cache
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/public/media/*
-/bootstrap/cache/*.php
-!public/media/.gitkeep
-/storage/*.key
-/storage/pail
-/vendor
-.env
-.env.backup
-.env.production
-.env.cpanel
-.phpactor.json
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/auth.json
-/.fleet
-/.idea
-/.nova
-/.vscode
-/.zed
+# macOS
+.DS_Store
 
-# cPanel
-/tmp/*
-!/tmp/.gitkeep
-
-# Backup files
-*.bak
-*.sql.gz
-*.tar.gz
-
-# Logs
-*.log
-/storage/logs/*
-.playwright-mcp/
+# Editors
+.idea/
+.vscode/
+*.swp
