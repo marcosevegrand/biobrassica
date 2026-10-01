@@ -58,10 +58,9 @@ Then open <http://localhost:8080>.
    root (containing `biobrassica.pt`). Just make sure the domain's DNS is pointed at
    GitHub Pages as described in the GitHub Pages documentation.
 
-`404.html` is used by GitHub Pages for unknown paths. Note that it references assets
-with root-relative paths (`/images/...`), which requires the site to be served from the
-domain root (custom domain or `user.github.io`). If you host it under a project
-subpath (`user.github.io/repo/`), update those paths in `404.html`.
+`404.html` is used by GitHub Pages for unknown paths. It injects a `<base>` tag at
+runtime so its relative asset paths resolve correctly both from a project subpath
+(`user.github.io/repo/`) and from a domain root (custom domain or `user.github.io`).
 
 ## Notes
 
