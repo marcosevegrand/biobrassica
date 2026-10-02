@@ -10,39 +10,17 @@
 
     <link rel="icon" type="image/png" href="images/brand/favicon_green.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        paper: '#FBF9F6',
-                        forest: '#2C3F2D',
-                        terracotta: '#B07850',
-                        stone: '#D1D1CC',
-                        muted: '#6B6B6B',
-                    },
-                    fontFamily: {
-                        serif: ['Lora', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    maxWidth: {
-                        '384': '96rem',
-                        '6xl': '72rem',
-                    },
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="css/utilities.css">
     <link rel="stylesheet" href="css/biobrassica-overrides.css">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FBF9F6] text-[#2C3F2D] font-light antialiased">
+    <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
 
     <header id="site-header" class="fixed top-0 left-0 right-0 z-50 bg-forest text-paper transition-all duration-300">
       <nav class="max-w-384 mx-auto px-6 xl:px-8 2xl:px-10 py-3 flex items-center gap-6 xl:gap-8">
         <a href="index.html" class="block shrink-0" aria-label="Biobrassica">
-          <img id="logo-white" src="images/brand/logo-white-no-bg.webp" alt="Biobrassica" class="hidden-logo-state h-[68px] max-h-[68px] w-auto max-w-[280px] object-contain block">
-          <img id="logo-green" src="images/brand/logo-green-no-bg.webp" alt="Biobrassica" class="hidden hidden-logo-state h-[68px] max-h-[68px] w-auto max-w-[280px] object-contain">
+          <img id="logo-white" src="images/brand/logo-white-no-bg.webp" width="560" height="168" alt="Biobrassica">
+          <img id="logo-green" src="images/brand/logo-green-no-bg.webp" width="560" height="168" alt="Biobrassica">
         </a>
 
         <ul class="hidden lg:flex flex-1 items-center justify-center gap-5 xl:gap-7 2xl:gap-8 min-w-0">
@@ -52,11 +30,12 @@
         </ul>
 
         <div class="hidden lg:flex items-center gap-3 xl:gap-4 ml-auto shrink-0">
-          <a id="loja-cta" href="https://biobrassica.pt/loja" class="whitespace-nowrap px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-[0.22em] rounded-sm hover:bg-paper/90 transition-colors">Loja</a>
+          <a id="loja-cta" href="https://biobrassica.pt/loja" class="whitespace-nowrap px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-[0.22em] rounded-sm hover:bg-paper/90 transition-colors">Loja Online</a>
         </div>
 
         <div class="flex lg:hidden items-center gap-4 ml-auto">
-          <button id="mobile-menu-btn" class="flex flex-col gap-1.5 p-1" aria-label="Alternar menu">
+          <a class="mobile-shop" href="https://biobrassica.pt/loja">Loja Online</a>
+          <button id="mobile-menu-btn" class="flex flex-col gap-1.5 p-1" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-menu">
             <span class="block w-6 h-0.5 bg-current transition-transform" id="hamburger-top"></span>
             <span class="block w-6 h-0.5 bg-current transition-opacity" id="hamburger-mid"></span>
             <span class="block w-6 h-0.5 bg-current transition-transform" id="hamburger-bot"></span>
@@ -69,54 +48,69 @@
           <li><a href="quem-somos.html" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Quem Somos</a></li>
           <li><a href="agricultura-bio.html" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Agricultura Bio</a></li>
           <li><a href="contactos.html" class="text-sm uppercase tracking-widest hover:opacity-80 transition-colors">Contactos</a></li>
-          <li><a href="https://biobrassica.pt/loja" class="px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-widest rounded-sm">Loja</a></li>
+          <li><a href="https://biobrassica.pt/loja" class="px-5 py-2 bg-paper text-forest text-xs font-medium uppercase tracking-widest rounded-sm">Loja Online</a></li>
         </ul>
       </div>
     </header>
 
-    <main class="flex-1">
-      <section class="relative h-screen flex items-center justify-center overflow-hidden">
-        <img src="images/people/003.webp" alt="A equipa Biobrassica" class="absolute inset-0 w-full h-full object-cover" loading="eager">
-        <div class="relative z-10 text-center text-paper px-6 sm:px-8 max-w-5xl xl:max-w-6xl pt-20 sm:pt-24 md:pt-28">
-          <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif leading-tight">Do campo à sua mesa, com quem conhece a terra</h1>
-          <p class="mt-6 text-lg sm:text-xl md:text-2xl text-paper/90 max-w-2xl mx-auto">Pessoas reais, produtos de confiança. Conheça a história e os valores que movem a Biobrassica.</p>
-        </div>
+    <main id="conteudo" tabindex="-1" class="flex-1">
+      <section class="hero hero-secondary hero-about">
+        <img src="images/people/003.webp" srcset="images/people/responsive/003-480.webp 480w, images/people/responsive/003-800.webp 800w, images/people/003.webp 1600w" sizes="100vw" width="1600" height="795" alt="A equipa Biobrassica" class="hero-image" fetchpriority="high">
+        <div class="container"><div class="hero-content">
+          <p class="eyebrow">A nossa história</p>
+          <h1>Do campo à sua mesa, com quem conhece a terra.</h1>
+          <p>Pessoas reais, produtos de confiança. Conheça a história e os valores que movem a Biobrassica.</p>
+        </div></div>
       </section>
 
-      <section class="max-w-7xl mx-auto px-6 sm:px-8 pt-24 pb-12">
+      <section class="section container">
         <div class="space-y-16">
-          <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4"><h2 class="font-serif text-3xl md:text-4xl italic">O que significa "Biobrassica"</h2><p class="text-muted leading-relaxed">O nome "Biobrassica" junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden"><img src="images/products/002.webp" alt="Produtos biológicos Biobrassica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
-          <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4 md:order-2"><h2 class="font-serif text-3xl md:text-4xl italic">Como escolhemos os produtos</h2><p class="text-muted leading-relaxed">Somos, acima de tudo, uma loja. Escolhemos produtos de época com foco em frescura, origem e consistência, trabalhando com fornecedores e produtores de confiança alinhados com os nossos valores. A qualidade é acompanhada diariamente em loja, desde a receção ao acondicionamento e à exposição, para garantir produtos frescos, seguros e com origem clara para os nossos clientes.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden md:order-1"><img src="images/products/001.webp" alt="Produção biológica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
+          <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div><p class="eyebrow">As nossas raízes</p><h2 class="section-title">O que significa Biobrassica</h2><p class="text-muted">O nome junta duas ideias que orientam tudo o que fazemos: Bio, pela agricultura biológica e por um modo de produção responsável, e brassica, em homenagem à família de hortícolas que simboliza a origem agrícola da nossa região.</p></div>
+            <img src="images/products/002.webp" srcset="images/products/responsive/002-480.webp 480w, images/products/responsive/002-800.webp 800w, images/products/002.webp 1368w" sizes="(max-width: 767px) calc(100vw - 40px), 46vw" width="1368" height="912" alt="Couves da família das brassicas em loja" class="w-full aspect-4/3 object-cover rounded-lg" loading="lazy" decoding="async">
+          </article>
+          <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div class="md:order-2"><p class="eyebrow">O nosso cuidado diário</p><h2 class="section-title">Como escolhemos os produtos</h2><p class="text-muted">Escolhemos produtos de época com foco em frescura e origem, trabalhando com fornecedores e produtores de confiança.</p><p class="text-muted mt-4">A qualidade é acompanhada diariamente, desde a receção ao acondicionamento e à exposição, para disponibilizar produtos frescos, seguros e com origem clara.</p></div>
+            <img src="images/products/001.webp" srcset="images/products/responsive/001-480.webp 480w, images/products/responsive/001-800.webp 800w, images/products/001.webp 1368w" sizes="(max-width: 767px) calc(100vw - 40px), 46vw" width="1368" height="912" alt="Seleção de brócolos e couve-flor" class="w-full aspect-4/3 object-cover rounded-lg md:order-1" loading="lazy" decoding="async">
+          </article>
+          <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div><p class="eyebrow">A ligação à terra</p><h2 class="section-title">A nossa quinta biológica</h2><p class="text-muted">A nossa quinta é um projeto complementar, em pequena escala, que apoia a atividade da loja. Reforça alguns produtos e mantém a ligação direta à terra, sem substituir a nossa atividade principal: selecionar produtos de qualidade para a comunidade.</p><div class="actions"><a href="agricultura-bio.html" class="text-link">Conheça os princípios da agricultura biológica →</a></div></div>
+            <img src="images/people/001.webp" srcset="images/people/responsive/001-480.webp 480w, images/people/responsive/001-800.webp 800w, images/people/001.webp 900w" sizes="(max-width: 767px) calc(100vw - 40px), 46vw" width="900" height="768" alt="Uma criança a descobrir os hortícolas na quinta" class="w-full aspect-4/3 object-cover rounded-lg" loading="lazy" decoding="async">
+          </article>
         </div>
       </section>
 
-      <section class="max-w-7xl mx-auto px-6 sm:px-8 pt-12 pb-12">
-        <article class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center bg-forest/5 rounded-sm p-6 md:p-8"><div class="space-y-4"><h2 class="font-serif text-3xl md:text-4xl italic">A nossa quinta biológica</h2><p class="text-muted leading-relaxed">A nossa quinta biológica é um projeto complementar, em pequena escala, que apoia a atividade da loja. Serve para reforçar alguns produtos e manter ligação direta à terra, sem substituir a nossa atividade principal: selecionar e disponibilizar, em loja, produtos de qualidade para a comunidade.</p></div><div class="border border-stone/40 rounded-sm overflow-hidden"><img src="images/people/001.webp" alt="Quinta biológica da Biobrassica" class="w-full aspect-4/3 object-cover bg-paper" loading="lazy"></div></article>
+      <section class="section closing closing-soft">
+        <div class="container max-w-4xl">
+          <p class="eyebrow">As nossas lojas</p>
+          <h2 class="section-title">Conheça os nossos espaços</h2>
+          <div class="rounded-lg overflow-hidden mb-8"><video class="w-full shop-video" width="1280" height="720" controls preload="none" poster="images/shop/loja-braga.webp" aria-label="Vídeo de apresentação das lojas Biobrassica"><source src="videos/video_brassica.mp4" type="video/mp4">O seu navegador não suporta vídeo. <a href="videos/video_brassica.mp4">Ver vídeo de apresentação</a>.</video></div>
+          <p>Visite-nos em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa.</p>
+          <div class="actions"><a href="contactos.html" class="btn btn-primary">Encontrar uma Loja Física</a></div>
+        </div>
       </section>
-
-      <section class="px-6 sm:px-8 pb-24"><div class="max-w-4xl mx-auto bg-forest rounded-2xl p-6 sm:p-10"><p class="text-xs uppercase tracking-[0.3em] text-paper/50 mb-3 text-center">As nossas lojas</p><h2 class="text-2xl md:text-3xl font-serif italic text-paper text-center mb-8">Conheça os nossos espaços</h2><div class="rounded-lg overflow-hidden shadow-2xl mb-10"><video class="w-full" controls preload="metadata" poster="images/brand/logo-white-no-bg.webp"><source src="videos/video_brassica.mp4" type="video/mp4">O seu navegador não suporta vídeo.</video></div><div class="text-center"><p class="text-paper/70 mb-8">Visite as nossas lojas em Braga e Guimarães para conhecer os nossos produtos e a nossa equipa.</p><a href="contactos.html" class="inline-block px-8 py-3 bg-paper text-forest text-sm uppercase tracking-widest font-medium rounded-sm hover:bg-paper/90 transition-colors">Ver Localizações</a></div></div></section>
     </main>
 
     <footer class="bg-forest text-paper">
       <div class="max-w-7xl mx-auto px-6 py-16">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
-            <a href="index.html"><img src="images/brand/logo-white-no-bg.webp" alt="Biobrassica" class="h-10 mb-4"></a>
+            <a href="index.html"><img src="images/brand/logo-white-no-bg.webp" width="560" height="168" alt="Biobrassica" class="h-10 w-auto mb-4"></a>
             <p class="text-paper/70 text-sm leading-relaxed max-w-xs">Produtos biológicos frescos, selecionados com cuidado no coração do Minho.</p>
             <div class="flex items-center gap-4 mt-6">
-              <a href="https://www.instagram.com/biobrassica/" target="_blank" rel="noopener" aria-label="Instagram" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg></a>
+              <a href="https://www.instagram.com/biobrassica/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><use href="images/arts/social.svg#instagram"/></svg></a>
               <a href="https://www.facebook.com/biobrassica" target="_blank" rel="noopener" aria-label="Facebook" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-              <a href="https://wa.me/351938722638" target="_blank" rel="noopener" aria-label="WhatsApp" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/></svg></a>
+              <a href="https://wa.me/351938722638" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="text-paper/60 hover:text-paper transition-colors"><svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true"><use href="images/arts/social.svg#whatsapp"/></svg></a>
             </div>
-            <div class="mt-6"><h4 class="font-semibold text-xs uppercase tracking-widest mb-2">Certificações</h4><div class="flex items-center gap-3"><img src="images/certs/eu-bio-logo.webp" alt="EU Organic Logo" class="h-10 object-contain" loading="lazy"><img src="images/certs/certiplanet-logo.webp" alt="Certiplanet" class="h-10 object-contain" loading="lazy"></div></div>
+            <div class="mt-6"><h4 class="font-semibold text-xs uppercase tracking-widest mb-2">Certificações</h4><div class="flex items-center gap-3"><img src="images/certs/eu-bio-logo.webp" width="360" height="239" alt="Logótipo biológico da UE" class="h-10 w-auto object-contain" loading="lazy"><img src="images/certs/certiplanet-logo.webp" width="360" height="255" alt="Certiplanet" class="h-10 w-auto object-contain" loading="lazy"></div></div>
           </div>
           <div>
             <h3 class="font-semibold text-sm uppercase tracking-widest mb-4">As Nossas Lojas</h3>
             <div class="space-y-6 text-sm text-paper/70">
               <div><p class="font-medium text-paper">Loja Braga</p><p class="whitespace-pre-line">Avenida Doutor António Palha
-Braga</p><p>253 271 187</p><p>geral@biobrassica.pt</p></div>
+Braga</p><p><a href="tel:+351253271187">253 271 187</a></p><p><a href="mailto:geral@biobrassica.pt">geral@biobrassica.pt</a></p></div>
               <div><p class="font-medium text-paper">Loja Guimarães</p><p class="whitespace-pre-line">Rua Calouste Gulbenkian
-Guimarães</p><p>253 145 388</p><p>geral@biobrassica.pt</p></div>
+Guimarães</p><p><a href="tel:+351253145388">253 145 388</a></p><p><a href="mailto:geral@biobrassica.pt">geral@biobrassica.pt</a></p></div>
             </div>
           </div>
           <div>
@@ -124,7 +118,7 @@ Guimarães</p><p>253 145 388</p><p>geral@biobrassica.pt</p></div>
             <ul class="space-y-2 text-sm text-paper/70">
               <li><a href="quem-somos.html" class="hover:text-paper transition-colors">Quem Somos</a></li>
               <li><a href="agricultura-bio.html" class="hover:text-paper transition-colors">Agricultura Bio</a></li>
-              <li><a href="https://biobrassica.pt/loja" class="hover:text-paper transition-colors">Loja</a></li>
+              <li><a href="https://biobrassica.pt/loja" class="hover:text-paper transition-colors">Loja Online</a></li>
               <li><a href="contactos.html" class="hover:text-paper transition-colors">Contactos</a></li>
             </ul>
           </div>

@@ -1,7 +1,7 @@
 # Biobrassica — Website
 
-Static website for Biobrassica. Plain HTML, CSS and JavaScript — no build step, no
-server-side code. It can be served from any static host, including GitHub Pages.
+Static website for Biobrassica. Plain HTML, CSS and JavaScript — no runtime build,
+server-side code or database. It can be served from any static host, including GitHub Pages.
 
 ## Pages
 
@@ -20,18 +20,43 @@ server-side code. It can be served from any static host, including GitHub Pages.
 ```
 index.html, *.html      the pages
 404.html                not-found page
-CNAME                   custom domain for GitHub Pages (biobrassica.pt)
-css/                    biobrassica-overrides.css (fonts, prose, custom utilities)
+css/                    compiled utilities + shared design system
 js/navbar.js            mobile menu and navbar scroll behaviour
 images/                 brand, people, products, arts, certs, shop
 videos/                 promo video
 fonts/                  Lora + Inter webfonts
+scripts/                responsive image generation and static validation
+tailwind.config.cjs     utility CSS generation settings
 robots.txt              crawler rules
 .nojekyll               tells GitHub Pages not to run Jekyll
 ```
 
-Styling is done with the Tailwind CSS Play CDN (`https://cdn.tailwindcss.com`) plus
-`css/biobrassica-overrides.css`. No compilation is required.
+Styling uses a checked-in, locally compiled `css/utilities.css` and the shared
+design system in `css/biobrassica-overrides.css`. No CDN or compilation is needed
+to preview or deploy the website. All fonts and images are hosted locally.
+
+After changing utility classes in HTML or JavaScript, regenerate the CSS:
+
+```bash
+npx --yes tailwindcss@3.4.17 -i css/tailwind.css -o css/utilities.css --minify
+```
+
+The configuration is in `tailwind.config.cjs`. Commit the generated CSS alongside
+your changes. Responsive image variants can be regenerated using Pillow:
+
+```bash
+python3 scripts/generate-images.py
+```
+
+Check local links, image dimensions and page conventions with:
+
+```bash
+python3 scripts/check-site.py
+```
+
+Maps are embedded directly in the contact page and load automatically, including
+without JavaScript. The mobile menu supports Escape, outside clicks, expanded
+state announcements and breakpoint changes. Animations respect reduced motion.
 
 ## The shop
 
@@ -54,9 +79,9 @@ Then open <http://localhost:8080>.
 2. In the repository, go to **Settings → Pages**.
 3. Under **Build and deployment**, choose **Deploy from a branch**, select the branch
    (e.g. `main`) and the **`/` (root)** folder, then save.
-3. The custom domain is already configured via the `CNAME` file at the repository
-   root (containing `biobrassica.pt`). Just make sure the domain's DNS is pointed at
-   GitHub Pages as described in the GitHub Pages documentation.
+4. If using a custom domain, configure it in **Settings → Pages** and point its
+   DNS at GitHub Pages as described in the GitHub Pages documentation. This
+   repository does not currently include a `CNAME` file.
 
 `404.html` is used by GitHub Pages for unknown paths. It injects a `<base>` tag at
 runtime so its relative asset paths resolve correctly both from a project subpath
